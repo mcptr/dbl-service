@@ -32,7 +32,7 @@ void Unbound::create_config()
 		path /= "proxy-unbound.conf";
 	}
 	
-	if(!fs::exists(path)) {
+	if(!fs::exists(path) && config.dns_proxy_generate_config) {
 		LOG(WARNING) << "Configuration file does not exist. "
 					 << "Creating directory: " << path.parent_path();
 		fs::create_directories(path.parent_path());
