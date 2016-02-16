@@ -94,6 +94,7 @@ translation_units = {
 
 platform_translation_units = {
 	"linux": {
+		"config/unix": {},
 		"dnsproxy/unbound/unix" : {},
 		"service/unix" : {},
 		"service/linux" : {},

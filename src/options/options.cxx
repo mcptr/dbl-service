@@ -135,10 +135,14 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 po::value(&(config.network_ip6address))->default_value(config.network_ip6address)
 		)
 		("network-no-ip4",
-		 po::value(&(config.network_no_ip4))->default_value(config.network_no_ip4)
+		 po::value(&(config.network_no_ip4))->implicit_value(true)->zero_tokens()->default_value(
+			 config.network_no_ip4
+		 )
 		)
 		("network-no-ip6",
-		 po::value(&(config.network_no_ip6))->default_value(config.network_no_ip6)
+		 po::value(&(config.network_no_ip6))->implicit_value(true)->zero_tokens()->default_value(
+			 config.network_no_ip6
+		 )
 		)
 		;
 
