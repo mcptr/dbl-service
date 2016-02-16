@@ -12,9 +12,7 @@ namespace dbl {
 UnixUnbound::UnixUnbound(std::shared_ptr<RTApi> api)
 	: Unbound(api)
 {
-	pidfile_path_ = (
-		api_->program_options.get<std::string>("dns-proxy-pidfile")
-	);
+	pidfile_path_ = api_->config.dns_proxy_pidfile;
 }
 
 std::string UnixUnbound::get_executable_name() const
@@ -27,6 +25,10 @@ void UnixUnbound::start()
 	std::string cmd = this->find_executable();
 	if(cmd.empty()) {
 		throw std::runtime_error("Unable to find dns proxy executable");
+	}
+
+	if(!api_->config.is_foreground) {
+		cmd.append(" -d ");
 	}
 
 	cmd.append(" -c " + config_file_path_);

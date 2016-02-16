@@ -24,11 +24,11 @@ void Unbound::create_config()
 	using std::string;
 	using std::ofstream;
 
-	auto const& opts = api_->program_options;
-	fs::path path(opts.get<string>("dns-proxy-config"));
+	auto const& config = api_->config;
+	fs::path path(config.dns_proxy_config);
 
 	if(path.empty()) {
-		path = opts.get<string>("basedir");
+		path = config.base_dir;
 		path /= "proxy-unbound.conf";
 	}
 	
@@ -40,11 +40,9 @@ void Unbound::create_config()
 
 	config_file_path_ = path.string();
 
-	bool gen_config(opts.get<bool>("dns-proxy-generate-config"));
-
-	if(gen_config) {
+	if(config.dns_proxy_generate_config) {
 		Template tpl;
-		tpl.load(opts.get<string>("templates-dir"), "unbound.conf");
+		tpl.load(config.templates_dir, "unbound.conf");
 
 		LOG(INFO) << "Generating unbound config: " << path.string();
 
@@ -58,29 +56,37 @@ void Unbound::create_config()
 		ofstream ofh(config_file_path_);
 		ofh << tpl.render(config_) << std::endl;
 
-		bool no_ip4 = opts.get<bool>("network-no-ip4");
-		bool no_ip6 = opts.get<bool>("network-no-ip6");
-		std::string ip4address(opts.get<string>("network-ip4address"));
-		std::string ip6address(opts.get<string>("network-ip4address"));
-
 		ofh << ws
-			<< (no_ip4 ? "do-ip4: no" : "interface: " + ip4address)
+			<< (config.network_no_ip4
+				? "do-ip4: no"
+				: "interface: " + config.network_ip4address)
 			<< std::endl;
 
 		ofh << ws
-			<< (no_ip6 ? "do-ip6: no" : "interface: " + ip6address)
+			<< (config.network_no_ip6
+				? "do-ip6: no"
+				: "interface: " + config.network_ip6address)
 			<< std::endl;
+
+		if(!config.dns_proxy_disable_dnssec) {
+			ofh << ws 
+				<< "auto-trust-anchor-file: \""
+				<< config.dns_proxy_root_key
+				<< "\""
+				<< std::endl;
+		}
+
 
 		for(auto const& domain : domains_) {
 			ofh << ws << "local-data: \"" << domain
-			   << " IN A " << ip4address
+			   << " IN A " << config.network_ip4address
 			   << "\"" << std::endl;
 		}
 
-		auto ptr = std::move(api_->db->get_domains());
+		auto ptr = std::move(api_->db()->get_domains());
 		for(auto const& domain : *ptr) {
 			ofh << ws << "local-data: \"" << domain.name
-			   << " IN A " << ip4address
+			   << " IN A " << config.network_ip4address
 			   << "\"" << std::endl;
 		}
 
@@ -92,16 +98,16 @@ void Unbound::create_config()
 void Unbound::generate_config()
 {
 	namespace fs = boost::filesystem;
-	auto const& options = api_->program_options;
+	auto const& config = api_->config;
 
-	fs::path path(options.get<std::string>("basedir"));
-		
+	fs::path path(config.base_dir);
+
 	config_["DIRECTORY"] = path.parent_path().string();
 	config_["PIDFILE"] =  pidfile_path_;
-	config_["USER"] = options.get<std::string>("dns-proxy-user");
-	config_["CHROOT"] = options.get<std::string>("dns-proxy-chroot");
-	config_["LOGFILE"] = options.get<std::string>("dns-proxy-logfile");
-	config_["PORT"] = std::to_string(options.get<int>("dns-proxy-port"));
+	config_["USER"] = config.dns_proxy_user;
+	config_["CHROOT"] = config.dns_proxy_chroot;
+	config_["LOGFILE"] = config.dns_proxy_logfile;
+	config_["PORT"] = std::to_string(config.dns_proxy_port);
 }
 
 

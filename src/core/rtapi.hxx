@@ -4,8 +4,8 @@
 #include "options/options.hxx"
 #include "core/common.hxx"
 #include "db/db.hxx"
+#include "config/base.hxx"
 
-#include <string>
 #include <memory>
 
 namespace dbl {
@@ -14,11 +14,16 @@ class RTApi
 {
 public:
 	RTApi() = delete;
-	RTApi(const Options& po);
+	RTApi(const BaseConfig& config,
+		  std::shared_ptr<DB> db);
 	~RTApi() = default;
 
-	const Options program_options;
-	std::shared_ptr<DB> db;
+
+	const BaseConfig& config;
+	std::shared_ptr<DB> db();
+
+private:
+	std::shared_ptr<DB> db_;
 };
 
 } // service

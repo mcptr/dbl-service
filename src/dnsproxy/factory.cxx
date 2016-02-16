@@ -13,7 +13,7 @@ namespace dbl {
 
 std::unique_ptr<DNSProxy> create_dns_proxy(std::shared_ptr<RTApi> api)
 {
-	std::string name = api->program_options.get<std::string>("dns-proxy");
+	std::string name = api->config.dns_proxy;
 	boost::algorithm::to_lower(name);
 	std::unique_ptr<DNSProxy> ptr;
 	if(name.compare("dnsmasq") == 0) {
