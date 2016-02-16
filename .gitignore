@@ -10,6 +10,7 @@ logs/
 doc/
 var/
 rootdir/
+extern/root/
 
 # python
 **/__pycache__

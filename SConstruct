@@ -32,7 +32,7 @@ class Dirs(object):
 	objects = "%s/objs" % build
 	target = "%s/target" % build
 	source = "#src"
-	extern_source = "#extern"
+	extern_source = os.path.join(Dir("#extern").path, "root", "include")
 	project_source = source
 	destdir = "bin"
 

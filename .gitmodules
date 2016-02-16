@@ -4,3 +4,9 @@
 [submodule "extern/easyloggingcpp"]
 	path = extern/easyloggingcpp
 	url = https://github.com/easylogging/easyloggingpp
+[submodule "extern/repos/soci"]
+	path = extern/repos/soci
+	url = https://github.com/SOCI/soci.git
+[submodule "extern/repos/easyloggingcpp"]
+	path = extern/repos/easyloggingcpp
+	url = https://github.com/easylogging/easyloggingpp
