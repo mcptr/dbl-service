@@ -27,20 +27,21 @@ void Unbound::create_config()
 	auto const& config = api_->config;
 	fs::path path(config.dns_proxy_config);
 
-	if(path.empty()) {
-		path = config.base_dir;
-		path /= "proxy-unbound.conf";
+	if(!path.empty()) {
+		if(!fs::exists(path)) {
+			std::string msg("Configuration file does not exist: ");
+			msg.append(path.string());
+			LOG(ERROR) << msg;
+			throw std::runtime_error(msg);
+		}
 	}
-	
-	if(!fs::exists(path) && config.dns_proxy_generate_config) {
-		LOG(WARNING) << "Configuration file does not exist. "
-					 << "Creating directory: " << path.parent_path();
-		fs::create_directories(path.parent_path());
-	}
-
-	config_file_path_ = path.string();
 
 	if(config.dns_proxy_generate_config) {
+		path = config.dns_proxy_config_dest_dir;
+		path /= "proxy-unbound.conf";
+
+		config_file_path_ = path.string();
+
 		Template tpl;
 		tpl.load(config.templates_dir, "unbound.conf");
 
@@ -102,7 +103,11 @@ void Unbound::generate_config()
 
 	fs::path path(config.base_dir);
 
-	config_["DIRECTORY"] = path.parent_path().string();
+	config_["DIRECTORY"] = (
+		(!config.dns_proxy_root_dir.empty())
+		? config.dns_proxy_root_dir
+		: path.string()
+	);
 	config_["PIDFILE"] =  pidfile_path_;
 	config_["USER"] = config.dns_proxy_user;
 	config_["CHROOT"] = config.dns_proxy_chroot;

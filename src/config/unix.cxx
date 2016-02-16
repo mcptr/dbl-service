@@ -14,9 +14,11 @@ UnixConfig::UnixConfig()
 	network_interface = "lo";
 
 	dns_proxy = "unbound";
+	dns_proxy_config_dest_dir = "/var/run/dnsblocker";
 	dns_proxy_executable = "unbound";
 	dns_proxy_logfile = "/var/log/dnsblocker/proxy.log";
 	dns_proxy_pidfile = "/var/run/dnsblocker/proxy.pid";
+	dns_proxy_root_dir = "/";
 	dns_proxy_root_key = base_dir + "/dnssec/root.key";
 	dns_proxy_user = "unbound";
 	dns_proxy_workdir = base_dir;

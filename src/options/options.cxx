@@ -47,7 +47,7 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		)
 		("foreground,f",
 		 po::value(&(config.is_foreground))->implicit_value(true)->zero_tokens()->default_value(config.is_foreground),
-		 "Run in foreground"
+		 "Do not go into background"
 		)
 		;
 	
@@ -86,12 +86,19 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 po::value(&(config.dns_proxy))->default_value(config.dns_proxy),
 		 "DNS Proxy server"
 		)
+		("dns-proxy-root-dir",
+		 po::value(&(config.dns_proxy_root_dir))->default_value(config.dns_proxy_root_dir)
+		)
 		("dns-proxy-chroot",
 		 po::value(&(config.dns_proxy_chroot))->default_value(config.dns_proxy_chroot),
 		 "DNS Proxy chroot dir (must be already set up)"
 		)
 		("dns-proxy-config",
 		 po::value(&(config.dns_proxy_config))->default_value("")
+		)
+		("dns-proxy-config-destdir",
+		 po::value(&(config.dns_proxy_config_dest_dir))->default_value(config.dns_proxy_config_dest_dir),
+		 "Location of generated proxy configuration file"
 		)
 		("dns-proxy-disable-dnssec",
 		 po::value(&(config.dns_proxy_disable_dnssec))->implicit_value(true)->zero_tokens()->default_value(

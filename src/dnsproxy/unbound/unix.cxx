@@ -27,11 +27,9 @@ void UnixUnbound::start()
 		throw std::runtime_error("Unable to find dns proxy executable");
 	}
 
-	if(!api_->config.is_foreground) {
-		cmd.append(" -d ");
-	}
-
 	cmd.append(" -c " + config_file_path_);
+	LOG(DEBUG) << cmd << std::endl;
+	LOG(DEBUG) << "DNS Proxy config file: " << config_file_path_ << std::endl;
 	if(system(cmd.c_str()) != 0) {
 		throw std::runtime_error("Unable to start dns proxy. Command: " + cmd);
 	}

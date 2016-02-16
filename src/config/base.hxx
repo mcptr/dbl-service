@@ -34,12 +34,14 @@ public:
 	std::string dns_proxy = "unbound";
 	std::string dns_proxy_chroot = "";
 	std::string dns_proxy_config = "";
+	std::string dns_proxy_config_dest_dir = "";
 	bool dns_proxy_disable_dnssec = false;
 	std::string dns_proxy_executable = "unbound";
 	bool dns_proxy_generate_config = false;
 	std::string dns_proxy_logfile = "dbsblocker-proxy.log";
 	int dns_proxy_port = 53;
 	std::string dns_proxy_pidfile = "dbsblocker-proxy.pid";
+	std::string dns_proxy_root_dir = "";
 	std::string dns_proxy_root_key = "root.key";
 	std::string dns_proxy_user = "unbound";
 	std::string dns_proxy_workdir = base_dir;
