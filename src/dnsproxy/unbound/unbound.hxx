@@ -16,6 +16,7 @@ public:
 	virtual std::string get_executable_name() const = 0;
 
 protected:
+	virtual void generate_config();
 };
 
 } // dbl

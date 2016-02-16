@@ -76,7 +76,8 @@ bool UnixService::setup_interface()
 
 void UnixService::start_dns_proxy()
 {
-	LOG(INFO) << "STARTING DNS PROXY";
+	LOG(INFO) << "Starting dns proxy";
+	dns_proxy_->start();
 }
 
 void UnixService::stop_dns_proxy()

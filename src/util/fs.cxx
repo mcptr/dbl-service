@@ -1,4 +1,5 @@
 #include "fs.hxx"
+#include "core/common.hxx"
 
 #include <vector>
 #include <sys/types.h>
@@ -10,6 +11,7 @@ namespace dbl {
 
 std::string find_executable(const std::string& name)
 {
+
 #if defined(__linux) ||  defined(__freebsd) || defined(__unix)
 	std::vector<std::string> dirs = {
 		"/bin",

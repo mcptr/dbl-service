@@ -12,6 +12,7 @@ namespace dbl {
 
 void Options::parse(int argc, char** argv)
 {
+	namespace fs = boost::filesystem;
 	po::options_description flags("Generic");
 	po::options_description service("Service options");
 	po::options_description dnsproxy("DNS proxy options");
@@ -30,7 +31,7 @@ void Options::parse(int argc, char** argv)
 
 	std::string current_platform(utsn.sysname);
 	boost::algorithm::to_lower(current_platform);
-	std::string current_path = boost::filesystem::current_path().string();
+	std::string current_path = fs::current_path().string();
 
 	flags.add_options()
 		("help,h", "Display this help")
@@ -53,7 +54,7 @@ void Options::parse(int argc, char** argv)
 		 "base application directory"
 		)
 		("config,c",
-		 po::value<std::string>(&config_path)->default_value(defaults::service_config),
+		 po::value<std::string>(&config_path)->default_value(""), //defaults::service_config
 		 "Configuration path"
 		)
 		("db",
@@ -72,13 +73,13 @@ void Options::parse(int argc, char** argv)
 		 po::value(&stropt)->default_value(current_platform),
 		 "Override platform (if guessed incorrect)"
 		)
-		("scriptdir", po::value(&stropt)->default_value(defaults::service_scriptdir),
-		 "Directory containing scripts"
+		("templates-dir",
+		 po::value(&stropt)->default_value(defaults::templatesdir),
+		 "Override platform (if guessed incorrect)"
 		)
-		("sysconfdir",
-		 po::value(&stropt)->default_value(defaults::sysconfdir),
-		 "Base service configuration directory"
-		)
+		// ("scriptdir", po::value(&stropt)->default_value(defaults::service_scriptdir),
+		//  "Directory containing scripts"
+		// )
 		;
 
 	dnsproxy.add_options()
@@ -93,13 +94,13 @@ void Options::parse(int argc, char** argv)
 		("dns-proxy-config",
 		 po::value(&stropt)->default_value("")
 		)
-		("dns-proxy-config-dir",
-		 po::value(&stropt)->default_value(defaults::dns_proxy_config_dir),
-		 "DNS Proxy configuration dir"
-		)
 		("dns-proxy-executable",
 		 po::value(&stropt)->default_value(""),
 		 "DNS Proxy program path"
+		)
+		("dns-proxy-generate-config",
+		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Generate config"
 		)
 		("dns-proxy-logfile",
 		 po::value(&stropt)->default_value("")
@@ -107,12 +108,17 @@ void Options::parse(int argc, char** argv)
 		("dns-proxy-pidfile",
 		 po::value(&stropt)->default_value(defaults::dns_proxy_pidfile)
 		)
+		("dns-proxy-port",
+		 po::value<int>()->default_value(53),
+		 "DNS Proxy service port"
+		)
+
 		("dns-proxy-user",
 		 po::value(&stropt)->default_value(defaults::dns_proxy_user),
 		 "DNS Proxy working directory"
 		)
 		("dns-proxy-workdir",
-		 po::value(&stropt)->default_value(defaults::dns_proxy_config_dir),
+		 po::value(&stropt)->default_value(defaults::dns_proxy_workdir),
 		 "DNS Proxy working directory"
 		)
 		;

@@ -90,6 +90,7 @@ translation_units = {
 	"service/base" : {},
 	"status/status" : {},
 	"sys/script/base" : {},
+	"template/template": {},
 	"util/fs" : {},
 }
 

@@ -13,9 +13,7 @@ public:
 	virtual ~UnixUnbound() = default;
 
 	virtual std::string get_executable_name() const;
-
-protected:
-	virtual void generate_config();
+	virtual void start();
 };
 
 };

@@ -18,21 +18,21 @@ const std::string basedir = "/etc/dnsblocker";
 const std::string dbdir = "/var/db/dnsblocker";
 const std::string logdir = "/var/log/dnsblocker";
 const std::string rundir = "/var/run/dnsblocker";
-const std::string sysconfdir = basedir;
+const std::string templatesdir = basedir + "/templates";
 
 const std::string network_interface = "lo";
 
 const std::string dns_proxy = "unbound";
-const std::string dns_proxy_config_dir = sysconfdir + "/dns-proxy";
 const std::string dns_proxy_logfile = logdir + "/dbsblocker-proxy.log";
 const std::string dns_proxy_pidfile = rundir + "/dbsblocker-proxy.pid";
 const std::string dns_proxy_user = dns_proxy;
+const std::string dns_proxy_workdir = basedir;
 
 const std::string service_db = dbdir + "/dbsblocker.db";
-const std::string service_config = sysconfdir + "/dnsblocker.conf";
+const std::string service_config = basedir + "/dnsblocker.conf";
 const std::string service_pidfile = rundir + "/dbsblocker.pid";
-const std::string service_scriptdir = sysconfdir + "/scripts/linux";
-const std::string service_sysconfdir = sysconfdir;
+//const std::string service_scriptdir = sysconfdir + "/scripts/linux";
+//const std::string service_sysconfdir = sysconfdir;
 
 #endif
 

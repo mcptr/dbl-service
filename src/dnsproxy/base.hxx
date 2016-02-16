@@ -2,11 +2,13 @@
 #define DBL_DNSPROXY_BASE_HXX
 
 #include "core/rtapi.hxx"
+#include "template/template.hxx"
 
 #include <set>
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <unistd.h>
 
 namespace dbl {
 
@@ -14,7 +16,7 @@ class DNSProxy
 {
 public:
 	typedef std::set<std::string> DomainList_t;
-	typedef std::vector<std::string> ConfigEntries_t;
+	typedef Template::Values_t ConfigEntries_t;
 
 	DNSProxy() = delete;
 	DNSProxy(std::shared_ptr<RTApi> api);
@@ -28,7 +30,7 @@ public:
 	virtual std::string get_executable_name() const = 0;
 	virtual void create_config() = 0;
 
-	// virtual bool start();
+	virtual void start() = 0;
 	// virtual bool stop();
 	// virtual bool is_running();
 
@@ -36,6 +38,9 @@ protected:
 	std::shared_ptr<RTApi> api_;
 	ConfigEntries_t config_;
 	DomainList_t domains_;
+
+	std::string config_file_path_;
+	std::string pidfile_path_;
 
 	virtual void generate_config() = 0;
 private:

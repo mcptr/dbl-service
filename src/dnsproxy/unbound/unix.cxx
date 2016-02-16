@@ -1,5 +1,9 @@
 #include "unix.hxx"
+#include "core/common.hxx"
+
 #include <vector>
+#include <stdexcept>
+#include <cstdlib>
 #include <boost/filesystem.hpp>
 
 
@@ -8,6 +12,9 @@ namespace dbl {
 UnixUnbound::UnixUnbound(std::shared_ptr<RTApi> api)
 	: Unbound(api)
 {
+	pidfile_path_ = (
+		api_->program_options.get<std::string>("dns-proxy-pidfile")
+	);
 }
 
 std::string UnixUnbound::get_executable_name() const
@@ -15,59 +22,16 @@ std::string UnixUnbound::get_executable_name() const
 	return "unbound";
 }
 
-void UnixUnbound::generate_config()
+void UnixUnbound::start()
 {
-	namespace fs = boost::filesystem;
-
-	fs::path path(
-		api_->program_options.get<std::string>("dns-proxy-config-dir")
-	);
-
-	std::string user(
-		api_->program_options.get<std::string>("dns-proxy-user")
-	);
-
-	std::string chroot(
-		api_->program_options.get<std::string>("dns-proxy-chroot")
-	);
-
-	std::string logfile(
-		api_->program_options.get<std::string>("dns-proxy-logfile")
-	);
-
-	std::string pidfile(
-		api_->program_options.get<std::string>("dns-proxy-pidfile")
-	);
-
-	std::string ip4address(
-		api_->program_options.get<std::string>("network-ip4address")
-	);
-
-	std::string ip6address(
-		api_->program_options.get<std::string>("network-ip6address")
-	);
-
-	bool disable_ip_4(api_->program_options.get<bool>("network-no-ip4"));
-	bool disable_ip_6(api_->program_options.get<bool>("network-no-ip6"));
-
-	config_.push_back("directory: \"" + path.parent_path().string() + "\"");
-	config_.push_back("pidfile: \"" + pidfile + "\"");
-	config_.push_back("username: " + user);
-
-	if(!chroot.empty()) {
-		config_.push_back("chroot: \"" + chroot + "\"");
+	std::string cmd = this->find_executable();
+	if(cmd.empty()) {
+		throw std::runtime_error("Unable to find dns proxy executable");
 	}
 
-	if(!logfile.empty()) {
-		config_.push_back("logfile: \"" + logfile + "\"");
-	}
-
-	if(!disable_ip_4) {
-		config_.push_back("interface: " + ip4address);
-	}
-
-	if(!disable_ip_6) {
-		config_.push_back("interface: " + ip6address);
+	cmd.append(" -c " + config_file_path_);
+	if(system(cmd.c_str()) != 0) {
+		throw std::runtime_error("Unable to start dns proxy. Command: " + cmd);
 	}
 }
 

@@ -14,7 +14,7 @@ std::vector<std::string> domain_lists = {
 
 std::vector<std::string> domains = {
 	"INSERT OR REPLACE INTO domains(name, list_id, description)"
-	"  VALUES('blocked.local', 1, 'Bogus domain')",
+	"  VALUES('bogus.example.com', 1, 'Bogus domain')",
 };
 
 } // data

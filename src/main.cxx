@@ -14,7 +14,7 @@ typedef dbl::LinuxService ServiceImplementation_t;
 #include <cstdlib>
 #include <memory>
 #include <boost/algorithm/string.hpp>
-
+#include <boost/filesystem.hpp>
 
 
 void setup_logging(const dbl::Options& po)
@@ -77,6 +77,14 @@ int main(int argc, char** argv)
 		service_ptr.reset(new ServiceImplementation_t(rtapi));
 
 		service_ptr->configure();
+	}
+	catch(const boost::filesystem::filesystem_error& e) {
+		std::string msg(e.code().message());
+		msg.append(": ");
+		msg.append(e.path1().string());
+		std::cerr << msg <<  std::endl;
+		LOG(ERROR) << e.what();
+		return EXIT_FAILURE;
 	}
 	catch(const std::exception& e) {
 		std::cerr << e.what() << std::endl;

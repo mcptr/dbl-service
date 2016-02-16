@@ -88,6 +88,8 @@ DB::get_domains(bool active_only)
 	if(active_only) {
 		q.append(" WHERE active = 1");
 	}
+
+	q.append(" ORDER BY name asc");
 	statement st = (sql.prepare << q, into(record));
 
 	st.execute();
