@@ -1,0 +1,19 @@
+# backup files
+**/*#
+**/*~
+**/*.bkp
+
+# directories
+bin/
+build/
+logs/
+doc/
+var/
+rootdir/
+
+# python
+**/__pycache__
+**/*pyc
+
+# scons
+.sconsign.dblite
