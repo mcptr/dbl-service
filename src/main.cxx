@@ -1,12 +1,13 @@
 #include "core/common.hxx"
-INITIALIZE_EASYLOGGINGPP
 
 #include "options/options.hxx"
 #include "status/status.hxx"
 
 #if defined(__linux)
 #include "service/linux.hxx"
+#include "config/unix.hxx"
 typedef dbl::LinuxService ServiceImplementation_t;
+typedef dbl::UnixConfig ConfigImplementation_t;
 #elif defined(_WIN32)
 //...
 #endif
@@ -34,11 +35,14 @@ void setup_logging(const dbl::Options& po)
 }
 
 
+INITIALIZE_EASYLOGGINGPP
+
 int main(int argc, char** argv)
 {
+	ConfigImplementation_t config;
 	dbl::Options po;
 	try {
-		po.parse(argc, argv);
+		po.parse(argc, argv, config);
 		if(po.has_help()) {
 			po.display_help();
 			return 0;
@@ -67,8 +71,13 @@ int main(int argc, char** argv)
 	std::unique_ptr<ServiceImplementation_t> service_ptr;
 
 	try {
-		std::shared_ptr<dbl::RTApi> rtapi(new dbl::RTApi(po));
-		rtapi->db->init();
+		std::shared_ptr<dbl::DB> db(
+			new dbl::DB(po.get<std::string>("db"), 5)
+		);
+
+		db->init();
+
+		std::shared_ptr<dbl::RTApi> rtapi(new dbl::RTApi(config, db));
 		
 		dbl::Status status(rtapi);
 		status.print_lists();

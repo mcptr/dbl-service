@@ -10,7 +10,7 @@ Status::Status(std::shared_ptr<RTApi> api)
 
 void Status::print_lists()
 {
-	auto records_ptr = api_->db->get_domain_lists();
+	auto records_ptr = api_->db()->get_domain_lists();
 	for(auto const& r : *records_ptr) {
 		std::cout << (r.active ? "+" : "-") << (r.custom ? "@ " : "  ")
 					  << r.name << " - " << r.description
@@ -20,7 +20,7 @@ void Status::print_lists()
 
 void Status::print_domains(bool active_only)
 {
-	auto records_ptr = api_->db->get_domains(active_only);
+	auto records_ptr = api_->db()->get_domains(active_only);
 	for(auto const& r : *records_ptr) {
 		std::cout << r.name << " - " << r.description << std::endl;
 	}

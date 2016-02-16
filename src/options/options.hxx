@@ -1,7 +1,7 @@
 #ifndef DBL_OPTIONS_OPTIONS_HXX
 #define DBL_OPTIONS_OPTIONS_HXX
 
-
+#include "config/base.hxx"
 #include <boost/program_options.hpp>
 #include <string>
 
@@ -15,7 +15,7 @@ public:
 	Options() = default;
 	virtual ~Options() = default;
 
-	void parse(int argc, char** argv);
+	void parse(int argc, char** argv, BaseConfig& config);
 	bool has_help() const;
 	void display_help() const;
 

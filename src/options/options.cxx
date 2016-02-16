@@ -1,5 +1,4 @@
 #include "options.hxx"
-#include "defaults.hxx"
 
 #include <iostream>
 #include <iomanip>
@@ -10,18 +9,17 @@
 
 namespace dbl {
 
-void Options::parse(int argc, char** argv)
+void Options::parse(int argc, char** argv, BaseConfig& config)
 {
 	namespace fs = boost::filesystem;
+	using std::string;
 	po::options_description flags("Generic");
 	po::options_description service("Service options");
 	po::options_description dnsproxy("DNS proxy options");
 	po::options_description network("Network options");
 	po::options_description http_responder("HTTP Responder");
 
-	std::string config_path;
-	std::string stropt;
-	int intopt;
+	string config_path;
 
 	struct utsname utsn;
 	int status = uname(&utsn);
@@ -29,139 +27,131 @@ void Options::parse(int argc, char** argv)
 		throw std::runtime_error("uname() failed");
 	}
 
-	std::string current_platform(utsn.sysname);
+	string current_platform(utsn.sysname);
 	boost::algorithm::to_lower(current_platform);
-	std::string current_path = fs::current_path().string();
+	string current_path = fs::current_path().string();
 
 	flags.add_options()
 		("help,h", "Display this help")
 		("debug,D",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
+		 po::value(&(config.is_debug))->implicit_value(true)->zero_tokens()->default_value(config.is_debug),
 		 "Debug mode"
 		)
 		("fatal,F",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
+		 po::value(&(config.is_fatal))->implicit_value(true)->zero_tokens()->default_value(config.is_fatal),
 		 "Make all errors fatal"
 		)
 		("verbose,v",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
+		 po::value(&(config.is_verbose))->implicit_value(true)->zero_tokens()->default_value(config.is_verbose),
 		 "Verbose run"
 		)
+		("foreground,f",
+		 po::value(&(config.is_foreground))->implicit_value(true)->zero_tokens()->default_value(config.is_foreground),
+		 "Run in foreground"
+		)
 		;
-
+	
 	service.add_options()
-		("basedir", po::value(&stropt)->default_value(defaults::basedir),
+		("basedir",
+		 po::value(&(config.base_dir))->default_value(config.base_dir),
 		 "base application directory"
 		)
 		("config,c",
-		 po::value<std::string>(&config_path)->default_value(""), //defaults::service_config
+		 po::value(&(config.service_config))->default_value(config.service_config),
 		 "Configuration path"
 		)
 		("db",
-		 po::value<std::string>(&stropt)->default_value(defaults::service_db),
+		 po::value(&(config.service_db))->default_value(config.service_db),
 		 "Database file path"
 		)
-		("foreground,f",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
-		 "Run in foreground"
-		)
 		("pidfile",
-		 po::value(&stropt)->default_value(defaults::service_pidfile),
-		 "Pidfile path"
+		 po::value(&(config.service_pidfile))->default_value(config.service_pidfile)
 		)
 		("platform",
-		 po::value(&stropt)->default_value(current_platform),
-		 "Override platform (if guessed incorrect)"
+		 po::value(&(config.platform))->default_value(current_platform),
+		 "Override platform"
 		)
 		("templates-dir",
-		 po::value(&stropt)->default_value(defaults::templatesdir),
+		 po::value(&(config.templates_dir))->default_value(config.templates_dir),
 		 "Override platform (if guessed incorrect)"
 		)
-		// ("scriptdir", po::value(&stropt)->default_value(defaults::service_scriptdir),
-		//  "Directory containing scripts"
-		// )
+		("service-port",
+		 po::value(&(config.service_port))->default_value(config.service_port),
+		 "Service port"
+		)
 		;
-
+	
 	dnsproxy.add_options()
 		("dns-proxy",
-		 po::value(&stropt)->default_value(defaults::dns_proxy),
-		 "DNS Proxy service"
+		 po::value(&(config.dns_proxy))->default_value(config.dns_proxy),
+		 "DNS Proxy server"
 		)
 		("dns-proxy-chroot",
-		 po::value(&stropt)->default_value(""),
+		 po::value(&(config.dns_proxy_chroot))->default_value(config.dns_proxy_chroot),
 		 "DNS Proxy chroot dir (must be already set up)"
 		)
 		("dns-proxy-config",
-		 po::value(&stropt)->default_value("")
+		 po::value(&(config.dns_proxy_config))->default_value("")
 		)
-		("dns-proxy-executable",
-		 po::value(&stropt)->default_value(""),
-		 "DNS Proxy program path"
+		("dns-proxy-disable-dnssec",
+		 po::value(&(config.dns_proxy_disable_dnssec))->implicit_value(true)->zero_tokens()->default_value(
+			 config.dns_proxy_disable_dnssec
+		 )
 		)
 		("dns-proxy-generate-config",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
-		 "Generate config"
+		 po::value(&(config.dns_proxy_generate_config))->implicit_value(true)->zero_tokens()->default_value(
+			 config.dns_proxy_generate_config
+		 )
 		)
 		("dns-proxy-logfile",
-		 po::value(&stropt)->default_value("")
+		 po::value(&(config.dns_proxy_logfile))->default_value(config.dns_proxy_logfile)
 		)
 		("dns-proxy-pidfile",
-		 po::value(&stropt)->default_value(defaults::dns_proxy_pidfile)
+		 po::value(&(config.dns_proxy_pidfile))->default_value(config.dns_proxy_pidfile)
 		)
 		("dns-proxy-port",
-		 po::value<int>()->default_value(53),
-		 "DNS Proxy service port"
+		 po::value(&(config.dns_proxy_port))->default_value(config.dns_proxy_port)
 		)
-
+		("dns-proxy-root-key",
+		 po::value(&(config.dns_proxy_root_key))->default_value(config.dns_proxy_root_key)
+		)
 		("dns-proxy-user",
-		 po::value(&stropt)->default_value(defaults::dns_proxy_user),
-		 "DNS Proxy working directory"
+		 po::value(&(config.dns_proxy_user))->default_value(config.dns_proxy_user)
 		)
 		("dns-proxy-workdir",
-		 po::value(&stropt)->default_value(defaults::dns_proxy_workdir),
-		 "DNS Proxy working directory"
+		 po::value(&(config.dns_proxy_workdir))->default_value(config.dns_proxy_workdir)
 		)
 		;
 
 	network.add_options()
 		("network-interface",
-		 po::value(&stropt)->default_value(defaults::network_interface),
+		 po::value(&(config.network_interface))->default_value(config.network_interface),
 		 "Network interface (defaults to loopback)"
 		)
 		("network-ip4address",
-		 po::value(&stropt)->default_value(defaults::network_ip4address),
-		 "IPv4 address"
+		 po::value(&(config.network_ip4address))->default_value(config.network_ip4address)
 		)
 		("network-ip6address",
-		 po::value(&stropt)->default_value(defaults::network_ip6address),
-		 "IPv6 address"
+		 po::value(&(config.network_ip6address))->default_value(config.network_ip6address)
 		)
 		("network-no-ip4",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
-		 "Disable IPv4 support"
+		 po::value(&(config.network_no_ip4))->default_value(config.network_no_ip4)
 		)
 		("network-no-ip6",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
-		 "Disable IPv6 support"
-		)
-		("network-service-port",
-		 po::value(&intopt)->default_value(defaults::service_port),
-		 "Service port"
+		 po::value(&(config.network_no_ip6))->default_value(config.network_no_ip6)
 		)
 		;
 
 	http_responder.add_options()
 		("http-responder-enable",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
+		 po::value(&(config.http_responder_enable))->default_value(config.http_responder_enable),
 		 "builtin HTTP responder"
 		)
 		("http-responder-status-code",
-		 po::value(&intopt)->default_value(404),
-		 "HTTP responder: status code"
+		 po::value(&(config.http_responder_status_code))->default_value(config.http_responder_status_code)
 		)
 		("http-responder-status-text",
-		 po::value<std::string>(&stropt)->default_value("Not found"),
-		 "HTTP responder: status text"
+		 po::value(&(config.http_responder_status_text))->default_value(config.http_responder_status_text)
 		)
 		;
 	all_.add(flags).add(service).add(network).add(dnsproxy).add(http_responder);

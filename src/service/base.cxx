@@ -14,10 +14,7 @@ BaseService::BaseService(std::shared_ptr<dbl::RTApi> api)
 
 void BaseService::configure()
 {
-	ip4address_ = api_->program_options.get<std::string>(
-		"network-ip4address"
-	);
-
+	ip4address_ = api_->config.network_ip4address;
 	interface_ = this->get_default_interface();
 
 	if(ip4address_.compare("127.0.0.1") == 0) {
@@ -25,9 +22,7 @@ void BaseService::configure()
 				  << "Will default to interface: " << interface_;
 	}
 	else {
-		interface_ = api_->program_options.get<std::string>(
-			"network-interface"
-		);
+		interface_ = api_->config.network_interface;
 		if(interface_.empty()) {
 			throw std::runtime_error(
 				"Create a dedicated interface to use with address: " +
@@ -64,10 +59,7 @@ void BaseService::start()
 	this->flush_dns();
 	this->start_dns_proxy();
 	
-	if(!api_->program_options.get<bool>("foreground")) {
-		
-	}
-	if(api_->program_options.get<bool>("http-responder-enable")) {
+	if(api_->config.http_responder_enable) {
 		this->start_http_responder();
 	}
 }

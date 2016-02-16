@@ -12,9 +12,8 @@ DNSProxy::DNSProxy(std::shared_ptr<RTApi> api)
 std::string DNSProxy::find_executable() const
 {
 
-	std::string executable = api_->program_options.get<std::string>(
-		"dns-proxy-executable"
-	);
+	std::string executable = api_->config.dns_proxy_executable;
+
 	if(executable.empty()) {
 		executable = dbl::find_executable(this->get_executable_name());
 	}

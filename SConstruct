@@ -78,7 +78,6 @@ def extend_env(dest, src):
 
 
 translation_units = {
-	"config/base" : {},
 	"core/rtapi" : {},
 	"db/db": {},
 	"db/utils": {},
@@ -89,7 +88,6 @@ translation_units = {
 	"options/options" : {},
 	"service/base" : {},
 	"status/status" : {},
-	"sys/script/base" : {},
 	"template/template": {},
 	"util/fs" : {},
 }
@@ -99,7 +97,6 @@ platform_translation_units = {
 		"dnsproxy/unbound/unix" : {},
 		"service/unix" : {},
 		"service/linux" : {},
-		"sys/script/unix" : {},
 	}
 }
 

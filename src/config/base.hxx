@@ -1,48 +1,54 @@
-#ifndef DBL_CONFIG_BASE_HXX
-#define DBL_CONFIG_BASE_HXX
+#ifndef CONFIG_BASE_HXX
+#define CONFIG_BASE_HXX
 
 #include <string>
-#include <unordered_map>
-
 
 namespace dbl {
 
 class BaseConfig
 {
 public:
-	typedef std::unordered_map<std::string, bool> BoolValues_t;
-	typedef std::unordered_map<std::string, int> IntValues_t;
-	typedef std::unordered_map<std::string, std::string> StringValues_t;
-	typedef std::unordered_map<std::string, std::string> Dirs_t;
+	bool is_debug = 0;
+	bool is_fatal = 0;
+	bool is_verbose = 0;
+	bool is_foreground = 0;
 
-	BaseConfig() = default;
-	BaseConfig(const BaseConfig&) = default;
-	virtual ~BaseConfig() = default;
+	std::string platform;
+	std::string base_dir;
+	std::string db_dir;
+	std::string log_file;
+	std::string templates_dir;
 
-	virtual void set_bool_value(const std::string& name, bool value) final;
-	virtual void set_int_value(const std::string& name, int value) final;
+	int service_port = 7654;
 
-	virtual void set_string_value(
-		const std::string& name,
-		const std::string& value) final;
+	bool http_responder_enable = true;
+	int http_responder_status_code = 404;
+	std::string http_responder_status_text = "Not found";
 
-	virtual bool get_bool_value(const std::string& name,
-								bool default_value = false) const final;
+	std::string network_ip4address  = "127.0.0.1";
+	std::string network_ip6address = "::1";
+	std::string network_interface = "";
+	bool network_no_ip4 = false;
+	bool network_no_ip6 = true;
 
-	virtual int get_int_value(const std::string& name,
-							  int default_value = 0) const final;
+	std::string dns_proxy = "unbound";
+	std::string dns_proxy_chroot = "";
+	std::string dns_proxy_config = "";
+	bool dns_proxy_disable_dnssec = false;
+	std::string dns_proxy_executable = "unbound";
+	bool dns_proxy_generate_config = false;
+	std::string dns_proxy_logfile = "dbsblocker-proxy.log";
+	int dns_proxy_port = 53;
+	std::string dns_proxy_pidfile = "dbsblocker-proxy.pid";
+	std::string dns_proxy_root_key = "root.key";
+	std::string dns_proxy_user = "unbound";
+	std::string dns_proxy_workdir = base_dir;
 
-	virtual std::string	get_string_value(
-		const std::string& name,
-		const std::string& default_value = std::string()) const final;
-
-protected:
-	IntValues_t int_values_;
-	BoolValues_t bool_values_;
-	StringValues_t string_values_;
+	std::string service_db = "dbsblocker.db";
+	std::string service_config = "dnsblocker.conf";
+	std::string service_pidfile = "dbsblocker.pid";
 };
 
-} // dbl
-
+} //
 
 #endif
