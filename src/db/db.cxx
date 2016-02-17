@@ -10,6 +10,7 @@ namespace dbl {
 DB::DB(const std::string& dbpath, int pool_size)
 	: pool_(soci::connection_pool(pool_size))
 {
+	LOG(INFO) << "Opening database: " << dbpath;
 	for(int i = 0; i < pool_size; i++) {
 		soci::session& sql = pool_.at(i);
 		sql.open("sqlite3://" + dbpath);

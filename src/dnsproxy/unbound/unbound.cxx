@@ -37,8 +37,19 @@ void Unbound::create_config()
 	}
 
 	if(config.dns_proxy_generate_config) {
-		path = config.dns_proxy_config_dest_dir;
-		path /= "proxy-unbound.conf";
+		if(!config.no_system_dns_proxy) {
+			path = config.dns_proxy_include_dir;
+			if(!fs::is_directory(path)) {
+				throw std::runtime_error(
+					"Invalid system dns proxy include dir: " + path.string()
+				);
+			}
+			path /= "dnsblocker.conf";			
+		}
+		else {
+			path = config.dns_proxy_config_dest_dir;
+			path /= "proxy-unbound.conf";
+		}
 
 		config_file_path_ = path.string();
 
@@ -50,36 +61,41 @@ void Unbound::create_config()
 		time_t t(time(nullptr));
 		config_["GENERATION_TIME"] = std::asctime(localtime(&t));
 
-		this->generate_config();
-
 		ofstream ofh(config_file_path_);
-		ofh << tpl.render(config_) << std::endl;
-
-		if(config.network_no_ip4) {
-			ofh << ws_ << "do-ip4: no" << std::endl;
+		if(!config.no_system_dns_proxy) {
+			ofh << "server:" << std::endl;
 		}
 		else {
-			ofh << ws_ << "interface: " << config.network_ip4address
-				<< std::endl;
-		}
+			this->generate_config();
 
-		if(config.network_no_ip6) {
-			ofh << ws_ << "do-ip6: no" << std::endl;
-		}
-		else {
-			ofh << ws_ << "interface: " << config.network_ip6address
-				<< std::endl;
-		}
+			ofh << tpl.render(config_) << std::endl;
 
-		if(!config.dns_proxy_disable_dnssec) {
-			ofh << ws_ 
-				<< "auto-trust-anchor-file: \""
-				<< config.dns_proxy_root_key
-				<< "\""
-				<< std::endl;
-		}
+			if(config.network_no_ip4) {
+				ofh << ws_ << "do-ip4: no" << std::endl;
+			}
+			else {
+				ofh << ws_ << "interface: " << config.network_ip4address
+					<< std::endl;
+			}
 
-		ofh << std::endl;
+			if(config.network_no_ip6) {
+				ofh << ws_ << "do-ip6: no" << std::endl;
+			}
+			else {
+				ofh << ws_ << "interface: " << config.network_ip6address
+					<< std::endl;
+			}
+
+			if(!config.dns_proxy_disable_dnssec) {
+				ofh << ws_ 
+					<< "auto-trust-anchor-file: \""
+					<< config.dns_proxy_root_key
+					<< "\""
+					<< std::endl;
+			}
+
+			ofh << std::endl;
+		}
 
 		for(auto const& domain : domains_) {
 			if(!config.network_no_ip4) {
@@ -114,11 +130,7 @@ void Unbound::generate_config()
 
 	fs::path path(config.base_dir);
 
-	config_["DIRECTORY"] = (
-		(!config.dns_proxy_root_dir.empty())
-		? config.dns_proxy_root_dir
-		: path.string()
-	);
+	config_["DIRECTORY"] = path.string();
 	config_["PIDFILE"] =  pidfile_path_;
 	config_["USER"] = config.dns_proxy_user;
 	config_["CHROOT"] = config.dns_proxy_chroot;

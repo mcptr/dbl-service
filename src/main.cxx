@@ -39,6 +39,8 @@ INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char** argv)
 {
+	namespace fs = boost::filesystem;
+
 	ConfigImplementation_t config;
 	dbl::Options po;
 	try {
@@ -71,8 +73,15 @@ int main(int argc, char** argv)
 	std::unique_ptr<ServiceImplementation_t> service_ptr;
 
 	try {
+		if(!fs::exists(config.service_db)) {
+			fs::path db_path(config.service_db);
+			LOG(INFO) << "Creating database directory "
+					  << db_path.parent_path().string();
+			fs::create_directories(db_path.parent_path());
+		}
+
 		std::shared_ptr<dbl::DB> db(
-			new dbl::DB(po.get<std::string>("db"), 5)
+			new dbl::DB(config.service_db, 5)
 		);
 
 		db->init();
@@ -87,7 +96,7 @@ int main(int argc, char** argv)
 
 		service_ptr->configure();
 	}
-	catch(const boost::filesystem::filesystem_error& e) {
+	catch(const fs::filesystem_error& e) {
 		std::string msg(e.code().message());
 		msg.append(": ");
 		msg.append(e.path1().string());

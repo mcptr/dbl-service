@@ -1,0 +1,123 @@
+[filesystem]
+# Main configuration directory 
+#basedir=/etc/dnsblocker
+
+# Main configuration file
+#config=/etc/dnsblocker/dnsblocker.conf
+
+# Location of database file
+#db=/var/lib/dnsblocker/dbsblocker.db
+
+# Location of pid file
+#pidfile=/var/run/dnsblocker/service.pid
+
+# Location of helper scripts
+#script-dir=/etc/dnsblocker/scripts/unix
+
+# Directory containing configuration templates
+#templates-dir=/etc/dnsblocker/templates
+
+[flags]
+# Enable debug mode 
+#debug=0
+
+# Treat all errors and warnings as fatal
+#fatal=0
+
+# Do not daemonize
+#foreground=0
+
+# Be verbose
+#verbose=0
+
+[service]
+# Do not use system dns service.
+# Use this if you need to configure custom instance.
+#no-system-dns-proxy=0
+
+
+# DNS proxy software (supported: unbound, dnsmasq)
+#dns-proxy=unbound
+
+# Directory to place partial configuration file,
+# that the system dns proxy will include
+#dns-proxy-include-dir=/etc/unbound/unbound.conf.d
+
+# Service port (status, stats, etc.)
+# Set to 0 to disable
+# service-port=7654
+
+[network]
+# Bind service to this interface.
+# If you use custom dns configuration then this is the interface
+# that the dns proxy server will bind to
+#network-interface=lo
+
+# (IPv4) Service ip, dns proxy ip, ip that domains will resolve to
+#network-ip4address=127.0.0.1
+
+# (IPv6) Service ip, dns proxy ip, ip that domains will resolve to
+#network-ip6address=::1
+
+# Disable IPv4
+network-no-ip4=0
+# Disable IPv6
+network-no-ip6=0
+
+
+# Use custom dns if you need non standard configuration.
+# Custom dns configuration may be useful if you run development servers,
+# virtual machines, etc.
+[custom-dns]
+# If dns proxy supports chrooting - this will be the chroot directory.
+# It must already exist and be set up so that the dns proxy can access
+# all required resources.
+#dns-proxy-chroot=
+
+# Custom dns proxy configuration file
+# (disables generating a new one from templates).
+# dns-proxy-config=
+
+# Location of generated dns proxy configuration file
+#dns-proxy-config-destdir=/var/run/dnsblocker
+
+# Turn off dnssec.
+#dns-proxy-disable-dnssec=0
+
+# Enables auto generating dns proxy configration.
+#dns-proxy-generate-config=0
+
+# Logfile of custom dns instance
+#dns-proxy-logfile=/var/log/dnsblocker/dnsblocker.log
+
+# Pidfile of custom dns instance
+#dns-proxy-pidfile=/var/run/dnsblocker/proxy.pid
+
+# DNS server port
+#dns-proxy-port=53
+
+# DNSSEC Initial Anchor
+# https://unbound.net/documentation/howto_anchor.html
+#dns-proxy-root-key=/etc/dnsblocker/dnssec/root.key
+
+# Run dns proxy as this user:
+#dns-proxy-user=unbound
+
+# Custom instance base directory
+#dns-proxy-workdir=/etc/dnsblocker
+
+
+# HTTP responder allows to reply to incoming http calls
+# with configured status code and text.
+[http-responder]
+# Enable:
+#http-responder-enable=1
+
+# HTTP response status code
+#http-responder-status-code=404
+
+# HTTP response status text
+#http-responder-status-text="Not found"
+
+# Enable statistics of blocked domains http hits
+#http-responder-stats=1

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <stdexcept>
 #include <sys/utsname.h>
 #include <boost/filesystem.hpp>
@@ -15,9 +16,11 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 	using std::string;
 	po::options_description flags("Generic");
 	po::options_description service("Service options");
-	po::options_description dnsproxy("DNS proxy options");
+	po::options_description dnsproxy("DNS proxy");
+	po::options_description dnsproxy_custom("Custom DNS proxy instance options");
 	po::options_description network("Network options");
 	po::options_description http_responder("HTTP Responder");
+	po::options_description config_file_options("");
 
 	string config_path;
 
@@ -31,6 +34,8 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 	boost::algorithm::to_lower(current_platform);
 	string current_path = fs::current_path().string();
 
+	bool no_config = false;
+
 	flags.add_options()
 		("help,h", "Display this help")
 		("debug,D",
@@ -41,13 +46,17 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 po::value(&(config.is_fatal))->implicit_value(true)->zero_tokens()->default_value(config.is_fatal),
 		 "Make all errors fatal"
 		)
+		("foreground,f",
+		 po::value(&(config.is_foreground))->implicit_value(true)->zero_tokens()->default_value(config.is_foreground),
+		 "Do not go into background"
+		)
 		("verbose,v",
 		 po::value(&(config.is_verbose))->implicit_value(true)->zero_tokens()->default_value(config.is_verbose),
 		 "Verbose run"
 		)
-		("foreground,f",
-		 po::value(&(config.is_foreground))->implicit_value(true)->zero_tokens()->default_value(config.is_foreground),
-		 "Do not go into background"
+		("test,T",
+		 po::value(&(config.is_test))->implicit_value(true)->zero_tokens()->default_value(config.is_test),
+		 "Do not start/generate anything - just test init"
 		)
 		;
 	
@@ -58,7 +67,11 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		)
 		("config,c",
 		 po::value(&(config.service_config))->default_value(config.service_config),
-		 "Configuration path"
+		 "Configuration file path"
+		)
+		("no-config,N",
+		 po::value(&no_config)->implicit_value(true)->zero_tokens()->default_value(no_config),
+		 "Do not read configuration file"
 		)
 		("db",
 		 po::value(&(config.service_db))->default_value(config.service_db),
@@ -79,6 +92,14 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 po::value(&(config.service_port))->default_value(config.service_port),
 		 "Service port"
 		)
+		("script-dir",
+		 po::value(&(config.script_dir))->default_value(config.script_dir),
+		 "Location of scripts"
+		)
+		("no-system-dns-proxy",
+		 po::value(&(config.no_system_dns_proxy))->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Use system installed DNS Proxy server"
+		)
 		;
 	
 	dnsproxy.add_options()
@@ -86,9 +107,11 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 po::value(&(config.dns_proxy))->default_value(config.dns_proxy),
 		 "DNS Proxy server"
 		)
-		("dns-proxy-root-dir",
-		 po::value(&(config.dns_proxy_root_dir))->default_value(config.dns_proxy_root_dir)
-		)
+		("dns-proxy-include-dir",
+		 po::value(&(config.dns_proxy_include_dir))->default_value(config.dns_proxy_include_dir)
+		)	
+	;
+	dnsproxy_custom.add_options()
 		("dns-proxy-chroot",
 		 po::value(&(config.dns_proxy_chroot))->default_value(config.dns_proxy_chroot),
 		 "DNS Proxy chroot dir (must be already set up)"
@@ -165,34 +188,38 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 po::value(&(config.http_responder_status_text))->default_value(config.http_responder_status_text)
 		)
 		;
-	all_.add(flags).add(service).add(network).add(dnsproxy).add(http_responder);
+
+	all_.add(flags).add(service).add(network).add(dnsproxy).add(dnsproxy_custom).add(http_responder);
 
 	try {
 		po::store(po::command_line_parser(argc, argv).options(all_).run(), vm_);
 		po::notify(vm_);
 
 		if(!has_help()) {
-			// config_file_hidden.add(generic).add(server).add(builtins)
-			// 	.add(infrastructure).add(resources)
-			// 	.add(builtins_hidden).add(auth);
+			if(config.is_debug) {
+				std::cout << "Reading config file: " << config.service_config << std::endl;
+			}
 			
-			// if(vm_["debug"].as<bool>()) {
-			// 	std::cout << "Reading config file: " << config_path << std::endl;
-			// }
-			
-			// ifstream cf(config_path.c_str());
-			
-			// if(cf.good()) {
-			// 	po::store(po::parse_config_file(cf, config_file_hidden, true), vm_);
-			// 	po::notify(vm_);
-			// }
-			// else {
-			// 	if(!vm_["no_config"].as<bool>()) {
-			// 		throw nix::InitializationError("Configuration file not found: " + config_path);
-			// 	}
-			// }
-			
-			// cf.close();
+			if(!no_config) {
+				if(!fs::exists(config.service_config)) {
+					throw std::runtime_error(
+						"Configuration file does not exist: " 
+						+ config.service_config
+					);
+				}
+
+				std::ifstream cf(config.service_config.c_str());
+
+				if(!cf.good()) {
+					throw std::runtime_error(
+						"Cannot read configuration file" 
+					);
+				}
+
+				po::store(po::parse_config_file(cf, all_, true), vm_);
+				po::notify(vm_);
+				cf.close();
+			}
 		}
 		//throw_on_conflict();
 	}

@@ -37,7 +37,7 @@ class Dirs(object):
 	destdir = "bin"
 
 
-MAIN_TARGET_NAME = "adblocker-service"
+MAIN_TARGET_NAME = "dnsblocker"
 THIS_PLATFORM = os.uname()[0].lower()
 
 builder = Builder({}, "clang")
@@ -88,6 +88,7 @@ translation_units = {
 	"options/options" : {},
 	"service/base" : {},
 	"status/status" : {},
+	"sys/script/base": {},
 	"template/template": {},
 	"util/fs" : {},
 }
@@ -98,6 +99,7 @@ platform_translation_units = {
 		"dnsproxy/unbound/unix" : {},
 		"service/unix" : {},
 		"service/linux" : {},
+		"sys/script/unix": {},
 	}
 }
 
