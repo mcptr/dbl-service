@@ -29,7 +29,7 @@ public:
 	std::string network_ip6address = "::1";
 	std::string network_interface = "";
 	bool network_no_ip4 = false;
-	bool network_no_ip6 = true;
+	bool network_no_ip6 = false;
 
 	std::string dns_proxy = "unbound";
 	std::string dns_proxy_chroot = "";

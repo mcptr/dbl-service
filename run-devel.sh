@@ -12,7 +12,6 @@
     --dns-proxy-port 11053 \
     --dns-proxy-root-dir . \
     --dns-proxy-root-key etc/dnsblocker/root.key \
-    --network-no-ip6 \
     --templates etc/dnsblocker/templates \
     $@
 
