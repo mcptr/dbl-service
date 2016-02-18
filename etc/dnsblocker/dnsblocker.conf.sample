@@ -1,3 +1,24 @@
+[service]
+# Do not use system dns service.
+# Use this if you need to configure custom instance.
+#no-system-dns-proxy=0
+
+
+# DNS proxy software (supported: unbound, dnsmasq)
+#dns-proxy=unbound
+
+# Directory to place partial configuration file,
+# that the system dns proxy will include
+#dns-proxy-include-dir=/etc/unbound/unbound.conf.d
+
+# Service port (status, stats, etc.)
+# Set to 0 to disable
+# service-port=7654
+
+# Service user/group:
+#service-user=dnsblocker
+#service-group=dnsblocker
+
 [filesystem]
 # Main configuration directory 
 #basedir=/etc/dnsblocker
@@ -29,23 +50,6 @@
 
 # Be verbose
 #verbose=0
-
-[service]
-# Do not use system dns service.
-# Use this if you need to configure custom instance.
-#no-system-dns-proxy=0
-
-
-# DNS proxy software (supported: unbound, dnsmasq)
-#dns-proxy=unbound
-
-# Directory to place partial configuration file,
-# that the system dns proxy will include
-#dns-proxy-include-dir=/etc/unbound/unbound.conf.d
-
-# Service port (status, stats, etc.)
-# Set to 0 to disable
-# service-port=7654
 
 [network]
 # Bind service to this interface.
