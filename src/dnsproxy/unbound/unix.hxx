@@ -14,6 +14,9 @@ public:
 
 	virtual std::string get_executable_name() const;
 	virtual void start();
+
+protected:
+	virtual int get_service_pid() const;
 };
 
 };

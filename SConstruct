@@ -65,12 +65,12 @@ def extend_env(dest, src):
 	entities = ["CXXFLAGS", "CPPPATH", "LIBS", "LIBPATH"]
 	src = src if isinstance(src, list) else [src]
 	for skel in src:
-			for item in entities:
-					if not dest.get(item):
-							dest[item] = []
-					items = skel.get(item)
-					if items:
-							dest[item].extend(items if isinstance(items, list) else [items])
+		for item in entities:
+				if not dest.get(item):
+					dest[item] = []
+				items = skel.get(item)
+				if items:
+					dest[item].extend(items if isinstance(items, list) else [items])
 	for item in entities:
 		# using OrderedDict, as set reorders elements causing linking error...
 		dest[item] = OrderedDict.fromkeys(dest[item]).keys()
@@ -88,6 +88,7 @@ translation_units = {
 	"options/options" : {},
 	"service/base" : {},
 	"status/status" : {},
+	"sys/command": {},
 	"sys/script/base": {},
 	"template/template": {},
 	"util/fs" : {},

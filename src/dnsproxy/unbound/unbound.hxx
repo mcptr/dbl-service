@@ -29,6 +29,8 @@ protected:
 		Protocol_t proto,
 		const std::string& domain,
 		const std::string& address) const;
+
+	virtual void generate_domains_config(std::ofstream& off) const final;
 };
 
 } // dbl

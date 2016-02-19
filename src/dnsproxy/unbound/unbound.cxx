@@ -37,6 +37,9 @@ void Unbound::create_config()
 	}
 
 	if(config.dns_proxy_generate_config) {
+		time_t t(time(nullptr));
+		config_["GENERATION_TIME"] = std::asctime(localtime(&t));
+
 		if(!config.no_system_dns_proxy) {
 			path = config.dns_proxy_include_dir;
 			if(!fs::is_directory(path)) {
@@ -44,29 +47,24 @@ void Unbound::create_config()
 					"Invalid system dns proxy include dir: " + path.string()
 				);
 			}
-			path /= "dnsblocker.conf";			
+			path /= "dnsblocker.conf";
+			config_file_path_ = path.string();
+		
 		}
 		else {
 			path = config.dns_proxy_config_dest_dir;
 			path /= "proxy-unbound.conf";
+			config_file_path_ = path.string();
 		}
-
-		config_file_path_ = path.string();
-
-		Template tpl;
-		tpl.load(config.templates_dir, "unbound.conf");
 
 		LOG(INFO) << "Generating unbound config: " << path.string();
 
-		time_t t(time(nullptr));
-		config_["GENERATION_TIME"] = std::asctime(localtime(&t));
-
 		ofstream ofh(config_file_path_);
-		if(!config.no_system_dns_proxy) {
-			ofh << "server:" << std::endl;
-		}
-		else {
+		if(config.no_system_dns_proxy) {
 			this->generate_config();
+
+			Template tpl;
+			tpl.load(config.templates_dir, "unbound.conf");
 
 			ofh << tpl.render(config_) << std::endl;
 
@@ -87,7 +85,7 @@ void Unbound::create_config()
 			}
 
 			if(!config.dns_proxy_disable_dnssec) {
-				ofh << ws_ 
+				ofh << ws_
 					<< "auto-trust-anchor-file: \""
 					<< config.dns_proxy_root_key
 					<< "\""
@@ -96,27 +94,11 @@ void Unbound::create_config()
 
 			ofh << std::endl;
 		}
-
-		for(auto const& domain : domains_) {
-			if(!config.network_no_ip4) {
-				save_domain(ofh, IPv4, domain, config.network_ip4address);
-			}
-
-			if(!config.network_no_ip6) {
-				save_domain(ofh, IPv6, domain, config.network_ip6address);
-			}
+		else {
+			ofh << "server:" << std::endl;
 		}
 
-		auto ptr = std::move(api_->db()->get_domains());
-		for(auto const& domain : *ptr) {
-			if(!config.network_no_ip4) {
-				save_domain(ofh, IPv4, domain.name, config.network_ip4address);
-			}
-
-			if(!config.network_no_ip6) {
-				save_domain(ofh, IPv6, domain.name, config.network_ip6address);
-			}
-		}
+		this->generate_domains_config(ofh);
 
 		ofh.close();
 	}
@@ -128,9 +110,13 @@ void Unbound::generate_config()
 	namespace fs = boost::filesystem;
 	auto const& config = api_->config;
 
-	fs::path path(config.base_dir);
+	if(!config.dns_proxy_workdir.empty()) {
+		config_["DIRECTORY"] = config.dns_proxy_workdir;
+	}
+	else {
+		config_["DIRECTORY"] = config.base_dir;
+	}
 
-	config_["DIRECTORY"] = path.string();
 	config_["PIDFILE"] =  pidfile_path_;
 	config_["USER"] = config.dns_proxy_user;
 	config_["CHROOT"] = config.dns_proxy_chroot;
@@ -147,6 +133,38 @@ void Unbound::save_domain(std::ofstream& fh,
 	   << " IN " <<	(proto == IPv4 ? "A" : "AAAA")
 	   << " " << address
 	   << "\"" << std::endl;
+}
+
+void Unbound::generate_domains_config(std::ofstream& ofh) const
+{
+	for(auto const& domain : domains_) {
+		if(!api_->config.network_no_ip4) {
+			this->save_domain(
+				ofh, IPv4, domain, api_->config.network_ip4address
+			);
+		}
+
+		if(!api_->config.network_no_ip6) {
+			this->save_domain(
+				ofh, IPv6, domain, api_->config.network_ip6address
+			);
+		}
+	}
+
+	auto ptr = std::move(api_->db()->get_domains());
+	for(auto const& domain : *ptr) {
+		if(!api_->config.network_no_ip4) {
+			this->save_domain(
+				ofh, IPv4, domain.name, api_->config.network_ip4address
+			);
+		}
+
+		if(!api_->config.network_no_ip6) {
+			this->save_domain(
+				ofh, IPv6, domain.name, api_->config.network_ip6address
+			);
+		}
+	}
 }
 
 } // dbl

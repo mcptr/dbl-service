@@ -4,7 +4,5 @@
     -v \
     -f \
     --dns-proxy=unbound \
+    --dns-proxy-generate-config \
     $@
-
-
-

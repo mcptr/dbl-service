@@ -12,6 +12,7 @@
     --dns-proxy-pidfile var/run/dns-proxy-pidfile.pid \
     --dns-proxy-port 11053 \
     --dns-proxy-root-key etc/dnsblocker/root.key \
+    --dns-proxy-workdir . \
     --templates etc/dnsblocker/templates \
     $@
 
