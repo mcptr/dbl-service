@@ -3,8 +3,10 @@
 #include "dnsproxy/factory.hxx"
 #include "util/fs.hxx"
 
-
 namespace dbl {
+
+std::unique_ptr<BaseService>
+BaseService::service_ptr = nullptr;
 
 BaseService::BaseService(std::shared_ptr<dbl::RTApi> api)
 	: api_(api)
@@ -53,25 +55,5 @@ void BaseService::configure_dns_proxy()
 {
 	dns_proxy_->create_config();
 }
-
-void BaseService::start()
-{
-	this->flush_dns();
-	this->start_dns_proxy();
-	
-	if(api_->config.http_responder_enable) {
-		this->start_http_responder();
-	}
-}
-
-void BaseService::stop()
-{
-	this->stop_dns_proxy();
-	this->flush_dns();
-	//if(api_->program_options.get<bool>("http-responder-enable")) {
-		//this->stop_http_responder();
-	//}
-}
-
 
 } // dbl

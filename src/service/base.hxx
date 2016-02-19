@@ -3,11 +3,14 @@
 
 #include "core/rtapi.hxx"
 #include "dnsproxy/base.hxx"
+#include "service/server/server.hxx"
 
 #include <string>
 #include <set>
 #include <unordered_map>
 #include <memory>
+#include <thread>
+
 
 namespace dbl {
 
@@ -21,10 +24,11 @@ public:
 	explicit BaseService(std::shared_ptr<dbl::RTApi> api);
 	virtual ~BaseService() = default;
 
+	static std::unique_ptr<BaseService> service_ptr;
 
 	virtual void configure();
-	virtual void start() final;
-	virtual void stop() final;
+	virtual void start() = 0;
+	virtual void stop() = 0;
 
 protected:
 	std::shared_ptr<dbl::RTApi> api_;
@@ -43,10 +47,13 @@ protected:
 
 	virtual void start_dns_proxy() = 0;
 	virtual void stop_dns_proxy() = 0;
-	virtual void start_http_responder() = 0;
-	//virtual bool stop_http_responder() = 0;
-
 	virtual void flush_dns() = 0;
+
+	virtual void start_service() = 0;
+
+
+	std::unique_ptr<service::Server> server_ptr_;
+	std::unique_ptr<service::Server> http_responder_ptr_;
 };
 
 } // dbl

@@ -2,6 +2,7 @@
 
 #include "options/options.hxx"
 #include "status/status.hxx"
+#include "service/base.hxx"
 
 #if defined(__linux)
 #include "service/linux.hxx"
@@ -70,8 +71,6 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	std::unique_ptr<ServiceImplementation_t> service_ptr;
-
 	try {
 		if(!fs::exists(config.service_db)) {
 			fs::path db_path(config.service_db);
@@ -92,9 +91,11 @@ int main(int argc, char** argv)
 		status.print_lists();
 		status.print_domains();
 		
-		service_ptr.reset(new ServiceImplementation_t(rtapi));
+		dbl::BaseService::service_ptr.reset(
+			new ServiceImplementation_t(rtapi)
+		);
 
-		service_ptr->configure();
+		dbl::BaseService::service_ptr->configure();
 	}
 	catch(const fs::filesystem_error& e) {
 		std::string msg(e.code().message());
@@ -110,7 +111,9 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	service_ptr->start();
+	if(!config.is_test) {
+		dbl::BaseService::service_ptr->start();
+	}
 
 	return EXIT_SUCCESS;
 }

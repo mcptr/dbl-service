@@ -14,9 +14,12 @@ public:
 
 	virtual std::string get_executable_name() const;
 	virtual void start();
+	virtual void stop();
 
 protected:
 	virtual int get_service_pid() const;
+
+	virtual bool run_rc(const std::string& action) const;
 };
 
 };

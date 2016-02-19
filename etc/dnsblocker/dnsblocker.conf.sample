@@ -17,7 +17,6 @@
 
 # Service user/group:
 #service-user=dnsblocker
-#service-group=dnsblocker
 
 [filesystem]
 # Main configuration directory 

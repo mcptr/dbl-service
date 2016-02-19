@@ -4,14 +4,145 @@
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
 #include <net/if.h>
-#include <string.h>
-
+#include <cstring>
+#include <cstdio>
+#include <unistd.h>
+#include <pwd.h>
+#include <csignal>
+#include <sys/wait.h>
 
 namespace dbl {
 
 UnixService::UnixService(std::shared_ptr<RTApi> api)
 	: BaseService(api)
 {
+}
+
+void UnixService::configure()
+{
+	struct passwd* p = getpwnam(api_->config.service_user.c_str());
+
+	if(p == nullptr) {
+		throw std::runtime_error(
+			"Invalid user: " + api_->config.service_user
+		);
+	}
+
+	user_id_ = p->pw_uid;
+	group_id_ = p->pw_gid;
+
+	if(user_id_ == 0 || group_id_ == 0) {
+		throw std::runtime_error(
+			"Not an unprivileged user: " +
+			api_->config.service_user
+		);
+	}
+
+	this->BaseService::configure();
+}
+
+void UnixService::start()
+{
+	this->flush_dns();
+	this->start_dns_proxy();
+
+	LOG(INFO) << "Setting signals";
+	if(!api_->config.is_foreground) {
+		pid_t pid = fork();
+		if(pid < 0) {
+			perror("fork()");
+			LOG(ERROR) << "fork() failed";
+			return;
+		}
+
+		if(pid == 0) {
+			this->start_service();
+		}
+		else {
+			signal(SIGINT, [](int /*sig*/) {
+					LOG(INFO) << "############## STOPPING (SIGINT)";
+					BaseService::service_ptr->stop();
+				}
+			);
+
+			int status;
+			pid_t chd = wait(&status);
+			if(chd == -1) {
+				perror("waitpid");
+				LOG(ERROR) << "wait() failed";
+				throw std::runtime_error("Child exited abnormally.");
+			}
+			else {
+				LOG(INFO) << "############## STOPPING";
+				this->stop();
+
+				if(WIFEXITED(status)) {
+					LOG(INFO) << "Exited: " << WEXITSTATUS(status);
+				}
+				else if(WIFSIGNALED(status)) {
+					LOG(INFO) << "Service killed by: " << WTERMSIG(status);
+				}
+            }
+		}
+	}
+	else {
+		LOG(INFO) << "Starting foreground instance";
+		LOG(INFO) << "ASDASDASDASD";
+		signal(SIGINT, [](int /*sig*/) {
+				LOG(INFO) << "############## STOPPING (SIGINT)";
+				BaseService::service_ptr->stop();
+			}
+		);
+		this->start_service();
+	}
+}
+
+void UnixService::start_service()
+{
+	if(api_->config.is_foreground) {
+		LOG(WARNING) << "#############################################"
+					 << "# WARNING: Running in foreground"
+					 << "# without dropping privileges"
+					 << "#############################################";
+	}
+	else {
+		LOG(INFO) << "Dropping privileges";
+		if(setgid(group_id_) != 0) {
+			perror("setgid()");
+			throw std::runtime_error(
+				"Cannot drop privileges (setgid() failed)"
+			);
+		}
+
+		if(setuid(user_id_) != 0) {
+			perror("setuid()");
+			throw std::runtime_error(
+				"Cannot drop privileges (setuid() failed)"
+			);
+		}
+
+		// std::thread srv_thread(
+		// 	[this]() {
+		// 		this->http_responder_ptr_.reset(
+		// 			new service::Server(this->api_->config.service_port)
+		// 		);
+		// 		server_ptr_->run();
+		// 	}
+		// );
+
+	}
+	//if(api_->config.service_port) {
+	this->server_ptr_.reset(
+		new service::Server(this->api_->config.service_port)
+	);
+	server_ptr_->run();
+}
+
+void UnixService::stop()
+{
+	LOG(INFO) << "STOPPING";
+	server_ptr_->stop();
+	this->stop_dns_proxy();
 }
 
 std::string UnixService::get_default_interface() const
@@ -82,10 +213,7 @@ void UnixService::start_dns_proxy()
 
 void UnixService::stop_dns_proxy()
 {
-}
-
-void UnixService::start_http_responder()
-{
+	dns_proxy_->stop();
 }
 
 void UnixService::flush_dns()

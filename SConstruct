@@ -87,6 +87,8 @@ translation_units = {
 	"main" : {},
 	"options/options" : {},
 	"service/base" : {},
+	"service/server/connection" : {},
+	"service/server/server" : {},
 	"status/status" : {},
 	"sys/command": {},
 	"sys/script/base": {},

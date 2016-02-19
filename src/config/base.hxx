@@ -52,6 +52,7 @@ public:
 	std::string service_db = "dbsblocker.db";
 	std::string service_config = "dnsblocker.conf";
 	std::string service_pidfile = "dbsblocker.pid";
+	std::string service_user = "dnsblocker";
 };
 
 } //

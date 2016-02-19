@@ -5,6 +5,7 @@
 
 #include <string>
 #include <memory>
+#include <sys/types.h>
 
 namespace dbl {
 
@@ -14,6 +15,11 @@ public:
 	UnixService() = delete;
 	explicit UnixService(std::shared_ptr<RTApi> api);
 	virtual ~UnixService() = default;
+
+	virtual void configure();
+	virtual void start();
+	virtual void stop();
+
 protected:
 	virtual void run_network_discovery();
 	virtual bool setup_interface();
@@ -22,9 +28,12 @@ protected:
 
 	virtual void start_dns_proxy();
 	virtual void stop_dns_proxy();
-	virtual void start_http_responder();
 	virtual void flush_dns();
 
+	virtual void start_service();
+
+	gid_t group_id_;
+	uid_t user_id_;
 };
 
 } // dbl

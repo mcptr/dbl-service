@@ -96,6 +96,10 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 po::value(&(config.script_dir))->default_value(config.script_dir),
 		 "Location of scripts"
 		)
+		("service-user",
+		 po::value(&(config.service_user))->default_value(config.service_user),
+		 "Drop privileges and run as this user"
+		)
 		("no-system-dns-proxy",
 		 po::value(&(config.no_system_dns_proxy))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Use system installed DNS Proxy server"

@@ -42,23 +42,10 @@ void UnixUnbound::start()
 {
 	if(!api_->config.no_system_dns_proxy) {
 		int current_pid = this->get_service_pid();
+		system_proxy_was_running_ = (current_pid > 0);
 		LOG(DEBUG) << "Current unbound pid: " << current_pid;
-		std::vector<std::string> cmds = {
-			"service unbound restart",
-			"/etc/init.d/unbound restart",
-			"/etc/rc.d/unbound restart",
-			"/usr/local/etc/rc.d/unbound restart",
-			"systemctl restart unbound",
-		};
 
-		bool success = false;
-		for(auto const& cmd : cmds) {
-			LOG(DEBUG) << "Trying: " << cmd;
-			if(system(cmd.c_str()) == 0) {
-				success = true;
-				break;
-			}
-		}
+		bool success = this->run_rc("restart");
 
 		if(!success) {
 			throw std::runtime_error(
@@ -102,6 +89,48 @@ void UnixUnbound::start()
 			throw std::runtime_error("Unable to start dns proxy. Command: " + cmd);
 		}
 	}
+}
+
+void UnixUnbound::stop()
+{
+	if(api_->config.dns_proxy_generate_config) {
+		LOG(INFO) << "Removing generated configuration file: "
+				  << config_file_path_;
+		if(unlink(config_file_path_.c_str()) != 0) {
+			LOG(ERROR) << "FAILED to remove auto generatated configuration: "
+					   << config_file_path_;
+		}
+	}
+
+	if(system_proxy_was_running_) {
+		this->run_rc("restart");
+	}
+	else {
+		this->run_rc("stop");
+	}
+
+}
+
+bool UnixUnbound::run_rc(const std::string& action) const
+{
+	std::vector<std::string> cmds = {
+		"service unbound " + action,
+		"/etc/init.d/unbound " + action,
+		"/etc/rc.d/unbound " + action,
+		"/usr/local/etc/rc.d/unbound " + action,
+		"systemctl " + action + " unbound",
+	};
+
+	bool success = false;
+	for(auto const& cmd : cmds) {
+		LOG(DEBUG) << "Trying: " << cmd;
+		if(system(cmd.c_str()) == 0) {
+			success = true;
+			break;
+		}
+	}
+
+	return success;
 }
 
 } // dbl

@@ -31,7 +31,7 @@ public:
 	virtual void create_config() = 0;
 
 	virtual void start() = 0;
-	// virtual bool stop();
+	virtual void stop() = 0;
 	// virtual bool is_running();
 
 protected:
@@ -43,6 +43,7 @@ protected:
 	std::string pidfile_path_;
 
 	virtual void generate_config() = 0;
+	bool system_proxy_was_running_ = false;
 private:
 };
 
