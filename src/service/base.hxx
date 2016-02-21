@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <memory>
 #include <thread>
+#include <mutex>
+#include <atomic>
 
 
 namespace dbl {
@@ -25,6 +27,7 @@ public:
 	virtual ~BaseService() = default;
 
 	static std::unique_ptr<BaseService> service_ptr;
+	static std::mutex service_mtx_;
 
 	virtual void configure();
 	virtual void start() = 0;
@@ -51,8 +54,7 @@ protected:
 	virtual void stop_dns_proxy() = 0;
 	virtual void flush_dns() = 0;
 
-	virtual void start_service() = 0;
-
+	virtual void start_service();
 
 	std::unique_ptr<service::Server> server_ptr_;
 	std::unique_ptr<service::Server> http_responder_ptr_;

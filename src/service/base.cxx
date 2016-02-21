@@ -8,6 +8,8 @@ namespace dbl {
 std::unique_ptr<BaseService>
 BaseService::service_ptr = nullptr;
 
+std::mutex BaseService::service_mtx_;
+
 BaseService::BaseService(std::shared_ptr<dbl::RTApi> api)
 	: api_(api)
 {
@@ -54,6 +56,35 @@ void BaseService::configure()
 void BaseService::configure_dns_proxy()
 {
 	dns_proxy_->create_config();
+}
+
+void BaseService::start_service()
+{
+	std::vector<std::thread> threads;
+
+	if(api_->config.service_port) {
+		threads.push_back(
+			std::thread(
+				[this]() {
+					this->server_ptr_.reset(
+						new service::Server(this->api_->config.service_port)
+					);
+					server_ptr_->run();
+				}
+			)
+		);
+	}
+
+	while(!service_mtx_.try_lock()) {
+		std::this_thread::sleep_for(
+			std::chrono::milliseconds(100)
+		);
+	}
+
+	LOG(INFO) << "Joining threads";
+	for(auto& t : threads) {
+		t.join();
+	}
 }
 
 } // dbl

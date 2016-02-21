@@ -2,6 +2,7 @@
 #include "core/common.hxx"
 
 #include <fstream>
+#include <vector>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -100,8 +101,9 @@ void UnixService::start()
 			return;
 		}
 		else if(pid == 0) {
+			BaseService::service_mtx_.lock();
 			signal(SIGTERM, [](int /*sig*/) {
-					_exit(0);
+					BaseService::service_mtx_.unlock();
 				}
 			);
 
@@ -120,21 +122,21 @@ void UnixService::start()
 
 			int status;
 			pid_t chd = wait(&status);
-			LOG(DEBUG) << "AFTER WAIT EXIT: " << chd;
+
 			if(chd == -1) {
 				perror("waitpid");
 				LOG(ERROR) << "wait() failed";
 				throw std::runtime_error("Child exited abnormally.");
 			}
 			else {
-				if(WIFEXITED(status)) {
-					LOG(INFO) << "Exited: " << WEXITSTATUS(status);
-				}
-				else if(WIFSIGNALED(status)) {
+				if(WIFSIGNALED(status)) {
 					LOG(INFO) << "Service killed by: " << WTERMSIG(status);
 				}
 
-				LOG(INFO) << "Stopping instance: ";
+				if(WIFEXITED(status)) {
+					LOG(INFO) << "Service exited: " << WEXITSTATUS(status);
+				}
+
 				this->stop_dns_proxy();
 				this->remove_pidfile();
 				_exit(0);
@@ -179,7 +181,7 @@ void UnixService::start_service()
 			);
 		}
 
-		// std::thread srv_thread(
+		// std::thread responder_thread(
 		// 	[this]() {
 		// 		this->http_responder_ptr_.reset(
 		// 			new service::Server(this->api_->config.service_port)
@@ -189,12 +191,10 @@ void UnixService::start_service()
 		// );
 
 	}
-	//if(api_->config.service_port) {
-	this->server_ptr_.reset(
-		new service::Server(this->api_->config.service_port)
-	);
-	LOG(DEBUG) << "INVOKING RUN";
-	server_ptr_->run();
+
+	this->BaseService::start_service();
+
+	_exit(0);
 }
 
 void UnixService::stop()

@@ -88,8 +88,6 @@ int main(int argc, char** argv)
 			new dbl::DB(config.service_db, 5)
 		);
 
-		db->init();
-
 		std::shared_ptr<dbl::RTApi> rtapi(new dbl::RTApi(config, db));
 		
 		// dbl::Status status(rtapi);
@@ -99,6 +97,12 @@ int main(int argc, char** argv)
 		dbl::BaseService::service_ptr.reset(
 			new ServiceImplementation_t(rtapi)
 		);
+
+		if(dbl::BaseService::service_ptr->is_already_running()) {
+			throw std::runtime_error("Another instance already running");
+		}
+
+		db->init();
 
 		dbl::BaseService::service_ptr->configure();
 	}
@@ -117,13 +121,7 @@ int main(int argc, char** argv)
 	}
 
 	if(!config.is_test) {
-		if(dbl::BaseService::service_ptr->is_already_running()) {
-			LOG(ERROR) << "Another instance already running";
-			return EXIT_FAILURE;
-		}
-		else {
-		   dbl::BaseService::service_ptr->start();
-		}
+		dbl::BaseService::service_ptr->start();
 	}
 
 	return EXIT_SUCCESS;
