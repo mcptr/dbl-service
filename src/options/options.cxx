@@ -80,6 +80,11 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		("logfile",
 		 po::value(&(config.service_logfile))->default_value(config.service_logfile)
 		)
+		("logger_config_path",
+		 po::value(&(config.logger_config_path))->default_value(
+			 config.logger_config_path
+		 )
+		)
 		("pidfile",
 		 po::value(&(config.service_pidfile))->default_value(config.service_pidfile)
 		)

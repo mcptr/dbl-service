@@ -102,12 +102,12 @@ void UnixUnbound::stop()
 		}
 	}
 
-	LOG(DEBUG) << "Stopping 'unbound' service";
-
 	if(system_proxy_was_running_) {
+		LOG(DEBUG) << "Restarting 'unbound' service";
 		this->run_rc("restart");
 	}
 	else {
+		LOG(DEBUG) << "Stopping 'unbound' service";
 		this->run_rc("stop");
 	}
 
@@ -127,11 +127,11 @@ bool UnixUnbound::run_rc(const std::string& action) const
 	for(auto const& cmd : cmds) {
 		LOG(DEBUG) << "Trying: " << cmd;
 		if(system(cmd.c_str()) == 0) {
+			LOG(INFO) << "OK, succeeded";
 			success = true;
 			break;
 		}
 	}
-
 	return success;
 }
 

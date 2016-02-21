@@ -23,9 +23,9 @@ void setup_logging(const dbl::Options& po)
 {
 	bool is_foreground = po.get<bool>("foreground");
 	std::string logfile = po.get<std::string>("logfile");
-	el::Configurations conf;
+	std::string path = po.get<std::string>("logger_config_path");
+	el::Configurations conf(path);
 
-	std::cout << "LOGFILE:  " << logfile;
 
 	conf.setGlobally(
 		el::ConfigurationType::ToStandardOutput,
@@ -92,15 +92,14 @@ int main(int argc, char** argv)
 
 		std::shared_ptr<dbl::RTApi> rtapi(new dbl::RTApi(config, db));
 		
-		dbl::Status status(rtapi);
-		status.print_lists();
-		status.print_domains();
+		// dbl::Status status(rtapi);
+		// status.print_lists();
+		// status.print_domains();
 		
 		dbl::BaseService::service_ptr.reset(
 			new ServiceImplementation_t(rtapi)
 		);
 
-		dbl::BaseService::service_ptr->die_if_already_running();
 		dbl::BaseService::service_ptr->configure();
 	}
 	catch(const fs::filesystem_error& e) {
@@ -118,7 +117,13 @@ int main(int argc, char** argv)
 	}
 
 	if(!config.is_test) {
-		dbl::BaseService::service_ptr->start();
+		if(dbl::BaseService::service_ptr->is_already_running()) {
+			LOG(ERROR) << "Another instance already running";
+			return EXIT_FAILURE;
+		}
+		else {
+		   dbl::BaseService::service_ptr->start();
+		}
 	}
 
 	return EXIT_SUCCESS;

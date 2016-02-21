@@ -12,6 +12,7 @@ UnixConfig::UnixConfig()
 	templates_dir = base_dir + "/templates";
 	script_dir = base_dir + "/scripts/unix";
 
+	logger_config_path = base_dir + "/log.conf";
 	network_interface = "lo";
 
 	dns_proxy = "unbound";

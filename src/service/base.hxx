@@ -30,7 +30,7 @@ public:
 	virtual void start() = 0;
 	virtual void stop() = 0;
 
-	virtual void die_if_already_running() = 0;
+	virtual bool is_already_running() = 0;
 
 protected:
 	std::shared_ptr<dbl::RTApi> api_;

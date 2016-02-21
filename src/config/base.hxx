@@ -21,6 +21,7 @@ public:
 	std::string templates_dir;
 	std::string script_dir;
 
+	std::string logger_config_path = "log.conf";
 	int service_port = 7654;
 
 	bool http_responder_enable = true;

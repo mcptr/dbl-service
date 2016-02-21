@@ -20,7 +20,7 @@ public:
 	virtual void start();
 	virtual void stop();
 
-	virtual void die_if_already_running();
+	virtual bool is_already_running();
 
 protected:
 	virtual void run_network_discovery();
@@ -38,6 +38,8 @@ protected:
 
 	gid_t group_id_;
 	uid_t user_id_;
+
+	pid_t service_pid_;
 };
 
 } // dbl
