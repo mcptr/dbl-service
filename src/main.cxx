@@ -22,13 +22,18 @@ typedef dbl::UnixConfig ConfigImplementation_t;
 void setup_logging(const dbl::Options& po)
 {
 	bool is_foreground = po.get<bool>("foreground");
+	std::string logfile = po.get<std::string>("logfile");
 	el::Configurations conf;
+
+	std::cout << "LOGFILE:  " << logfile;
 
 	conf.setGlobally(
 		el::ConfigurationType::ToStandardOutput,
 		is_foreground ? "true" : "false");
 
-	//conf.setGlobally(el::ConfigurationType::Filename, log_path);
+	if(!logfile.empty()) {
+		conf.setGlobally(el::ConfigurationType::Filename, logfile);
+	}
 
 	el::Loggers::setDefaultConfigurations(conf, true);
 	el::Loggers::reconfigureAllLoggers(conf);
@@ -95,6 +100,7 @@ int main(int argc, char** argv)
 			new ServiceImplementation_t(rtapi)
 		);
 
+		dbl::BaseService::service_ptr->die_if_already_running();
 		dbl::BaseService::service_ptr->configure();
 	}
 	catch(const fs::filesystem_error& e) {

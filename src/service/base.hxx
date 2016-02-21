@@ -30,6 +30,8 @@ public:
 	virtual void start() = 0;
 	virtual void stop() = 0;
 
+	virtual void die_if_already_running() = 0;
+
 protected:
 	std::shared_ptr<dbl::RTApi> api_;
 	InterfaceList_t available_interfaces_;

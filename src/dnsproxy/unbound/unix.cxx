@@ -102,6 +102,8 @@ void UnixUnbound::stop()
 		}
 	}
 
+	LOG(DEBUG) << "Stopping 'unbound' service";
+
 	if(system_proxy_was_running_) {
 		this->run_rc("restart");
 	}

@@ -77,16 +77,15 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 po::value(&(config.service_db))->default_value(config.service_db),
 		 "Database file path"
 		)
+		("logfile",
+		 po::value(&(config.service_logfile))->default_value(config.service_logfile)
+		)
 		("pidfile",
 		 po::value(&(config.service_pidfile))->default_value(config.service_pidfile)
 		)
 		("platform",
 		 po::value(&(config.platform))->default_value(current_platform),
 		 "Override platform"
-		)
-		("templates-dir",
-		 po::value(&(config.templates_dir))->default_value(config.templates_dir),
-		 "Override platform (if guessed incorrect)"
 		)
 		("service-port",
 		 po::value(&(config.service_port))->default_value(config.service_port),
@@ -99,6 +98,10 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		("service-user",
 		 po::value(&(config.service_user))->default_value(config.service_user),
 		 "Drop privileges and run as this user"
+		)
+		("templates-dir",
+		 po::value(&(config.templates_dir))->default_value(config.templates_dir),
+		 "Override platform (if guessed incorrect)"
 		)
 		("no-system-dns-proxy",
 		 po::value(&(config.no_system_dns_proxy))->implicit_value(true)->zero_tokens()->default_value(false),

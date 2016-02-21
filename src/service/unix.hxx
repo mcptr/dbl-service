@@ -20,6 +20,8 @@ public:
 	virtual void start();
 	virtual void stop();
 
+	virtual void die_if_already_running();
+
 protected:
 	virtual void run_network_discovery();
 	virtual bool setup_interface();
@@ -31,6 +33,8 @@ protected:
 	virtual void flush_dns();
 
 	virtual void start_service();
+	virtual void save_pidfile();
+	virtual void remove_pidfile();
 
 	gid_t group_id_;
 	uid_t user_id_;

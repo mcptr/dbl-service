@@ -1,6 +1,7 @@
 #include "unix.hxx"
 #include "core/common.hxx"
 
+#include <fstream>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -10,6 +11,9 @@
 #include <pwd.h>
 #include <csignal>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <boost/filesystem.hpp>
+
 
 namespace dbl {
 
@@ -41,13 +45,61 @@ void UnixService::configure()
 	this->BaseService::configure();
 }
 
+void UnixService::die_if_already_running()
+{
+	namespace fs = boost::filesystem;
+	if(fs::exists(api_->config.service_pidfile)) {
+		pid_t pid;
+		std::ifstream ifh(api_->config.service_pidfile);
+		ifh >> pid;
+		ifh.close();
+
+		if(kill(pid, 0) == 0) {
+			throw std::runtime_error(
+				"Already running: " + std::to_string(pid)
+			);
+		}
+		
+	}
+}
+
+void UnixService::save_pidfile()
+{
+	namespace fs = boost::filesystem;
+	LOG(INFO) << "Writing pid file: "
+			  << api_->config.service_pidfile;
+	if(fs::exists(api_->config.service_pidfile)) {
+		unlink(api_->config.service_pidfile.c_str());
+	}
+
+	std::ofstream ofh(api_->config.service_pidfile);
+	if(!ofh.good()) {
+		throw std::runtime_error("Unable to write pid file.");
+	}
+	ofh << getpid();
+	ofh.close();
+}
+
+void UnixService::remove_pidfile()
+{
+	unlink(api_->config.service_pidfile.c_str());
+}
+
+
 void UnixService::start()
 {
-	this->flush_dns();
-	this->start_dns_proxy();
-
 	LOG(INFO) << "Setting signals";
 	if(!api_->config.is_foreground) {
+		if(daemon(0, 0) != 0) {
+			perror("daemon()");
+			throw std::runtime_error("Daemonizing failed.");
+		}
+
+		this->save_pidfile();
+
+		this->start_dns_proxy();
+		this->flush_dns();
+
 		pid_t pid = fork();
 		if(pid < 0) {
 			perror("fork()");
@@ -57,10 +109,16 @@ void UnixService::start()
 
 		if(pid == 0) {
 			this->start_service();
+
+			// signal(SIGTERM, [](int /*sig*/) {
+			// 		LOG(INFO) << "CHILD SIGTERM";
+			// 		_exit(0);
+			// 	}
+			// );
 		}
 		else {
-			signal(SIGINT, [](int /*sig*/) {
-					LOG(INFO) << "############## STOPPING (SIGINT)";
+			signal(SIGTERM, [](int /*sig*/) {
+					LOG(INFO) << "############## STOPPING (SIGTERM)";
 					BaseService::service_ptr->stop();
 				}
 			);
@@ -73,7 +131,6 @@ void UnixService::start()
 				throw std::runtime_error("Child exited abnormally.");
 			}
 			else {
-				LOG(INFO) << "############## STOPPING";
 				this->stop();
 
 				if(WIFEXITED(status)) {
@@ -82,17 +139,20 @@ void UnixService::start()
 				else if(WIFSIGNALED(status)) {
 					LOG(INFO) << "Service killed by: " << WTERMSIG(status);
 				}
+				exit(0);
             }
 		}
 	}
 	else {
 		LOG(INFO) << "Starting foreground instance";
-		LOG(INFO) << "ASDASDASDASD";
 		signal(SIGINT, [](int /*sig*/) {
-				LOG(INFO) << "############## STOPPING (SIGINT)";
 				BaseService::service_ptr->stop();
 			}
 		);
+
+		this->start_dns_proxy();
+		this->flush_dns();
+
 		this->start_service();
 	}
 }
@@ -140,9 +200,12 @@ void UnixService::start_service()
 
 void UnixService::stop()
 {
-	LOG(INFO) << "STOPPING";
-	server_ptr_->stop();
+	LOG(INFO) << "STOPPING proxy ";
 	this->stop_dns_proxy();
+	LOG(INFO) << "STOPPING remove pid ";
+	this->remove_pidfile();
+	LOG(INFO) << "STOPPING " << getuid();
+	server_ptr_->stop();
 }
 
 std::string UnixService::get_default_interface() const
@@ -213,6 +276,7 @@ void UnixService::start_dns_proxy()
 
 void UnixService::stop_dns_proxy()
 {
+	LOG(DEBUG) << "Stopping dns proxy";
 	dns_proxy_->stop();
 }
 

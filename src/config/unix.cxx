@@ -27,6 +27,7 @@ UnixConfig::UnixConfig()
 	dns_proxy_workdir = base_dir;
 
 	service_db = db_dir + "/dbsblocker.db";
+	service_logfile = "/var/log/dnsblocker/service.log";
 	service_config = base_dir + "/dnsblocker.conf";
 	service_pidfile = "/var/run/dnsblocker/service.pid";
 }
