@@ -117,6 +117,9 @@ int main(int argc, char** argv)
 	catch(const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		LOG(ERROR) << e.what();
+		if(dbl::BaseService::service_ptr) {
+			dbl::BaseService::service_ptr->stop();
+		}
 		return EXIT_FAILURE;
 	}
 
