@@ -84,6 +84,7 @@ void UnixService::save_pidfile()
 
 	std::ofstream ofh(api_->config.service_pidfile);
 	if(!ofh.good()) {
+		LOG(ERROR) << "Unable to write pid file";
 		throw std::runtime_error("Unable to write pid file.");
 	}
 	ofh << getpid();
@@ -101,6 +102,7 @@ void UnixService::start()
 	if(!api_->config.is_foreground) {
 		if(daemon(0, 0) != 0) {
 			perror("daemon()");
+			LOG(ERROR) << "Daemonizing failed";
 			throw std::runtime_error("Daemonizing failed.");
 		}
 
@@ -157,6 +159,8 @@ void UnixService::start()
 
 				this->stop_dns_proxy();
 				this->remove_pidfile();
+				LOG(INFO) << "################################################";
+				LOG(INFO) << "Stopped." << std::endl;
 				_exit(0);
 			}
 		}

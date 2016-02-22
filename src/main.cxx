@@ -76,6 +76,12 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
+	if(!config.is_test) {
+		LOG(INFO) << std::endl;
+		LOG(INFO) << "Starting...";
+		LOG(INFO) << "################################################";
+	}
+
 	try {
 		if(!fs::exists(config.service_db)) {
 			fs::path db_path(config.service_db);

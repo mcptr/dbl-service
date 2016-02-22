@@ -21,10 +21,13 @@ BaseService::BaseService(std::shared_ptr<dbl::RTApi> api)
 void BaseService::configure()
 {
 	ip4address_ = api_->config.network_ip4address;
+	ip6address_ = api_->config.network_ip6address;
 	interface_ = this->get_default_interface();
 
-	if(ip4address_.compare("127.0.0.1") == 0) {
-		LOG(INFO) << "Using IP4 address: 127.0.0.1. "
+	if(ip4address_.compare("127.0.0.1") == 0
+	   || ip6address_.compare("::1") == 0)
+	{
+		LOG(INFO) << "Using localhost address. "
 				  << "Will default to interface: " << interface_;
 	}
 	else {
