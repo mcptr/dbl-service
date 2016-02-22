@@ -34,10 +34,13 @@ case "$1" in
 	;;
     status)
 	if [ -f $PIDFILE ]; then
-	    kill -0 `cat $PIDFILE`
+	    PID=`cat $PIDFILE`
+	    kill -0 $PID
 	    if [ $? = 0 ]; then
-		echo "Running"
+		echo "Running (pid: $PID)"
 		exit 0
+	    else
+		echo "Not running. You may remove $PIDFILE"
 	    fi
 	else
 	    echo "Not running"

@@ -1,5 +1,7 @@
 #include "unix.hxx"
 #include "core/common.hxx"
+#include "util/fs.hxx"
+#include "sys/command.hxx"
 
 #include <fstream>
 #include <vector>
@@ -7,6 +9,7 @@
 #include <cstdio>
 #include <csignal>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
@@ -24,6 +27,13 @@ namespace dbl {
 UnixService::UnixService(std::shared_ptr<RTApi> api)
 	: BaseService(api)
 {
+	dns_proxy_pidfile_path_ = api_->config.dns_proxy_pidfile;
+
+	pidof_bin_ = dbl::find_executable("pidof");
+	if(pidof_bin_.empty()) {
+		LOG(ERROR) << "Unable to locate 'pidof'. "
+				   << "You may need to install it.";
+	}
 }
 
 void UnixService::configure()
@@ -74,6 +84,7 @@ void UnixService::save_pidfile()
 
 	std::ofstream ofh(api_->config.service_pidfile);
 	if(!ofh.good()) {
+		LOG(ERROR) << "Unable to write pid file";
 		throw std::runtime_error("Unable to write pid file.");
 	}
 	ofh << getpid();
@@ -91,6 +102,7 @@ void UnixService::start()
 	if(!api_->config.is_foreground) {
 		if(daemon(0, 0) != 0) {
 			perror("daemon()");
+			LOG(ERROR) << "Daemonizing failed";
 			throw std::runtime_error("Daemonizing failed.");
 		}
 
@@ -147,6 +159,8 @@ void UnixService::start()
 
 				this->stop_dns_proxy();
 				this->remove_pidfile();
+				LOG(INFO) << "################################################";
+				LOG(INFO) << "Stopped." << std::endl;
 				_exit(0);
 			}
 		}
@@ -291,20 +305,181 @@ bool UnixService::setup_interface()
 	return true;
 }
 
+void UnixService::configure_interface()
+{
+	bool ok = this->setup_interface();
+	if(!ok) {
+		throw std::runtime_error("Interface configuration failed");
+	}
+}
+
 void UnixService::start_dns_proxy()
 {
 	LOG(INFO) << "Starting dns proxy";
-	dns_proxy_->start();
+	if(!api_->config.no_system_dns_proxy) {
+		pid_t current_pid = this->get_pid_of(
+			this->get_proxy_executable_name()
+		);
+		system_proxy_was_running_ = (current_pid > 0);
+		LOG(DEBUG) << "Current unbound pid: " << current_pid;
+
+		bool success = this->run_rc("restart");
+
+		if(!success) {
+			throw std::runtime_error(
+				"Unable to start 'unbound' system service"
+			);
+		}
+
+		pid_t new_pid = this->get_pid_of(
+			this->get_proxy_executable_name()
+		);
+		int wait_time_ms = 100;
+		int wait_counter = 3000 / wait_time_ms;
+
+		if(new_pid < 1) {
+			LOG(INFO) << "Waiting for service...";
+			while(new_pid < 1 && wait_counter) {
+				new_pid = this->get_pid_of(
+					this->get_proxy_executable_name()
+				);
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
+				wait_counter--;
+			}
+		}
+
+		//if(new_pid > 0) {
+		LOG(DEBUG) << "New unbound pid: " << new_pid;
+		//}
+
+		if(new_pid == current_pid) {
+			std::string msg(
+				"\nFAILED to start dnsproxy service\n"
+				"\nSome init scripts report success even\n"
+				"when the service fails to start.\n"
+				"You may need to restart 'unbound' service yourself.\n\n"
+				"You should also make sure you don't have other dns software\n"
+				"already running."
+			);
+
+			LOG(ERROR) << msg << std::endl;
+			throw std::runtime_error("Unable to start 'unbound' service");
+		}
+	}
+	else {
+		std::string cmd = this->find_proxy_executable();
+		if(cmd.empty()) {
+			throw std::runtime_error("Unable to find dns proxy executable");
+		}
+
+		cmd.append(" -v ");
+		cmd.append(" -c " + dns_proxy_->get_config_path());
+		LOG(DEBUG) << cmd << std::endl;
+		LOG(DEBUG) << "DNS Proxy config file: " 
+				   << dns_proxy_->get_config_path()
+				   << std::endl;
+		if(system(cmd.c_str()) != 0) {
+			throw std::runtime_error("Unable to start dns proxy. Command: " + cmd);
+		}
+	}
+	//dns_proxy_->start();
 }
 
 void UnixService::stop_dns_proxy()
 {
 	LOG(DEBUG) << "Stopping dns proxy";
-	dns_proxy_->stop();
+	if(api_->config.dns_proxy_generate_config) {
+		LOG(INFO) << "Removing generated configuration file: "
+				  << dns_proxy_->get_config_path();
+		if(unlink(dns_proxy_->get_config_path().c_str()) != 0) {
+			LOG(ERROR) << "FAILED to remove auto generatated configuration: "
+					   << dns_proxy_->get_config_path();
+		}
+	}
+
+	if(system_proxy_was_running_) {
+		LOG(DEBUG) << "Restarting 'unbound' service";
+		this->run_rc("restart");
+	}
+	else {
+		LOG(DEBUG) << "Stopping 'unbound' service";
+		this->run_rc("stop");
+	}
+	//dns_proxy_->stop();
 }
 
 void UnixService::flush_dns()
 {
+}
+
+int UnixService::get_pid_of(const std::string& program) const
+{
+	std::string cmd_output;
+	int status = run_command(pidof_bin_ + " " + program, cmd_output);
+
+	if(status == 0) {
+		boost::trim(cmd_output);
+		return std::atoi(cmd_output.c_str());
+	}
+
+	return -1;
+}
+
+bool UnixService::run_rc(const std::string& action) const
+{
+	std::vector<std::string> cmds = {
+		"service unbound " + action,
+		"/etc/init.d/unbound " + action,
+		"/etc/rc.d/unbound " + action,
+		"/usr/local/etc/rc.d/unbound " + action,
+		"systemctl " + action + " unbound",
+	};
+
+	bool success = false;
+	for(auto const& cmd : cmds) {
+		LOG(DEBUG) << "Trying: " << cmd;
+		if(system(cmd.c_str()) == 0) {
+			LOG(INFO) << "OK, succeeded";
+			success = true;
+			break;
+		}
+	}
+	return success;
+}
+
+std::string UnixService::get_proxy_executable_name() const
+{
+	if(api_->config.dns_proxy.compare("dnsmasq") == 0) {
+		return "dnsmasq";
+	}
+
+	return "unbound";
+}
+
+std::string UnixService::find_proxy_executable() const
+{
+
+	std::string executable = api_->config.dns_proxy_executable;
+
+	if(executable.empty()) {
+		executable = dbl::find_executable(
+			this->get_proxy_executable_name()
+		);
+	}
+
+	if(executable.empty()) {
+		throw std::runtime_error("Unable to locate dns proxy software");
+	}
+
+	LOG(INFO) << "DNS proxy program: " << executable;
+	return executable;
+}
+
+void UnixService::configure_dns_proxy()
+{
+	dns_proxy_->set_value("PIDFILE", dns_proxy_pidfile_path_);
+	this->BaseService::configure_dns_proxy();
 }
 
 } // dbl

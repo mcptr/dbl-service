@@ -46,6 +46,7 @@ protected:
 	InterfaceList_t available_interfaces_;
 	std::string interface_;
 	std::string ip4address_;
+	std::string ip6address_;
 	std::string dns_proxy_executable_;
 
 	std::unique_ptr<DNSProxy> dns_proxy_;

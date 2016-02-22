@@ -17,7 +17,6 @@ public:
 	virtual ~Unbound() = default;
 
 	void create_config();
-	virtual std::string get_executable_name() const = 0;
 
 protected:
 	const std::string ws_ = "    ";
