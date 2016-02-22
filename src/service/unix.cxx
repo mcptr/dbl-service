@@ -212,6 +212,9 @@ void UnixService::start_service()
 	}
 
 	this->serve();
+	if(api_->config.is_foreground) {
+		this->stop_dns_proxy();
+	}
 	_exit(0);
 }
 
