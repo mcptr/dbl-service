@@ -18,6 +18,12 @@ namespace dbl {
 UnixUnbound::UnixUnbound(std::shared_ptr<RTApi> api)
 	: Unbound(api)
 {
+	pidfile_path_ = api_->config.dns_proxy_pidfile;
+	pidof_ = dbl::find_executable("pidof");
+	if(pidof_.empty()) {
+		LOG(ERROR) << "Unable to locate 'pidof'. "
+				   << "You may need to install it.";
+	}
 }
 
 std::string UnixUnbound::get_executable_name() const
@@ -55,7 +61,7 @@ void UnixUnbound::start()
 
 		int new_pid = this->get_service_pid();
 		int wait_time_ms = 100;
-		int wait_counter = 10000 / wait_time_ms;
+		int wait_counter = 3000 / wait_time_ms;
 
 		if(new_pid < 1) {
 			LOG(INFO) << "Waiting for service...";
@@ -66,9 +72,9 @@ void UnixUnbound::start()
 			}
 		}
 
-		if(new_pid > 0) {
-			LOG(DEBUG) << "New unbound pid: " << new_pid;
-		}
+		//if(new_pid > 0) {
+		LOG(DEBUG) << "New unbound pid: " << new_pid;
+		//}
 
 		if(new_pid == current_pid) {
 			std::string msg(
