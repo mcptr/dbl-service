@@ -114,8 +114,14 @@ void UnixService::start()
 		else {
 			this->service_pid_ = pid;
 
-			this->start_dns_proxy();
-			this->flush_dns();
+			try {
+				this->start_dns_proxy();
+				this->flush_dns();
+			}
+			catch(const std::runtime_error& e) {
+				LOG(ERROR) << e.what();
+				BaseService::service_ptr->stop();
+			}
 
 			signal(SIGTERM, [](int /*sig*/) {
 					BaseService::service_ptr->stop();
