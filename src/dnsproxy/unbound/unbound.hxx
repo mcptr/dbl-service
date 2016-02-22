@@ -22,8 +22,6 @@ public:
 protected:
 	const std::string ws_ = "    ";
 
-	virtual void generate_config();
-
 	virtual void save_domain(
 		std::ofstream& fh,
 		Protocol_t proto,

@@ -26,7 +26,7 @@ public:
 	virtual void remove_domain(const std::string& name) final;
 	virtual std::size_t count_domains() final;
 
-	virtual std::string find_executable() const final;
+	virtual std::string find_proxy_executable() const final;
 	virtual std::string get_executable_name() const = 0;
 	virtual void create_config() = 0;
 
@@ -42,7 +42,7 @@ protected:
 	std::string config_file_path_;
 	std::string pidfile_path_;
 
-	virtual void generate_config() = 0;
+	virtual void generate_config();
 	bool system_proxy_was_running_ = false;
 private:
 };

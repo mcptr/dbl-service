@@ -17,6 +17,7 @@ public:
 	virtual void stop();
 
 protected:
+	std::string pidof_;
 	virtual int get_service_pid() const;
 
 	virtual bool run_rc(const std::string& action) const;

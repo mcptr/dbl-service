@@ -1,6 +1,7 @@
 #include "unix.hxx"
 #include "core/common.hxx"
 #include "sys/command.hxx"
+#include "util/fs.hxx"
 
 #include <vector>
 #include <stdexcept>
@@ -17,7 +18,6 @@ namespace dbl {
 UnixUnbound::UnixUnbound(std::shared_ptr<RTApi> api)
 	: Unbound(api)
 {
-	pidfile_path_ = api_->config.dns_proxy_pidfile;
 }
 
 std::string UnixUnbound::get_executable_name() const
@@ -28,7 +28,7 @@ std::string UnixUnbound::get_executable_name() const
 int UnixUnbound::get_service_pid() const
 {
 	std::string cmd_output;
-	int status = run_command("pidof unbound", cmd_output);
+	int status = run_command(pidof_ + " unbound", cmd_output);
 
 	if(status == 0) {
 		boost::trim(cmd_output);
@@ -57,26 +57,35 @@ void UnixUnbound::start()
 		int wait_time_ms = 100;
 		int wait_counter = 10000 / wait_time_ms;
 
-		while(new_pid < 1 && wait_counter) {
-			LOG(INFO) << "Waiting for service: " << wait_counter;
-			new_pid = this->get_service_pid();
-			std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
-			wait_counter--;
+		if(new_pid < 1) {
+			LOG(INFO) << "Waiting for service...";
+			while(new_pid < 1 && wait_counter) {
+				new_pid = this->get_service_pid();
+				std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
+				wait_counter--;
+			}
 		}
 
-		LOG(DEBUG) << "New unbound pid: " << new_pid;
+		if(new_pid > 0) {
+			LOG(DEBUG) << "New unbound pid: " << new_pid;
+		}
 
 		if(new_pid == current_pid) {
 			std::string msg(
+				"\nFAILED to start dnsproxy service\n"
 				"\nSome init scripts report success even\n"
 				"when the service fails to start.\n"
-				"You may need to restart 'unbound' service yourself to be sure.\n"
+				"You may need to restart 'unbound' service yourself.\n\n"
+				"You should also make sure you don't have other dns software\n"
+				"already running."
 			);
-			LOG(INFO) << msg << std::endl;
+
+			LOG(ERROR) << msg << std::endl;
+			throw std::runtime_error("Unable to start 'unbound' service");
 		}
 	}
 	else {
-		std::string cmd = this->find_executable();
+		std::string cmd = this->find_proxy_executable();
 		if(cmd.empty()) {
 			throw std::runtime_error("Unable to find dns proxy executable");
 		}
@@ -110,7 +119,6 @@ void UnixUnbound::stop()
 		LOG(DEBUG) << "Stopping 'unbound' service";
 		this->run_rc("stop");
 	}
-
 }
 
 bool UnixUnbound::run_rc(const std::string& action) const
