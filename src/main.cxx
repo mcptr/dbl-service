@@ -4,10 +4,10 @@
 #include "status/status.hxx"
 #include "service/base.hxx"
 
-#if defined(__linux)
-#include "service/linux.hxx"
+#if defined(__unix)
 #include "config/unix.hxx"
-typedef dbl::LinuxService ServiceImplementation_t;
+#include "service/unix.hxx"
+typedef dbl::UnixService ServiceImplementation_t;
 typedef dbl::UnixConfig ConfigImplementation_t;
 #elif defined(_WIN32)
 //...

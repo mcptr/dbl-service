@@ -13,11 +13,6 @@ Unbound::Unbound(std::shared_ptr<RTApi> api)
 {
 }
 
-std::string Unbound::get_executable_name() const
-{
-	return "unbound";
-}
-
 void Unbound::create_config()
 {
 	namespace fs = boost::filesystem;

@@ -1,13 +1,8 @@
 #include "factory.hxx"
-#include "unbound/unbound.hxx"
+#include "unbound.hxx"
 
 #include <boost/algorithm/string.hpp>
 #include <stdexcept>
-
-#if defined(__linux) || defined(__unix)
-#include "unbound/unix.hxx"
-typedef dbl::UnixUnbound ProxyImplementation_t;
-#endif
 
 namespace dbl {
 
@@ -20,8 +15,7 @@ std::unique_ptr<DNSProxy> create_dns_proxy(std::shared_ptr<RTApi> api)
 		throw std::runtime_error("dnsmasq not implemented yet");
 	}
 	else if(name.compare("unbound") == 0) {
-		
-		ptr.reset(new ProxyImplementation_t(api));
+		ptr.reset(new Unbound(api));
 	}
 	else {
 		throw std::runtime_error("No support for: " + name);

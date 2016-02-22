@@ -26,13 +26,15 @@ public:
 	virtual void remove_domain(const std::string& name) final;
 	virtual std::size_t count_domains() final;
 
-	virtual std::string find_proxy_executable() const final;
-	virtual std::string get_executable_name() const = 0;
 	virtual void create_config() = 0;
 
-	virtual void start() = 0;
-	virtual void stop() = 0;
-	// virtual bool is_running();
+	virtual void set_value(const std::string& k,
+						   const std::string& v) final;
+
+	virtual inline const std::string& get_config_path() const final
+	{
+		return config_file_path_;
+	}
 
 protected:
 	std::shared_ptr<RTApi> api_;
@@ -40,11 +42,9 @@ protected:
 	DomainList_t domains_;
 
 	std::string config_file_path_;
-	std::string pidfile_path_;
 
 	virtual void generate_config();
-	bool system_proxy_was_running_ = false;
-private:
+
 };
 
 } // dbl

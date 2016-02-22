@@ -83,12 +83,11 @@ translation_units = {
 	"db/utils": {},
 	"dnsproxy/base" : {},
 	"dnsproxy/factory" : {},
-	"dnsproxy/unbound/unbound" : {},
+	"dnsproxy/unbound" : {},
 	"main" : {},
 	"options/options" : {},
 	"service/base" : {},
 	"service/server/connection" : {},
-	#"service/server/http_responder" : {},
 	"service/server/http_responder_connection" : {},
 	"service/server/service_connection" : {},
 	"status/status" : {},
@@ -101,10 +100,7 @@ translation_units = {
 platform_translation_units = {
 	"linux": {
 		"config/unix": {},
-		"dnsproxy/unbound/unix" : {},
 		"service/unix" : {},
-		"service/linux" : {},
-		"sys/script/unix": {},
 	}
 }
 
