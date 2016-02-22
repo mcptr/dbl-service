@@ -321,13 +321,13 @@ void UnixService::start_dns_proxy()
 			this->get_proxy_executable_name()
 		);
 		system_proxy_was_running_ = (current_pid > 0);
-		LOG(DEBUG) << "Current unbound pid: " << current_pid;
+		LOG(DEBUG) << "Current system proxy pid: " << current_pid;
 
 		bool success = this->run_rc("restart");
 
 		if(!success) {
 			throw std::runtime_error(
-				"Unable to start 'unbound' system service"
+				"Unable to start system dns proxy service"
 			);
 		}
 
@@ -358,13 +358,20 @@ void UnixService::start_dns_proxy()
 				"\nFAILED to start dnsproxy service\n"
 				"\nSome init scripts report success even\n"
 				"when the service fails to start.\n"
-				"You may need to restart 'unbound' service yourself.\n\n"
+			);
+			msg.append("You may need to restart " 
+					   + api_->config.dns_proxy
+					   + " service yourself.\n\n"
+			);
+			msg.append(
 				"You should also make sure you don't have other dns software\n"
 				"already running."
 			);
 
 			LOG(ERROR) << msg << std::endl;
-			throw std::runtime_error("Unable to start 'unbound' service");
+			throw std::runtime_error(
+				"Unable to start service: " + api_->config.dns_proxy
+			);
 		}
 	}
 	else {
@@ -399,11 +406,11 @@ void UnixService::stop_dns_proxy()
 	}
 
 	if(system_proxy_was_running_) {
-		LOG(DEBUG) << "Restarting 'unbound' service";
+		LOG(DEBUG) << "Restarting service: " << api_->config.dns_proxy;
 		this->run_rc("restart");
 	}
 	else {
-		LOG(DEBUG) << "Stopping 'unbound' service";
+		LOG(DEBUG) << "Stopping service: " << api_->config.dns_proxy;
 		this->run_rc("stop");
 	}
 	//dns_proxy_->stop();
@@ -428,12 +435,13 @@ int UnixService::get_pid_of(const std::string& program) const
 
 bool UnixService::run_rc(const std::string& action) const
 {
+	const std::string& proxy = api_->config.dns_proxy;
 	std::vector<std::string> cmds = {
-		"service unbound " + action,
-		"/etc/init.d/unbound " + action,
-		"/etc/rc.d/unbound " + action,
-		"/usr/local/etc/rc.d/unbound " + action,
-		"systemctl " + action + " unbound",
+		"service " + proxy + " " + action,
+		"/etc/init.d/" + proxy + " " + action,
+		"/etc/rc.d/" + proxy + " " + action,
+		"/usr/local/etc/rc.d/" + proxy + " " + action,
+		"systemctl " + action + " " + proxy,
 	};
 
 	bool success = false;
@@ -453,8 +461,11 @@ std::string UnixService::get_proxy_executable_name() const
 	if(api_->config.dns_proxy.compare("dnsmasq") == 0) {
 		return "dnsmasq";
 	}
+	else if(api_->config.dns_proxy.compare("unbound") == 0) {
+		return "unbound";
+	}
 
-	return "unbound";
+	throw std::runtime_error("Invalid dns proxy");
 }
 
 std::string UnixService::find_proxy_executable() const

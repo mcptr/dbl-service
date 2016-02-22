@@ -18,6 +18,9 @@ public:
 	typedef std::set<std::string> DomainList_t;
 	typedef Template::Values_t ConfigEntries_t;
 
+	typedef enum { IPv4, IPv6 } Protocol_t;
+
+
 	DNSProxy() = delete;
 	DNSProxy(std::shared_ptr<RTApi> api);
 	virtual ~DNSProxy() = default;

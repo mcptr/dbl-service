@@ -82,6 +82,7 @@ translation_units = {
 	"db/db": {},
 	"db/utils": {},
 	"dnsproxy/base" : {},
+	"dnsproxy/dnsmasq" : {},
 	"dnsproxy/factory" : {},
 	"dnsproxy/unbound" : {},
 	"main" : {},

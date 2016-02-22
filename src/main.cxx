@@ -23,7 +23,7 @@ void setup_logging(const dbl::Options& po)
 {
 	bool is_foreground = po.get<bool>("foreground");
 	std::string logfile = po.get<std::string>("logfile");
-	std::string path = po.get<std::string>("logger_config_path");
+	std::string path = po.get<std::string>("logger-config-path");
 	el::Configurations conf(path);
 
 
@@ -58,13 +58,13 @@ int main(int argc, char** argv)
 		if(po.get<bool>("debug")) {
 			po.dump_variables_map();
 		}
+
+		setup_logging(po);
 	}
 	catch(std::exception& e) {
 		std::cerr << "Invalid command " << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
-
-	setup_logging(po);
 
 	std::string proxy = po.get<std::string>("dns-proxy");
 	boost::algorithm::to_lower(proxy);

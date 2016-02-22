@@ -1,5 +1,5 @@
-#ifndef DBL_DNSPROXY_UNBOUND_HXX
-#define DBL_DNSPROXY_UNBOUND_HXX
+#ifndef DBL_DNSPROXY_DNSMASQ_HXX
+#define DBL_DNSPROXY_DNSMASQ_HXX
 
 #include "dnsproxy/base.hxx"
 
@@ -7,21 +7,18 @@
 
 namespace dbl {
 
-class Unbound : public DNSProxy
+class DNSMasq : public DNSProxy
 {
 public:
-	Unbound() = delete;
-	Unbound(std::shared_ptr<RTApi> api);
-	virtual ~Unbound() = default;
+	DNSMasq() = delete;
+	DNSMasq(std::shared_ptr<RTApi> api);
+	virtual ~DNSMasq() = default;
 
 	void create_config();
 
 protected:
-	const std::string ws_ = "    ";
-
 	virtual void save_domain(
 		std::ofstream& fh,
-		Protocol_t proto,
 		const std::string& domain,
 		const std::string& address) const;
 

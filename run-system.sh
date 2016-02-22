@@ -1,16 +1,18 @@
 #!/bin/sh
 
-
+DNS_PROXY=dnsmasq
+DNS_PROXY_INCLUDE_DIR=/etc/dnsmasq.d
 PIDFILE=/var/run/dnsblocker/service.pid
 
 start_server()
 {
     ./bin/dnsblocker \
 	-v \
-	--dns-proxy=unbound \
+	--dns-proxy=$DNS_PROXY \
+	--dns-proxy-include-dir=$DNS_PROXY_INCLUDE_DIR \
 	--dns-proxy-generate-config \
 	--pidfile  $PIDFILE \
-	--service-port 79 \
+	--service-port 7654 \
 	$@
 }
 

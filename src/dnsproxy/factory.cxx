@@ -1,5 +1,6 @@
 #include "factory.hxx"
 #include "unbound.hxx"
+#include "dnsmasq.hxx"
 
 #include <boost/algorithm/string.hpp>
 #include <stdexcept>
@@ -12,7 +13,7 @@ std::unique_ptr<DNSProxy> create_dns_proxy(std::shared_ptr<RTApi> api)
 	boost::algorithm::to_lower(name);
 	std::unique_ptr<DNSProxy> ptr;
 	if(name.compare("dnsmasq") == 0) {
-		throw std::runtime_error("dnsmasq not implemented yet");
+		ptr.reset(new DNSMasq(api));
 	}
 	else if(name.compare("unbound") == 0) {
 		ptr.reset(new Unbound(api));
