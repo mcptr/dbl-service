@@ -3,12 +3,16 @@
 
 #include "core/rtapi.hxx"
 #include "dnsproxy/base.hxx"
-#include "service/server/server.hxx"
+
+#include "server/server.hxx"
+#include "server/http_responder_connection.hxx"
+#include "server/service_connection.hxx"
 
 #include <string>
 #include <set>
 #include <unordered_map>
 #include <memory>
+#include <vector>
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -37,12 +41,16 @@ public:
 
 protected:
 	std::shared_ptr<dbl::RTApi> api_;
+	std::vector<std::thread> threads_;
+
 	InterfaceList_t available_interfaces_;
 	std::string interface_;
 	std::string ip4address_;
 	std::string dns_proxy_executable_;
 
 	std::unique_ptr<DNSProxy> dns_proxy_;
+
+	virtual void serve() final;
 
 	virtual void run_network_discovery() = 0;
 	virtual std::string get_default_interface() const = 0;
@@ -56,8 +64,13 @@ protected:
 
 	virtual void start_service();
 
-	std::unique_ptr<service::Server> server_ptr_;
-	std::unique_ptr<service::Server> http_responder_ptr_;
+	std::unique_ptr<
+		service::Server<service::ServiceConnection>
+		> server_ptr_;
+
+	std::unique_ptr<
+		service::Server<service::HTTPResponderConnection>
+		> http_responder_ptr_;
 };
 
 } // dbl

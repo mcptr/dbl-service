@@ -3,18 +3,20 @@
 
 #include <fstream>
 #include <vector>
+#include <cstring>
+#include <cstdio>
+#include <csignal>
+#include <boost/filesystem.hpp>
+
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
 #include <net/if.h>
-#include <cstring>
-#include <cstdio>
 #include <unistd.h>
 #include <pwd.h>
-#include <csignal>
+#include <grp.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
-#include <boost/filesystem.hpp>
 
 
 namespace dbl {
@@ -159,14 +161,33 @@ void UnixService::start()
 
 void UnixService::start_service()
 {
+	this->BaseService::start_service();
+
 	if(api_->config.is_foreground) {
-		LOG(WARNING) << "#############################################"
-					 << "# WARNING: Running in foreground"
-					 << "# without dropping privileges"
-					 << "#############################################";
+		LOG(WARNING) << "\n#############################################\n"
+					 << "# WARNING: Running in foreground\n"
+					 << "# without dropping privileges.\n"
+					 << "#\n"
+					 << "# Use SIGINT to quit\n"
+					 << "#############################################\n";
+
+		BaseService::service_mtx_.lock();
+
+		signal(SIGINT, [](int /*sig*/) {
+				BaseService::service_mtx_.unlock();
+			}
+		);
+
 	}
 	else {
 		LOG(INFO) << "Dropping privileges";
+		if(setgroups(0, nullptr) != 0) {
+			perror("setgroups()");
+			throw std::runtime_error(
+				"Cannot drop privileges (setgroups() failed)"
+			);
+		}
+
 		if(setgid(group_id_) != 0) {
 			perror("setgid()");
 			throw std::runtime_error(
@@ -181,19 +202,16 @@ void UnixService::start_service()
 			);
 		}
 
-		// std::thread responder_thread(
-		// 	[this]() {
-		// 		this->http_responder_ptr_.reset(
-		// 			new service::Server(this->api_->config.service_port)
-		// 		);
-		// 		server_ptr_->run();
-		// 	}
-		// );
+		if(setuid(0) == 0) {
+			throw std::runtime_error("Dropping privileges failed");
+		}
 
+		if(setgid(0) == 0) {
+			throw std::runtime_error("Dropping privileges failed");
+		}
 	}
 
-	this->BaseService::start_service();
-
+	this->serve();
 	_exit(0);
 }
 

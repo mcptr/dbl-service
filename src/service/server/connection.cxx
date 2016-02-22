@@ -3,20 +3,16 @@
 namespace dbl {
 namespace service {
 
-Connection::Connection(boost::asio::ip::tcp::socket socket)
-	: socket_(std::move(socket))
+Connection::Connection(std::shared_ptr<dbl::RTApi> api,
+					   boost::asio::ip::tcp::socket socket)
+	: api_(api),
+	  socket_(std::move(socket))
 {
 }
 
 void Connection::handle()
 {
 	read();
-}
-
-bool Connection::process_request()
-{
-	response_ = "";
-	return true;
 }
 
 void Connection::read()

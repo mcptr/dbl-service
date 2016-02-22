@@ -25,6 +25,7 @@ public:
 	int service_port = 7654;
 
 	bool http_responder_enable = true;
+	short http_responder_port = 80;
 	int http_responder_status_code = 404;
 	std::string http_responder_status_text = "Not found";
 
@@ -55,6 +56,8 @@ public:
 	std::string service_logfile = "dbsblocker.log";
 	std::string service_pidfile = "dbsblocker.pid";
 	std::string service_user = "dnsblocker";
+
+	bool disable_list_update = false;
 };
 
 } //

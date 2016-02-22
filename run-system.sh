@@ -10,7 +10,7 @@ start_server()
 	--dns-proxy=unbound \
 	--dns-proxy-generate-config \
 	--pidfile  $PIDFILE \
-	--service-port 0 \
+	--service-port 79 \
 	$@
 }
 

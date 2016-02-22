@@ -20,6 +20,7 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 	po::options_description dnsproxy_custom("Custom DNS proxy instance options");
 	po::options_description network("Network options");
 	po::options_description http_responder("HTTP Responder");
+	po::options_description lists("DNS lists options");
 	po::options_description config_file_options("");
 
 	string config_path;
@@ -113,6 +114,14 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 "Use system installed DNS Proxy server"
 		)
 		;
+	lists.add_options()
+		("disable-list-update",
+		 po::value(&(config.disable_list_update))->implicit_value(true)->zero_tokens()->default_value(
+			 config.disable_list_update
+		 ),
+		 "Do not update blocking lists"
+		)
+		;
 	
 	dnsproxy.add_options()
 		("dns-proxy",
@@ -193,6 +202,10 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 po::value(&(config.http_responder_enable))->default_value(config.http_responder_enable),
 		 "builtin HTTP responder"
 		)
+		("http-responder-port",
+		 po::value(&(config.http_responder_port))->default_value(config.http_responder_port),
+		 "Override builtin HTTP responder"
+		)
 		("http-responder-status-code",
 		 po::value(&(config.http_responder_status_code))->default_value(config.http_responder_status_code)
 		)
@@ -201,7 +214,13 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		)
 		;
 
-	all_.add(flags).add(service).add(network).add(dnsproxy).add(dnsproxy_custom).add(http_responder);
+	all_.add(flags)
+		.add(service)
+		.add(network)
+		.add(dnsproxy)
+		.add(dnsproxy_custom)
+		.add(http_responder)
+		.add(lists);
 
 	try {
 		po::store(po::command_line_parser(argc, argv).options(all_).run(), vm_);

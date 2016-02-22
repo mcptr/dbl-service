@@ -3,6 +3,8 @@
 #include "dnsproxy/factory.hxx"
 #include "util/fs.hxx"
 
+#include "server/service_connection.hxx"
+
 namespace dbl {
 
 std::unique_ptr<BaseService>
@@ -60,29 +62,81 @@ void BaseService::configure_dns_proxy()
 
 void BaseService::start_service()
 {
-	std::vector<std::thread> threads;
-
 	if(api_->config.service_port) {
-		threads.push_back(
-			std::thread(
-				[this]() {
-					this->server_ptr_.reset(
-						new service::Server(this->api_->config.service_port)
-					);
-					server_ptr_->run();
-				}
-			)
-		);
+		try {
+			this->server_ptr_.reset(
+				new service::Server<service::ServiceConnection>(
+					this->api_,
+					this->api_->config.service_port
+				)
+			);
+		}
+		catch(const std::exception& e) {
+			LOG(ERROR) << "ERROR: Unable to start service server";
+			LOG(ERROR) << e.what();
+			LOG(ERROR) << "Aborting.";
+			_exit(0);
+		}
+
+		if(this->server_ptr_) {
+			threads_.push_back(
+				std::thread([this]() {
+						this->server_ptr_->run();
+					}
+				)
+			);
+		}
 	}
 
+	if(api_->config.http_responder_enable) {
+		try {
+			this->http_responder_ptr_.reset(
+				new service::Server<service::HTTPResponderConnection>(
+					this->api_,
+					this->api_->config.http_responder_port
+				)
+			);
+		}
+		catch(const std::exception& e) {
+			LOG(ERROR) << "ERROR: Unable to start HTTPResponder";
+			LOG(ERROR) << e.what();
+			LOG(ERROR) << "Aborting.";
+			_exit(0);
+		}
+
+		if(this->http_responder_ptr_) {
+			threads_.push_back(
+				std::thread([this]() {
+						http_responder_ptr_->run();
+					}
+				)
+			);
+		}
+	}
+
+	if(!api_->config.disable_list_update) {
+
+	}
+}
+
+void BaseService::serve()
+{
 	while(!service_mtx_.try_lock()) {
 		std::this_thread::sleep_for(
 			std::chrono::milliseconds(100)
 		);
 	}
 
+	if(this->server_ptr_) {
+		this->server_ptr_->stop();
+	}
+
+	if(this->http_responder_ptr_) {
+		this->http_responder_ptr_->stop();
+	}
+
 	LOG(INFO) << "Joining threads";
-	for(auto& t : threads) {
+	for(auto& t : threads_) {
 		t.join();
 	}
 }
