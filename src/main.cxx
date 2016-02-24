@@ -130,8 +130,9 @@ int main(int argc, char** argv)
 	}
 
 	if(!config.is_test) {
-		dbl::BaseService::service_ptr->start();
+		dbl::BaseService::service_ptr->run();
 	}
 
+	LOG(DEBUG) << "main() exit success";
 	return EXIT_SUCCESS;
 }

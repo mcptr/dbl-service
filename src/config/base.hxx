@@ -36,6 +36,8 @@ public:
 	bool network_no_ip6 = false;
 
 	bool no_system_dns_proxy = false;
+	bool no_update = false;
+
 	std::string dns_proxy = "unbound";
 	std::string dns_proxy_chroot = "";
 	std::string dns_proxy_config = "";

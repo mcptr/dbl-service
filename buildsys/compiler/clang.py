@@ -8,3 +8,9 @@ class Clang(base.Base):
 
 	def get_bin(self):
 		return "clang++"
+
+	def get_linkflags(self):
+		return []
+
+	def get_libs(self):
+		return []

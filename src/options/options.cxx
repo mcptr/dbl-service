@@ -113,7 +113,12 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 		 po::value(&(config.no_system_dns_proxy))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Use system installed DNS Proxy server"
 		)
+		("no-update",
+		 po::value(&(config.no_update))->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Disable all updates"
+		)
 		;
+
 	lists.add_options()
 		("disable-list-update",
 		 po::value(&(config.disable_list_update))->implicit_value(true)->zero_tokens()->default_value(
@@ -199,7 +204,7 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 
 	http_responder.add_options()
 		("http-responder-enable",
-		 po::value(&(config.http_responder_enable))->default_value(config.http_responder_enable),
+		 po::value(&(config.http_responder_enable))->default_value(false),
 		 "builtin HTTP responder"
 		)
 		("http-responder-port",

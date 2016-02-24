@@ -1,7 +1,7 @@
 #include "base.hxx"
 #include "core/common.hxx"
 #include "dnsproxy/factory.hxx"
-#include "util/fs.hxx"
+#include "configurator/factory.hxx"
 
 #include "server/service_connection.hxx"
 
@@ -10,7 +10,6 @@ namespace dbl {
 std::unique_ptr<BaseService>
 BaseService::service_ptr = nullptr;
 
-std::mutex BaseService::service_mtx_;
 
 BaseService::BaseService(std::shared_ptr<dbl::RTApi> api)
 	: api_(api)
@@ -20,50 +19,36 @@ BaseService::BaseService(std::shared_ptr<dbl::RTApi> api)
 
 void BaseService::configure()
 {
-	ip4address_ = api_->config.network_ip4address;
-	ip6address_ = api_->config.network_ip6address;
-	interface_ = this->get_default_interface();
-
-	if(ip4address_.compare("127.0.0.1") == 0
-	   || ip6address_.compare("::1") == 0)
-	{
-		LOG(INFO) << "Using localhost address. "
-				  << "Will default to interface: " << interface_;
-	}
-	else {
-		interface_ = api_->config.network_interface;
-		if(interface_.empty()) {
-			throw std::runtime_error(
-				"Create a dedicated interface to use with address: " +
-				ip4address_
-			);
-		}
-	}
-
-	run_network_discovery();
-
-	if(!available_interfaces_.count(interface_)) {
-		throw std::runtime_error("Invalid interface: " + interface_);
-	}
-
-	if(!available_interfaces_[interface_].count(ip4address_)) {
-		LOG(INFO) << "Configuring interface: " << interface_;
-		this->configure_interface();
-	}
-	else {
-		LOG(INFO) << "Interface already configured: "
-				  << interface_ << " / " << ip4address_;
-	}
-
-	this->configure_dns_proxy();
-}
-
-void BaseService::configure_dns_proxy()
-{
+	configurator_ = std::move(service::create_configurator(api_));
+	configurator_->configure(*dns_proxy_);
 	dns_proxy_->create_config();
 }
 
-void BaseService::start_service()
+void BaseService::run_service()
+{
+	this->start_servers();
+	if(api_->config.is_foreground) {
+		LOG(WARNING) << "\n#############################################\n"
+					 << "# WARNING: Running in foreground\n"
+					 << "# without dropping privileges.\n"
+					 << "#\n"
+					 << "# Use SIGINT to quit\n"
+					 << "#############################################\n";
+
+		signal(SIGINT, [](int /*sig*/) {
+				BaseService::service_ptr->stop_service();
+			}
+		);
+	}
+	else {
+		this->drop_privileges();
+	}
+
+	std::unique_lock<std::mutex> lock(service_mtx_);
+	service_cv_.wait(lock);
+}
+
+void BaseService::start_servers()
 {
 	if(api_->config.service_port) {
 		try {
@@ -117,19 +102,28 @@ void BaseService::start_service()
 		}
 	}
 
-	if(!api_->config.disable_list_update) {
+	if(!api_->config.no_update) {
+		updater_ptr_.reset(new service::Updater(api_));
 
+		updater_ptr_->enable_list_update(
+			!api_->config.disable_list_update
+		);
+
+		threads_.push_back(
+			std::thread([this]() {
+					this->is_updated_ = updater_ptr_->run();
+					if(this->is_updated_) {
+						LOG(INFO) << "Service update ready. Restarting";
+						this->stop_service();
+					}
+				}
+			)
+		);
 	}
 }
 
-void BaseService::serve()
+void BaseService::stop_servers()
 {
-	while(!service_mtx_.try_lock()) {
-		std::this_thread::sleep_for(
-			std::chrono::milliseconds(100)
-		);
-	}
-
 	if(this->server_ptr_) {
 		this->server_ptr_->stop();
 	}
@@ -138,10 +132,22 @@ void BaseService::serve()
 		this->http_responder_ptr_->stop();
 	}
 
-	LOG(INFO) << "Joining threads";
+	if(this->updater_ptr_) {
+		this->updater_ptr_->stop();
+	}
+
+	LOG(DEBUG) << "Joining threads";
 	for(auto& t : threads_) {
 		t.join();
 	}
+	LOG(DEBUG) << "All threads joined";
+}
+
+void BaseService::stop_service()
+{
+	LOG(INFO) << "stop_service()";
+	service_cv_.notify_all();
+	this->stop_servers();
 }
 
 } // dbl

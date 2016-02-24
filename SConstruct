@@ -47,6 +47,7 @@ builder.add_library(
 	"boost_filesystem",
 	"soci_core",
 	"soci_sqlite3",
+	"c++",
 )
 
 builder.add_include_path(Dirs.source, Dirs.extern_source)
@@ -88,9 +89,12 @@ translation_units = {
 	"main" : {},
 	"options/options" : {},
 	"service/base" : {},
+	"service/configurator/base" : {},
+	"service/configurator/factory" : {},
 	"service/server/connection" : {},
 	"service/server/http_responder_connection" : {},
 	"service/server/service_connection" : {},
+	"service/updater/updater" : {},
 	"status/status" : {},
 	"sys/command": {},
 	"sys/script/base": {},
@@ -101,6 +105,7 @@ translation_units = {
 platform_translation_units = {
 	"linux": {
 		"config/unix": {},
+		"service/configurator/unix" : {},
 		"service/unix" : {},
 	}
 }

@@ -8,6 +8,9 @@
 #include "server/http_responder_connection.hxx"
 #include "server/service_connection.hxx"
 
+#include "service/configurator/base.hxx"
+#include "service/updater/updater.hxx"
+
 #include <string>
 #include <set>
 #include <unordered_map>
@@ -16,6 +19,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <condition_variable>
 
 
 namespace dbl {
@@ -23,47 +27,43 @@ namespace dbl {
 class BaseService
 {
 public:
-	typedef std::set<std::string> AddressList_t;
-	typedef std::unordered_map<std::string, AddressList_t> InterfaceList_t;
-
 	BaseService() = delete;
 	explicit BaseService(std::shared_ptr<dbl::RTApi> api);
 	virtual ~BaseService() = default;
 
 	static std::unique_ptr<BaseService> service_ptr;
-	static std::mutex service_mtx_;
 
 	virtual void configure();
-	virtual void start() = 0;
+	virtual void run() = 0;
 	virtual void stop() = 0;
 
 	virtual bool is_already_running() = 0;
+	virtual void stop_service() final;
 
 protected:
-	std::shared_ptr<dbl::RTApi> api_;
-	std::vector<std::thread> threads_;
-
-	InterfaceList_t available_interfaces_;
-	std::string interface_;
-	std::string ip4address_;
-	std::string ip6address_;
-	std::string dns_proxy_executable_;
-
+	std::shared_ptr<RTApi> api_;
 	std::unique_ptr<DNSProxy> dns_proxy_;
+	std::unique_ptr<service::Configurator> configurator_;
 
-	virtual void serve() final;
+	std::vector<std::thread> threads_;
+	std::mutex service_mtx_;
+	std::condition_variable service_cv_;
 
-	virtual void run_network_discovery() = 0;
-	virtual std::string get_default_interface() const = 0;
+	bool is_updated_ = false;
 
-	virtual void configure_interface() = 0;
-	virtual void configure_dns_proxy();
+
+	virtual void run_service() final;
+
+	virtual void start_servers() final;
+	virtual void stop_servers() final;
+
+	virtual void drop_privileges() = 0;
+	// virtual void start() = 0;
+	// virtual void reload() = 0;
 
 	virtual void start_dns_proxy() = 0;
 	virtual void stop_dns_proxy() = 0;
 	virtual void flush_dns() = 0;
-
-	virtual void start_service();
 
 	std::unique_ptr<
 		service::Server<service::ServiceConnection>
@@ -72,6 +72,8 @@ protected:
 	std::unique_ptr<
 		service::Server<service::HTTPResponderConnection>
 		> http_responder_ptr_;
+
+	std::unique_ptr<service::Updater> updater_ptr_;
 };
 
 } // dbl
