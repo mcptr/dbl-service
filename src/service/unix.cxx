@@ -358,11 +358,11 @@ bool Unix::run_rc(const std::string& action) const
 {
 	const std::string& proxy = api_->config.dns_proxy;
 	std::vector<std::string> cmds = {
-		"service " + proxy + " " + action,
+		"/usr/sbin/service " + proxy + " " + action,
 		"/etc/init.d/" + proxy + " " + action,
 		"/etc/rc.d/" + proxy + " " + action,
 		"/usr/local/etc/rc.d/" + proxy + " " + action,
-		"systemctl " + action + " " + proxy,
+		"/usr/sbin/systemctl " + action + " " + proxy,
 	};
 
 	bool success = false;
