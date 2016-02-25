@@ -1,11 +1,13 @@
 #ifndef DBL_SYS_SCRIPT_UNIX_HXX
 #define DBL_SYS_SCRIPT_UNIX_HXX
 
-#include "base.hxx"
+#include "script.hxx"
 
 namespace dbl {
+namespace sys {
+namespace script {
 
-class Script : public BaseScript
+class Script : public Script
 {
 public:
 	Script() = delete;
@@ -18,6 +20,8 @@ protected:
 	
 };
 
+} // script
+} // sys
 } // dbl
 
 #endif

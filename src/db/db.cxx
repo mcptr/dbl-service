@@ -1,5 +1,5 @@
 #include "db.hxx"
-#include "ddl.hxx"
+#include "ddl/ddl.hxx"
 #include "data/initial_data.hxx"
 #include "core/common.hxx"
 
@@ -32,9 +32,9 @@ void DB::init()
 	}
 
 	soci::session sql(pool_);
-	sql << db::DDL::settings_table;
-	sql << db::DDL::domain_lists_table;
-	sql << db::DDL::domains_table;
+	sql << DDL::settings_table;
+	sql << DDL::domain_lists_table;
+	sql << DDL::domains_table;
 
 	int total_lists = 0;
 	sql << "SELECT count(*) AS cnt FROM domain_lists", soci::into(total_lists);

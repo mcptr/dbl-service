@@ -309,7 +309,7 @@ void Unix::start_dns_proxy()
 				   << std::endl;
 		
 		std::string output;
-		if(run_command(cmd, output) != 0) {
+		if(sys::run_command(cmd, output) != 0) {
 			throw std::runtime_error("Unable to start dns proxy. Command: " + cmd);
 		}
 	}
@@ -344,7 +344,7 @@ void Unix::flush_dns()
 int Unix::get_pid_of(const std::string& program) const
 {
 	std::string cmd_output;
-	int status = run_command(pidof_bin_ + " " + program, cmd_output);
+	int status = sys::run_command(pidof_bin_ + " " + program, cmd_output);
 
 	if(status == 0) {
 		boost::trim(cmd_output);
@@ -369,7 +369,7 @@ bool Unix::run_rc(const std::string& action) const
 	for(auto const& cmd : cmds) {
 		LOG(DEBUG) << "Trying: " << cmd;
 		std::string output;
-		if(run_command(cmd, output) == 0) {
+		if(sys::run_command(cmd, output) == 0) {
 			LOG(INFO) << "OK, succeeded";
 			success = true;
 			break;

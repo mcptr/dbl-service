@@ -4,9 +4,11 @@
 #include <cstdlib>
 
 namespace dbl {
+namespace sys {
+namespace script {
 
 Script::Script(std::shared_ptr<core::Api> api, const std::string& name)
-	: BaseScript(api, name)
+	: Script(api, name)
 {
 }
 
@@ -26,5 +28,6 @@ void Script::unexport_env() const
 	}
 }
 
-
+} // script
+} // sys
 } // dbl

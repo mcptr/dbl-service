@@ -81,7 +81,7 @@ def extend_env(dest, src):
 translation_units = {
 	"core/api" : {},
 	"db/db": {},
-	"db/utils": {},
+	"db/utils/utils": {},
 	"dnsproxy/dnsmasq" : {},
 	"dnsproxy/dnsproxy" : {},
 	"dnsproxy/factory" : {},
@@ -97,7 +97,7 @@ translation_units = {
 	"service/updater/updater" : {},
 	"status/status" : {},
 	"sys/command": {},
-	#"sys/script/base": {},
+	"sys/script/script": {},
 	"template/template": {},
 	"util/fs" : {},
 }

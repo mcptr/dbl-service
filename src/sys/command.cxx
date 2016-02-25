@@ -5,6 +5,7 @@
 #include <errno.h>
 
 namespace dbl {
+namespace sys {
 
 int run_command(const std::string& cmd, std::string& result)
 {
@@ -26,4 +27,5 @@ int run_command(const std::string& cmd, std::string& result)
 	return pclose(ptr);
 }
 
+} // sys
 } // dbl

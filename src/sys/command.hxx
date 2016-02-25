@@ -7,11 +7,12 @@
 #include <memory>
 
 
-
 namespace dbl {
+namespace sys {
 
 int run_command(const std::string& cmd,	std::string& result);
 
-} //dbl
+} // sys
+} // dbl
 
 #endif

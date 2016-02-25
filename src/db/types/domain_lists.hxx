@@ -1,7 +1,7 @@
 #ifndef DBL_DB_TYPES_DOMAIN_LISTS_HXX
 #define DBL_DB_TYPES_DOMAIN_LISTS_HXX
 
-#include "db/utils.hxx"
+#include "db/utils/utils.hxx"
 #include <soci/soci.h>
 #include <boost/optional.hpp>
 #include <string>
