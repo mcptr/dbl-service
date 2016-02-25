@@ -3,7 +3,7 @@
 
 #define SOCI_USE_BOOST
 
-#include "types.hxx"
+#include "types/types.hxx"
 
 #include <string>
 #include <vector>

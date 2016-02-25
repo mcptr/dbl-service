@@ -1,7 +1,10 @@
+#ifndef DBL_DB_TYPES_TYPES_HXX
+#define DBL_DB_TYPES_TYPES_HXX
+
 #define SOCI_USE_BOOST
 
-#include "types/domain_lists.hxx"
-#include "types/domains.hxx"
+#include "domain_lists.hxx"
+#include "domains.hxx"
 
 namespace dbl {
 namespace db {
@@ -13,3 +16,5 @@ typedef std::vector<Domain> DomainSet_t;
 } // types
 } // db
 } // dbl
+
+#endif

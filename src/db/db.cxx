@@ -1,7 +1,6 @@
 #include "db.hxx"
 #include "ddl.hxx"
-#include "initial_data.hxx"
-#include "types.hxx"
+#include "data/initial_data.hxx"
 #include "core/common.hxx"
 
 
