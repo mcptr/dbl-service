@@ -20,7 +20,7 @@ class Server
 public:
 	Server() = delete;
 	Server(std::shared_ptr<dbl::RTApi> api, short port);
-	~Server() = default;
+	virtual ~Server();
 
 	virtual void run() final;
 	virtual void stop() final;
@@ -49,6 +49,13 @@ Server<ConnectionType>::Server(std::shared_ptr<dbl::RTApi> api, short port)
 }
 
 template<class ConnectionType>
+Server<ConnectionType>::~Server()
+{
+	this->stop();
+	io_service_.reset();
+}
+
+template<class ConnectionType>
 void Server<ConnectionType>::run()
 {
 	accept();
@@ -59,8 +66,10 @@ void Server<ConnectionType>::run()
 template<class ConnectionType>
 void Server<ConnectionType>::stop()
 {
-	LOG(INFO) << "Deactivating server on port " << port_;
-	io_service_->stop();
+	if(!io_service_->stopped()) {
+		LOG(INFO) << "Deactivating server on port " << port_;
+		io_service_->stop();
+	}
 }
 
 template<class ConnectionType>

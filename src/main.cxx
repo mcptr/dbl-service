@@ -82,6 +82,9 @@ int main(int argc, char** argv)
 		LOG(INFO) << "################################################";
 	}
 
+	std::shared_ptr<dbl::RTApi> rtapi;
+	std::shared_ptr<dbl::DB> db;
+
 	try {
 		if(!fs::exists(config.service_db)) {
 			fs::path db_path(config.service_db);
@@ -90,11 +93,8 @@ int main(int argc, char** argv)
 			fs::create_directories(db_path.parent_path());
 		}
 
-		std::shared_ptr<dbl::DB> db(
-			new dbl::DB(config.service_db, 5)
-		);
-
-		std::shared_ptr<dbl::RTApi> rtapi(new dbl::RTApi(config, db));
+		db.reset(new dbl::DB(config.service_db, 5));
+		rtapi.reset(new dbl::RTApi(config, db));
 		
 		// dbl::Status status(rtapi);
 		// status.print_lists();
@@ -132,6 +132,10 @@ int main(int argc, char** argv)
 	if(!config.is_test) {
 		dbl::BaseService::service_ptr->run();
 	}
+
+	dbl::BaseService::service_ptr.reset();
+	rtapi.reset();
+	db.reset();
 
 	LOG(DEBUG) << "main() exit success";
 	return EXIT_SUCCESS;

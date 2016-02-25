@@ -3,6 +3,9 @@
 **/*~
 **/*.bkp
 
+# core files
+**/*.core
+
 # directories
 bin/
 build/

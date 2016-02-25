@@ -141,11 +141,16 @@ void BaseService::stop_servers()
 		t.join();
 	}
 	LOG(DEBUG) << "All threads joined";
+
+	// Delete all instances to get rid of
+	// the underlying sockets
+	this->server_ptr_.reset();
+	this->http_responder_ptr_.reset();
+	this->updater_ptr_.reset();
 }
 
 void BaseService::stop_service()
 {
-	LOG(INFO) << "stop_service()";
 	service_cv_.notify_all();
 	this->stop_servers();
 }

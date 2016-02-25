@@ -10,7 +10,7 @@
 
 namespace dbl {
 
-int run_command(const std::string& cmd, std::string& result);
+int run_command(const std::string& cmd,	std::string& result);
 
 } //dbl
 

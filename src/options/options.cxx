@@ -204,7 +204,7 @@ void Options::parse(int argc, char** argv, BaseConfig& config)
 
 	http_responder.add_options()
 		("http-responder-enable",
-		 po::value(&(config.http_responder_enable))->default_value(false),
+		 po::value(&(config.http_responder_enable))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "builtin HTTP responder"
 		)
 		("http-responder-port",

@@ -84,8 +84,8 @@ void UnixService::run()
 			}
 
 			signal(SIGTERM, [](int /*sig*/) {
-					LOG(INFO) << "Caught SIGTERM";
-					// stop() instead of stop_service.
+					LOG(INFO) << "Caught SIGTERM. Stopping service";
+					// stop() instead of stop_service().
 					// kills child, which does stop_service()
 					BaseService::service_ptr->stop();
 				}
@@ -117,13 +117,20 @@ void UnixService::run()
 	}
 	else {
 		LOG(INFO) << "Starting foreground instance";
+		this->start_dns_proxy();
+		this->flush_dns();
+
 		signal(SIGINT, [](int /*sig*/) {
+				LOG(DEBUG) << "Foreground instance caught SIGINT";
 				BaseService::service_ptr->stop_service();
 			}
 		);
 
-		this->start_dns_proxy();
-		this->flush_dns();
+		signal(SIGTERM, [](int /*sig*/) {
+				LOG(DEBUG) << "Foreground instance caught SIGTERM";
+				BaseService::service_ptr->stop_service();
+			}
+		);
 
 		this->run_service();
 		this->stop_dns_proxy();
@@ -264,7 +271,7 @@ void UnixService::start_dns_proxy()
 		}
 
 		//if(new_pid > 0) {
-		LOG(DEBUG) << "New unbound pid: " << new_pid;
+		LOG(DEBUG) << "New dns proxy pid: " << new_pid;
 		//}
 
 		if(new_pid == current_pid) {
@@ -300,7 +307,9 @@ void UnixService::start_dns_proxy()
 		LOG(DEBUG) << "DNS Proxy config file: " 
 				   << dns_proxy_->get_config_path()
 				   << std::endl;
-		if(system(cmd.c_str()) != 0) {
+		
+		std::string output;
+		if(run_command(cmd, output) != 0) {
 			throw std::runtime_error("Unable to start dns proxy. Command: " + cmd);
 		}
 	}
@@ -359,7 +368,8 @@ bool UnixService::run_rc(const std::string& action) const
 	bool success = false;
 	for(auto const& cmd : cmds) {
 		LOG(DEBUG) << "Trying: " << cmd;
-		if(system(cmd.c_str()) == 0) {
+		std::string output;
+		if(run_command(cmd, output) == 0) {
 			LOG(INFO) << "OK, succeeded";
 			success = true;
 			break;

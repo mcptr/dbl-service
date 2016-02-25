@@ -7,19 +7,30 @@
 
 namespace dbl {
 
-DB::DB(const std::string& dbpath, int pool_size)
-	: pool_(soci::connection_pool(pool_size))
+DB::DB(const std::string& dbpath, std::size_t pool_size)
+	: db_path_(dbpath),
+	  pool_size_(pool_size),
+	  pool_(soci::connection_pool(pool_size))
 {
-	LOG(INFO) << "Opening database: " << dbpath;
-	for(int i = 0; i < pool_size; i++) {
+}
+
+DB::~DB()
+{
+	for(std::size_t i = 0; i < pool_size_; i++) {
 		soci::session& sql = pool_.at(i);
-		sql.open("sqlite3://" + dbpath);
-		sql << "PRAGMA foreign_keys = ON;";
+		sql.close();
 	}
 }
 
 void DB::init()
 {
+	LOG(INFO) << "Opening database: " << db_path_;
+	for(std::size_t i = 0; i < pool_size_; i++) {
+		soci::session& sql = pool_.at(i);
+		sql.open("sqlite3://" + db_path_);
+		sql << "PRAGMA foreign_keys = ON;";
+	}
+
 	soci::session sql(pool_);
 	sql << DDL::settings_table;
 	sql << DDL::domain_lists_table;
