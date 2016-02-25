@@ -11,18 +11,19 @@
 
 namespace dbl {
 namespace service {
+namespace configurator {
 
-UnixConfigurator::UnixConfigurator(const std::shared_ptr<RTApi> api)
+Unix::Unix(const std::shared_ptr<core::Api> api)
 	: Configurator(api)
 {
 }
 
-std::string UnixConfigurator::get_default_interface() const
+std::string Unix::get_default_interface() const
 {
 	return "lo";
 }
 
-void UnixConfigurator::run_network_discovery()
+void Unix::run_network_discovery()
 {
 	char buf[1024];
 	struct ifconf ifc;
@@ -52,7 +53,7 @@ void UnixConfigurator::run_network_discovery()
 	}
 }
 
-void UnixConfigurator::configure_interface()
+void Unix::configure_interface()
 {
 	bool failed = false;
 	struct ifreq ifr;
@@ -85,7 +86,7 @@ void UnixConfigurator::configure_interface()
 	}
 }
 
-std::string UnixConfigurator::get_proxy_executable_name() const
+std::string Unix::get_proxy_executable_name() const
 {
 	if(api_->config.dns_proxy.compare("dnsmasq") == 0) {
 		return "dnsmasq";
@@ -97,7 +98,7 @@ std::string UnixConfigurator::get_proxy_executable_name() const
 	throw std::runtime_error("Invalid dns proxy");
 }
 
-std::string UnixConfigurator::find_proxy_executable() const
+std::string Unix::find_proxy_executable() const
 {
 
 	std::string executable = api_->config.dns_proxy_executable;
@@ -116,11 +117,12 @@ std::string UnixConfigurator::find_proxy_executable() const
 	return executable;
 }
 
-void UnixConfigurator::configure_dns_proxy(DNSProxy& proxy)
+void Unix::configure_dns_proxy(dnsproxy::DNSProxy& proxy)
 {
 	proxy.set_value("PIDFILE", api_->config.dns_proxy_pidfile);
 	this->Configurator::configure_dns_proxy(proxy);
 }
 
+} // configurator
 } // service
 } // dbl

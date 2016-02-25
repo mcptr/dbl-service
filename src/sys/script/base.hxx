@@ -1,7 +1,7 @@
 #ifndef DBL_SYS_SCRIPT_BASE_HXX
 #define DBL_SYS_SCRIPT_BASE_HXX
 
-#include "core/rtapi.hxx"
+#include "core/api.hxx"
 
 #include <string>
 #include <unordered_map>
@@ -15,7 +15,7 @@ public:
 	std::unordered_map<std::string, std::string> Environment_t;
 
 	BaseScript() = delete;
-	explicit BaseScript(std::shared_ptr<RTApi> api, const std::string& name);
+	explicit BaseScript(std::shared_ptr<core::Api> api, const std::string& name);
 	virtual ~BaseScript() = default;
 
 	virtual void set_env(const std::string& var, const std::string& value);
@@ -25,7 +25,7 @@ public:
 	virtual int get_status() const final;
 
 protected:
-	std::shared_ptr<RTApi> api_;
+	std::shared_ptr<core::Api> api_;
 	const std::string name_;
 	std::string path_;
 	Environment_t env_;

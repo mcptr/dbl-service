@@ -1,17 +1,18 @@
 #ifndef DBL_DNSPROXY_UNBOUND_HXX
 #define DBL_DNSPROXY_UNBOUND_HXX
 
-#include "dnsproxy/base.hxx"
+#include "dnsproxy.hxx"
 
 #include <fstream>
 
 namespace dbl {
+namespace dnsproxy {
 
 class Unbound : public DNSProxy
 {
 public:
 	Unbound() = delete;
-	Unbound(std::shared_ptr<RTApi> api);
+	Unbound(std::shared_ptr<core::Api> api);
 	virtual ~Unbound() = default;
 
 	void create_config();
@@ -28,6 +29,7 @@ protected:
 	virtual void generate_domains_config(std::ofstream& off) const final;
 };
 
+} // dnsproxy
 } // dbl
 
 

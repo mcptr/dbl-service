@@ -2,7 +2,8 @@
 #include <ctime>
 
 namespace dbl {
-namespace dbutils {
+namespace db {
+namespace utils {
 
 template<>
 soci::indicator get_value_indicator(const boost::optional<std::string>& opt,
@@ -28,5 +29,6 @@ soci::indicator get_value_indicator(const boost::optional<std::tm>& opt,
 	return ind;
 }
 
-} // dbutils
+} // utils
+} // db
 } // dbl

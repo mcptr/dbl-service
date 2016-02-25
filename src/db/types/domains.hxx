@@ -9,7 +9,8 @@
 
 
 namespace dbl {
-namespace dbtypes {
+namespace db {
+namespace types {
 
 class Domain
 {
@@ -21,12 +22,13 @@ public:
 	int active = int();
 };
 
-} // dbtypes
+} // types
+} // db
 } // dbl
 
 namespace soci {
 
-using dbl::dbtypes::Domain;
+using dbl::db::types::Domain;
 
 template<>
 struct type_conversion<Domain>
@@ -46,7 +48,7 @@ struct type_conversion<Domain>
 	static
 	void to_base(const Domain& r, soci::values& v, soci::indicator& ind)
 	{
-		using namespace dbl::dbutils;
+		using namespace dbl::db::utils;
 
 		v.set("id", r.id);
 		v.set("list_id", r.id);

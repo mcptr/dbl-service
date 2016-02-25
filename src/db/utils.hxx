@@ -8,7 +8,8 @@
 #include <soci/soci.h>
 
 namespace dbl {
-namespace dbutils {
+namespace db {
+namespace utils {
 
 template<class T>
 void set_optional_value(soci::values& v,
@@ -45,7 +46,8 @@ template<>
 soci::indicator get_value_indicator(const boost::optional<std::tm>& opt,
 									bool null_on_empty);
 
-} // dbtuils
+} // utils
+} // db
 } // dbl
 
 #endif

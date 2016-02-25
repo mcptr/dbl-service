@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace dbl {
+namespace db {
 namespace data {
 
 std::vector<std::string> domain_lists = {
@@ -18,6 +19,7 @@ std::vector<std::string> domains = {
 };
 
 } // data
+} // db
 } // dbl
 
 #endif

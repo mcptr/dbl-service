@@ -1,10 +1,11 @@
-#include "base.hxx"
+#include "dnsproxy.hxx"
 #include "util/fs.hxx"
 
 
 namespace dbl {
+namespace dnsproxy {
 
-DNSProxy::DNSProxy(std::shared_ptr<RTApi> api)
+DNSProxy::DNSProxy(std::shared_ptr<core::Api> api)
 	: api_(api)
 {
 }
@@ -48,4 +49,6 @@ void DNSProxy::generate_config()
 	config_["LOGFILE"] = config.dns_proxy_logfile;
 	config_["PORT"] = std::to_string(config.dns_proxy_port);
 }
+
+} // dnsproxy
 } // dbl

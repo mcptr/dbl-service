@@ -1,28 +1,25 @@
 #ifndef DBL_SERVICE_UNIX_HXX
 #define DBL_SERVICE_UNIX_HXX
 
-#include "base.hxx"
-#include "dnsproxy/base.hxx"
+#include "service.hxx"
 
 #include <string>
 #include <memory>
 #include <sys/types.h>
 
 namespace dbl {
+namespace service {
 
-class UnixService : public BaseService
+class Unix : public Service
 {
 public:
-	UnixService() = delete;
-	explicit UnixService(std::shared_ptr<RTApi> api);
-	virtual ~UnixService() = default;
+	Unix() = delete;
+	explicit Unix(std::shared_ptr<core::Api> api);
+	virtual ~Unix() = default;
 
 	virtual bool is_already_running();
 	virtual void run();
 	virtual void stop();
-	//virtual void start();
-	//virtual void reload();
-
 
 protected:
 	pid_t service_pid_;
@@ -42,5 +39,7 @@ protected:
 	virtual bool run_rc(const std::string& action) const;
 };
 
+} // service
 } // dbl
+
 #endif

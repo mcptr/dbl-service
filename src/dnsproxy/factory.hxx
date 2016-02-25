@@ -1,16 +1,18 @@
 #ifndef DBL_DNSPROXY_FACTORY_HXX
 #define DBL_DNSPROXY_FACTORY_HXX
 
-#include "base.hxx"
-#include "core/rtapi.hxx"
+#include "dnsproxy.hxx"
+#include "core/api.hxx"
 
 #include <memory>
 
 
 namespace dbl {
+namespace dnsproxy {
 
-std::unique_ptr<DNSProxy> create_dns_proxy(std::shared_ptr<RTApi> api);
+std::unique_ptr<DNSProxy> create(std::shared_ptr<core::Api> api);
 
+} // dnsproxy
 } // dbl
 
 #endif

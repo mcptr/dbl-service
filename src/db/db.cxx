@@ -6,6 +6,7 @@
 
 
 namespace dbl {
+namespace db {
 
 DB::DB(const std::string& dbpath, std::size_t pool_size)
 	: db_path_(dbpath),
@@ -32,31 +33,31 @@ void DB::init()
 	}
 
 	soci::session sql(pool_);
-	sql << DDL::settings_table;
-	sql << DDL::domain_lists_table;
-	sql << DDL::domains_table;
+	sql << db::DDL::settings_table;
+	sql << db::DDL::domain_lists_table;
+	sql << db::DDL::domains_table;
 
 	int total_lists = 0;
 	sql << "SELECT count(*) AS cnt FROM domain_lists", soci::into(total_lists);
 	if(!total_lists) {
-		for(auto const& q : dbl::data::domain_lists) {
+		for(auto const& q : dbl::db::data::domain_lists) {
 			LOG(INFO) << q;
 			sql << q;
 		}
 
-		for(auto const& q : dbl::data::domains) {
+		for(auto const& q : dbl::db::data::domains) {
 			LOG(INFO) << q;
 			sql << q;
 		}
 	}
 }
 
-std::unique_ptr<dbtypes::DomainListsSet_t>
+std::unique_ptr<db::types::DomainListsSet_t>
 DB::get_domain_lists()
 {
 	using namespace soci;
-	using dbtypes::DomainListsSet_t;
-	using dbtypes::DomainList;
+	using db::types::DomainListsSet_t;
+	using db::types::DomainList;
 
 	std::unique_ptr<DomainListsSet_t> ptr(new DomainListsSet_t());
 	session sql(pool_);
@@ -80,11 +81,11 @@ DB::get_domain_lists()
 	return std::move(ptr);
 }
 
-std::unique_ptr<dbtypes::DomainSet_t>
+std::unique_ptr<db::types::DomainSet_t>
 DB::get_domains(bool active_only)
 {
 	using namespace soci;
-	using dbtypes::DomainSet_t;
+	using db::types::DomainSet_t;
 
 	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
 	session sql(pool_);
@@ -112,4 +113,5 @@ DB::get_domains(bool active_only)
 	return std::move(ptr);
 }
 
+} // db
 } // dbl

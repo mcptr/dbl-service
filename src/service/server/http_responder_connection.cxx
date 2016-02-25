@@ -6,10 +6,10 @@
 
 namespace dbl {
 namespace service {
-
+namespace server {
 
 HTTPResponderConnection::HTTPResponderConnection(
-	std::shared_ptr<dbl::RTApi> api,
+	std::shared_ptr<core::Api> api,
 	boost::asio::ip::tcp::socket socket)
 	: Connection(api, std::move(socket))
 {
@@ -41,6 +41,7 @@ bool HTTPResponderConnection::process_request()
 	return true;
 }
 
+} // server
 } // service
 } // dbl
 

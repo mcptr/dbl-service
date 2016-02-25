@@ -1,11 +1,12 @@
-#ifndef CONFIG_BASE_HXX
-#define CONFIG_BASE_HXX
+#ifndef DBL_CONFIG_CONFIG_HXX
+#define DBL_CONFIG_CONFIG_HXX
 
 #include <string>
 
 namespace dbl {
+namespace config {
 
-class BaseConfig
+class Config
 {
 public:
 	bool is_debug = false;
@@ -62,6 +63,7 @@ public:
 	bool disable_list_update = false;
 };
 
-} //
+} // config
+} // dbl
 
 #endif

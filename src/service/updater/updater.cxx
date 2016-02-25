@@ -3,7 +3,7 @@
 namespace dbl {
 namespace service {
 
-Updater::Updater(std::shared_ptr<RTApi> api)
+Updater::Updater(std::shared_ptr<core::Api> api)
 	: api_(api)
 {
 }

@@ -11,6 +11,7 @@
 #include <memory>
 
 namespace dbl {
+namespace db {
 
 class DB
 {
@@ -21,13 +22,13 @@ public:
 
 	void init();
 
-	std::unique_ptr<dbtypes::DomainListsSet_t>
+	std::unique_ptr<db::types::DomainListsSet_t>
 	get_domain_lists();
 
-	std::unique_ptr<dbtypes::DomainListsSet_t>
+	std::unique_ptr<db::types::DomainListsSet_t>
 	get_active_domain_lists();
 
-	std::unique_ptr<dbtypes::DomainSet_t>
+	std::unique_ptr<db::types::DomainSet_t>
 	get_domains(bool active_only = false);
 private:
 	const std::string db_path_;
@@ -35,6 +36,7 @@ private:
 	soci::connection_pool pool_;
 };
 
+} // db
 } // dbl
 
 #endif

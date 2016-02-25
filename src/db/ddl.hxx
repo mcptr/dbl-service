@@ -2,6 +2,7 @@
 #define DBL_DB_DDL_HXX
 
 namespace dbl {
+namespace db {
 namespace DDL {
 
 const std::string settings_table = 
@@ -31,6 +32,7 @@ const std::string domains_table =
 	")";
 
 } // DDL
+} // db
 } // dbl
 
 #endif

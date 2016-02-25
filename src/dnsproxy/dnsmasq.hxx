@@ -1,17 +1,18 @@
 #ifndef DBL_DNSPROXY_DNSMASQ_HXX
 #define DBL_DNSPROXY_DNSMASQ_HXX
 
-#include "dnsproxy/base.hxx"
+#include "dnsproxy.hxx"
 
 #include <fstream>
 
 namespace dbl {
+namespace dnsproxy {
 
 class DNSMasq : public DNSProxy
 {
 public:
 	DNSMasq() = delete;
-	DNSMasq(std::shared_ptr<RTApi> api);
+	DNSMasq(std::shared_ptr<core::Api> api);
 	virtual ~DNSMasq() = default;
 
 	void create_config();
@@ -25,7 +26,7 @@ protected:
 	virtual void generate_domains_config(std::ofstream& off) const final;
 };
 
+} // dnsproxy
 } // dbl
-
 
 #endif

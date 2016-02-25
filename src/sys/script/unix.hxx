@@ -9,7 +9,7 @@ class Script : public BaseScript
 {
 public:
 	Script() = delete;
-	explicit Script(std::shared_ptr<RTApi> api, const std::string& name);
+	explicit Script(std::shared_ptr<core::Api> api, const std::string& name);
 	virtual ~Script() = default;
 
 protected:

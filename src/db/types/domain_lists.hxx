@@ -9,7 +9,8 @@
 
 
 namespace dbl {
-namespace dbtypes {
+namespace db {
+namespace types {
 
 class DomainList
 {
@@ -21,12 +22,13 @@ public:
 	int custom = int();
 };
 
-} // dbtypes
+} // types
+} // db
 } // dbl
 
 namespace soci {
 
-using dbl::dbtypes::DomainList;
+using dbl::db::types::DomainList;
 
 template<>
 struct type_conversion<DomainList>
@@ -46,7 +48,7 @@ struct type_conversion<DomainList>
 	static
 	void to_base(const DomainList& r, soci::values& v, soci::indicator& ind)
 	{
-		using namespace dbl::dbutils;
+		using namespace dbl::db::utils;
 
 		v.set("id", r.id);
 		v.set("name", r.name);

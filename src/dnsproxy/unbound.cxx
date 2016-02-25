@@ -7,8 +7,9 @@
 
 
 namespace dbl {
+namespace dnsproxy {
 
-Unbound::Unbound(std::shared_ptr<RTApi> api)
+Unbound::Unbound(std::shared_ptr<core::Api> api)
 	: DNSProxy(api)
 {
 }
@@ -143,4 +144,5 @@ void Unbound::generate_domains_config(std::ofstream& ofh) const
 	}
 }
 
+} // dnsproxy
 } // dbl

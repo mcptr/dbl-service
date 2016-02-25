@@ -2,13 +2,13 @@
 
 #include "options/options.hxx"
 #include "status/status.hxx"
-#include "service/base.hxx"
+#include "service/service.hxx"
 
 #if defined(__unix)
 #include "config/unix.hxx"
 #include "service/unix.hxx"
-typedef dbl::UnixService ServiceImplementation_t;
-typedef dbl::UnixConfig ConfigImplementation_t;
+typedef dbl::service::Unix ServiceImplementation_t;
+typedef dbl::config::Unix ConfigImplementation_t;
 #elif defined(_WIN32)
 //...
 #endif
@@ -82,8 +82,8 @@ int main(int argc, char** argv)
 		LOG(INFO) << "################################################";
 	}
 
-	std::shared_ptr<dbl::RTApi> rtapi;
-	std::shared_ptr<dbl::DB> db;
+	std::shared_ptr<dbl::core::Api> api;
+	std::shared_ptr<dbl::db::DB> db;
 
 	try {
 		if(!fs::exists(config.service_db)) {
@@ -93,24 +93,24 @@ int main(int argc, char** argv)
 			fs::create_directories(db_path.parent_path());
 		}
 
-		db.reset(new dbl::DB(config.service_db, 5));
-		rtapi.reset(new dbl::RTApi(config, db));
+		db.reset(new dbl::db::DB(config.service_db, 5));
+		api.reset(new dbl::core::Api(config, db));
 		
-		// dbl::Status status(rtapi);
+		// dbl::Status status(api);
 		// status.print_lists();
 		// status.print_domains();
 		
-		dbl::BaseService::service_ptr.reset(
-			new ServiceImplementation_t(rtapi)
+		dbl::service::Service::service_ptr.reset(
+			new ServiceImplementation_t(api)
 		);
 
-		if(dbl::BaseService::service_ptr->is_already_running()) {
+		if(dbl::service::Service::service_ptr->is_already_running()) {
 			throw std::runtime_error("Another instance already running");
 		}
 
 		db->init();
 
-		dbl::BaseService::service_ptr->configure();
+		dbl::service::Service::service_ptr->configure();
 	}
 	catch(const fs::filesystem_error& e) {
 		std::string msg(e.code().message());
@@ -123,18 +123,18 @@ int main(int argc, char** argv)
 	catch(const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		LOG(ERROR) << e.what();
-		if(dbl::BaseService::service_ptr) {
-			dbl::BaseService::service_ptr->stop();
+		if(dbl::service::Service::service_ptr) {
+			dbl::service::Service::service_ptr->stop();
 		}
 		return EXIT_FAILURE;
 	}
 
 	if(!config.is_test) {
-		dbl::BaseService::service_ptr->run();
+		dbl::service::Service::service_ptr->run();
 	}
 
-	dbl::BaseService::service_ptr.reset();
-	rtapi.reset();
+	dbl::service::Service::service_ptr.reset();
+	api.reset();
 	db.reset();
 
 	LOG(DEBUG) << "main() exit success";

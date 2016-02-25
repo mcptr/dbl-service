@@ -4,11 +4,12 @@
 #include "types/domains.hxx"
 
 namespace dbl {
-namespace dbtypes {
+namespace db {
+namespace types {
 
 typedef std::vector<DomainList> DomainListsSet_t;
 typedef std::vector<Domain> DomainSet_t;
 
-
-} // dbtypes
+} // types
+} // db
 } // dbl

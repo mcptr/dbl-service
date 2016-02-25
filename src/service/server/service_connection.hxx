@@ -6,13 +6,14 @@
 
 namespace dbl {
 namespace service {
+namespace server {
 
 class ServiceConnection : public Connection
 
 {
 public:
 	ServiceConnection() = delete;
-	ServiceConnection(std::shared_ptr<dbl::RTApi> api,
+	ServiceConnection(std::shared_ptr<core::Api> api,
 					  boost::asio::ip::tcp::socket socket);
 	virtual ~ServiceConnection() = default;
 
@@ -20,7 +21,8 @@ protected:
 	virtual bool process_request();
 };
 
-}
+} // server
+} // service
 } // dbl
 
 #endif

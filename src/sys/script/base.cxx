@@ -6,7 +6,7 @@
 
 namespace dbl {
 
-BaseScript::BaseScript(std::shared_ptr<RTApi> api, const std::string& name)
+BaseScript::BaseScript(std::shared_ptr<core::Api> api, const std::string& name)
 	: api_(api),
 	  name_(name)
 {

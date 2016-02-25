@@ -1,14 +1,14 @@
-#ifndef DBL_SERVICE_BASE_HXX
-#define DBL_SERVICE_BASE_HXX
+#ifndef DBL_SERVICE_SERVICE_HXX
+#define DBL_SERVICE_SERVICE_HXX
 
-#include "core/rtapi.hxx"
-#include "dnsproxy/base.hxx"
+#include "core/api.hxx"
+#include "dnsproxy/dnsproxy.hxx"
 
 #include "server/server.hxx"
 #include "server/http_responder_connection.hxx"
 #include "server/service_connection.hxx"
 
-#include "service/configurator/base.hxx"
+#include "service/configurator/configurator.hxx"
 #include "service/updater/updater.hxx"
 
 #include <string>
@@ -23,15 +23,16 @@
 
 
 namespace dbl {
+namespace service {
 
-class BaseService
+class Service
 {
 public:
-	BaseService() = delete;
-	explicit BaseService(std::shared_ptr<dbl::RTApi> api);
-	virtual ~BaseService() = default;
+	Service() = delete;
+	explicit Service(std::shared_ptr<dbl::core::Api> api);
+	virtual ~Service() = default;
 
-	static std::unique_ptr<BaseService> service_ptr;
+	static std::unique_ptr<Service> service_ptr;
 
 	virtual void configure();
 	virtual void run() = 0;
@@ -41,9 +42,9 @@ public:
 	virtual void stop_service() final;
 
 protected:
-	std::shared_ptr<RTApi> api_;
-	std::unique_ptr<DNSProxy> dns_proxy_;
-	std::unique_ptr<service::Configurator> configurator_;
+	std::shared_ptr<core::Api> api_;
+	std::unique_ptr<dnsproxy::DNSProxy> dns_proxy_;
+	std::unique_ptr<configurator::Configurator> configurator_;
 
 	std::vector<std::thread> threads_;
 	std::mutex service_mtx_;
@@ -66,16 +67,17 @@ protected:
 	virtual void flush_dns() = 0;
 
 	std::unique_ptr<
-		service::Server<service::ServiceConnection>
+		server::Server<server::ServiceConnection>
 		> server_ptr_;
 
 	std::unique_ptr<
-		service::Server<service::HTTPResponderConnection>
+		server::Server<server::HTTPResponderConnection>
 		> http_responder_ptr_;
 
 	std::unique_ptr<service::Updater> updater_ptr_;
 };
 
+} // service
 } // dbl
 
 #endif

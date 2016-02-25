@@ -1,7 +1,7 @@
-#ifndef DBL_DNSPROXY_BASE_HXX
-#define DBL_DNSPROXY_BASE_HXX
+#ifndef DBL_DNSPROXY_DNSPROXY_HXX
+#define DBL_DNSPROXY_DNSPROXY_HXX
 
-#include "core/rtapi.hxx"
+#include "core/api.hxx"
 #include "template/template.hxx"
 
 #include <set>
@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 namespace dbl {
+namespace dnsproxy {
 
 class DNSProxy
 {
@@ -22,7 +23,7 @@ public:
 
 
 	DNSProxy() = delete;
-	DNSProxy(std::shared_ptr<RTApi> api);
+	DNSProxy(std::shared_ptr<core::Api> api);
 	virtual ~DNSProxy() = default;
 
 	virtual void add_domain(const std::string& name) final;
@@ -40,7 +41,7 @@ public:
 	}
 
 protected:
-	std::shared_ptr<RTApi> api_;
+	std::shared_ptr<core::Api> api_;
 	ConfigEntries_t config_;
 	DomainList_t domains_;
 
@@ -50,6 +51,7 @@ protected:
 
 };
 
+} // dnsproxy
 } // dbl
 
 #endif

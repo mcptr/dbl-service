@@ -17,11 +17,11 @@
 #include <sys/wait.h>
 
 
-
 namespace dbl {
+namespace service {
 
-UnixService::UnixService(std::shared_ptr<RTApi> api)
-	: BaseService(api)
+Unix::Unix(std::shared_ptr<core::Api> api)
+	: Service(api)
 {
 	pidof_bin_ = dbl::find_executable("pidof");
 	if(pidof_bin_.empty()) {
@@ -31,7 +31,7 @@ UnixService::UnixService(std::shared_ptr<RTApi> api)
 }
 
 
-bool UnixService::is_already_running()
+bool Unix::is_already_running()
 {
 	namespace fs = boost::filesystem;
 	if(fs::exists(api_->config.service_pidfile)) {
@@ -45,7 +45,7 @@ bool UnixService::is_already_running()
 	return false;
 }
 
-void UnixService::run()
+void Unix::run()
 {
 	if(!api_->config.is_foreground) {
 		if(daemon(0, 0) != 0) {
@@ -64,7 +64,7 @@ void UnixService::run()
 		else if(pid == 0) {
 			signal(SIGTERM, [](int /*sig*/) {
 					LOG(INFO) << "Service instance caught SIGTERM";
-					BaseService::service_ptr->stop_service();
+					Service::service_ptr->stop_service();
 				}
 			);
 
@@ -80,14 +80,14 @@ void UnixService::run()
 			}
 			catch(const std::runtime_error& e) {
 				LOG(ERROR) << e.what();
-				BaseService::service_ptr->stop_service();
+				Service::service_ptr->stop_service();
 			}
 
 			signal(SIGTERM, [](int /*sig*/) {
 					LOG(INFO) << "Caught SIGTERM. Stopping service";
 					// stop() instead of stop_service().
 					// kills child, which does stop_service()
-					BaseService::service_ptr->stop();
+					Service::service_ptr->stop();
 				}
 			);
 
@@ -122,13 +122,13 @@ void UnixService::run()
 
 		signal(SIGINT, [](int /*sig*/) {
 				LOG(DEBUG) << "Foreground instance caught SIGINT";
-				BaseService::service_ptr->stop_service();
+				Service::service_ptr->stop_service();
 			}
 		);
 
 		signal(SIGTERM, [](int /*sig*/) {
 				LOG(DEBUG) << "Foreground instance caught SIGTERM";
-				BaseService::service_ptr->stop_service();
+				Service::service_ptr->stop_service();
 			}
 		);
 
@@ -137,7 +137,7 @@ void UnixService::run()
 	}
 }
 
-void UnixService::drop_privileges()
+void Unix::drop_privileges()
 {
 		LOG(INFO) << "Dropping privileges";
 
@@ -189,21 +189,21 @@ void UnixService::drop_privileges()
 		}
 }
 
-void UnixService::stop()
+void Unix::stop()
 {
 	if(kill(service_pid_, SIGTERM) < 0) {
 		LOG(ERROR) << "Unable to kill service. " << strerror(errno);
 	}
 }
 
-// void UnixService::reload()
+// void Unix::reload()
 // {
 // 	LOG(INFO) << "NOT IMPLREMENTED: RELOAD";
 // }
 
 
 
-void UnixService::save_pidfile()
+void Unix::save_pidfile()
 {
 	namespace fs = boost::filesystem;
 	LOG(INFO) << "Writing pid file: "
@@ -229,13 +229,13 @@ void UnixService::save_pidfile()
 	ofh.close();
 }
 
-void UnixService::remove_pidfile()
+void Unix::remove_pidfile()
 {
 	unlink(api_->config.service_pidfile.c_str());
 }
 
 
-void UnixService::start_dns_proxy()
+void Unix::start_dns_proxy()
 {
 	LOG(INFO) << "Starting dns proxy";
 	if(!api_->config.no_system_dns_proxy) {
@@ -315,7 +315,7 @@ void UnixService::start_dns_proxy()
 	}
 }
 
-void UnixService::stop_dns_proxy()
+void Unix::stop_dns_proxy()
 {
 	LOG(DEBUG) << "Stopping dns proxy";
 	if(api_->config.dns_proxy_generate_config) {
@@ -337,11 +337,11 @@ void UnixService::stop_dns_proxy()
 	}
 }
 
-void UnixService::flush_dns()
+void Unix::flush_dns()
 {
 }
 
-int UnixService::get_pid_of(const std::string& program) const
+int Unix::get_pid_of(const std::string& program) const
 {
 	std::string cmd_output;
 	int status = run_command(pidof_bin_ + " " + program, cmd_output);
@@ -354,7 +354,7 @@ int UnixService::get_pid_of(const std::string& program) const
 	return -1;
 }
 
-bool UnixService::run_rc(const std::string& action) const
+bool Unix::run_rc(const std::string& action) const
 {
 	const std::string& proxy = api_->config.dns_proxy;
 	std::vector<std::string> cmds = {
@@ -378,5 +378,5 @@ bool UnixService::run_rc(const std::string& action) const
 	return success;
 }
 
-
+} // service
 } // dbl

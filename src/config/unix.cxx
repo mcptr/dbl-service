@@ -1,8 +1,9 @@
 #include "unix.hxx"
 
 namespace dbl {
+namespace config {
 
-UnixConfig::UnixConfig()
+Unix::Unix()
 {
 	platform = "unix";
 
@@ -33,4 +34,5 @@ UnixConfig::UnixConfig()
 	service_pidfile = "/var/run/dnsblocker/service.pid";
 }
 
+} // config
 } // dbl

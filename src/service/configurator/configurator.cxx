@@ -1,14 +1,15 @@
-#include "base.hxx"
+#include "configurator.hxx"
 
 namespace dbl {
 namespace service {
+namespace configurator {
 
-Configurator::Configurator(const std::shared_ptr<RTApi> api)
+Configurator::Configurator(const std::shared_ptr<core::Api> api)
 	: api_(api)
 {
 }
 
-void Configurator::configure(DNSProxy& proxy)
+void Configurator::configure(dnsproxy::DNSProxy& proxy)
 {
 	ip4address_ = api_->config.network_ip4address;
 	ip6address_ = api_->config.network_ip6address;
@@ -48,9 +49,10 @@ void Configurator::configure(DNSProxy& proxy)
 	this->configure_dns_proxy(proxy);
 }
 
-void Configurator::configure_dns_proxy(DNSProxy& /* proxy */)
+void Configurator::configure_dns_proxy(dnsproxy::DNSProxy& /* proxy */)
 {
 }
 
+} // configurator
 } // service
 } // dbl

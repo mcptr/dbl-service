@@ -1,4 +1,4 @@
-#include "base.hxx"
+#include "service.hxx"
 #include "core/common.hxx"
 #include "dnsproxy/factory.hxx"
 #include "configurator/factory.hxx"
@@ -6,25 +6,26 @@
 #include "server/service_connection.hxx"
 
 namespace dbl {
+namespace service {
 
-std::unique_ptr<BaseService>
-BaseService::service_ptr = nullptr;
+std::unique_ptr<Service>
+Service::service_ptr = nullptr;
 
 
-BaseService::BaseService(std::shared_ptr<dbl::RTApi> api)
+Service::Service(std::shared_ptr<core::Api> api)
 	: api_(api)
 {
-	dns_proxy_ = std::move(create_dns_proxy(api_));
+	dns_proxy_ = std::move(dnsproxy::create(api_));
 }
 
-void BaseService::configure()
+void Service::configure()
 {
-	configurator_ = std::move(service::create_configurator(api_));
+	configurator_ = std::move(configurator::create(api_));
 	configurator_->configure(*dns_proxy_);
 	dns_proxy_->create_config();
 }
 
-void BaseService::run_service()
+void Service::run_service()
 {
 	this->start_servers();
 	if(api_->config.is_foreground) {
@@ -36,7 +37,7 @@ void BaseService::run_service()
 					 << "#############################################\n";
 
 		signal(SIGINT, [](int /*sig*/) {
-				BaseService::service_ptr->stop_service();
+				Service::service_ptr->stop_service();
 			}
 		);
 	}
@@ -48,12 +49,12 @@ void BaseService::run_service()
 	service_cv_.wait(lock);
 }
 
-void BaseService::start_servers()
+void Service::start_servers()
 {
 	if(api_->config.service_port) {
 		try {
 			this->server_ptr_.reset(
-				new service::Server<service::ServiceConnection>(
+				new server::Server<server::ServiceConnection>(
 					this->api_,
 					this->api_->config.service_port
 				)
@@ -79,7 +80,7 @@ void BaseService::start_servers()
 	if(api_->config.http_responder_enable) {
 		try {
 			this->http_responder_ptr_.reset(
-				new service::Server<service::HTTPResponderConnection>(
+				new server::Server<server::HTTPResponderConnection>(
 					this->api_,
 					this->api_->config.http_responder_port
 				)
@@ -122,7 +123,7 @@ void BaseService::start_servers()
 	}
 }
 
-void BaseService::stop_servers()
+void Service::stop_servers()
 {
 	if(this->server_ptr_) {
 		this->server_ptr_->stop();
@@ -149,10 +150,11 @@ void BaseService::stop_servers()
 	this->updater_ptr_.reset();
 }
 
-void BaseService::stop_service()
+void Service::stop_service()
 {
 	service_cv_.notify_all();
 	this->stop_servers();
 }
 
+} // service
 } // dbl

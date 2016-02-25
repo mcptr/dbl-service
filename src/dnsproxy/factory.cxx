@@ -6,8 +6,9 @@
 #include <stdexcept>
 
 namespace dbl {
+namespace dnsproxy {
 
-std::unique_ptr<DNSProxy> create_dns_proxy(std::shared_ptr<RTApi> api)
+std::unique_ptr<DNSProxy> create(std::shared_ptr<core::Api> api)
 {
 	std::string name = api->config.dns_proxy;
 	boost::algorithm::to_lower(name);
@@ -25,4 +26,5 @@ std::unique_ptr<DNSProxy> create_dns_proxy(std::shared_ptr<RTApi> api)
 	return ptr;
 }
 
+} // dnsproxy
 } // dbl

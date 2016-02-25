@@ -7,13 +7,14 @@
 
 namespace dbl {
 namespace service {
+namespace server {
 
 class HTTPResponderConnection : public Connection
 
 {
 public:
 	HTTPResponderConnection() = delete;
-	HTTPResponderConnection(std::shared_ptr<dbl::RTApi> api,
+	HTTPResponderConnection(std::shared_ptr<core::Api> api,
 							boost::asio::ip::tcp::socket socket);
 	virtual ~HTTPResponderConnection() = default;
 
@@ -21,7 +22,8 @@ protected:
 	virtual bool process_request();
 };
 
-}
+} // server
+} // service
 } // dbl
 
 #endif

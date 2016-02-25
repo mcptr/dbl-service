@@ -7,8 +7,9 @@
 
 
 namespace dbl {
+namespace dnsproxy {
 
-DNSMasq::DNSMasq(std::shared_ptr<RTApi> api)
+DNSMasq::DNSMasq(std::shared_ptr<core::Api> api)
 	: DNSProxy(api)
 {
 }
@@ -125,4 +126,5 @@ void DNSMasq::generate_domains_config(std::ofstream& ofh) const
 	}
 }
 
+} // dnsproxy
 } // dbl

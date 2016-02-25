@@ -2,8 +2,9 @@
 
 namespace dbl {
 namespace service {
+namespace server {
 
-Connection::Connection(std::shared_ptr<dbl::RTApi> api,
+Connection::Connection(std::shared_ptr<core::Api> api,
 					   boost::asio::ip::tcp::socket socket)
 	: api_(api),
 	  socket_(std::move(socket))
@@ -46,5 +47,6 @@ void Connection::respond()
 	);
 }
 
+} // server
 } // service
 } //dbl

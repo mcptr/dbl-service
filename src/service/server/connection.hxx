@@ -1,7 +1,7 @@
 #ifndef DBL_SERVICE_SERVER_CONNECTION_HXX
 #define DBL_SERVICE_SERVER_CONNECTION_HXX
 
-#include "core/rtapi.hxx"
+#include "core/api.hxx"
 
 #include <string>
 #include <memory>
@@ -9,6 +9,7 @@
 
 namespace dbl {
 namespace service {
+namespace server {
 
 constexpr int CONNECTION_BUFFER_SIZE = 2048;
 
@@ -16,14 +17,14 @@ class Connection : public std::enable_shared_from_this<Connection>
 {
 public:
 	Connection() = delete;
-	Connection(std::shared_ptr<dbl::RTApi> api,
+	Connection(std::shared_ptr<core::Api> api,
 			   boost::asio::ip::tcp::socket socket);
 	virtual ~Connection() = default;
 
 	virtual void handle();
 
 protected:
-	std::shared_ptr<dbl::RTApi> api_;
+	std::shared_ptr<core::Api> api_;
 	boost::asio::ip::tcp::socket socket_;
 	char request_data_[CONNECTION_BUFFER_SIZE];
 
@@ -34,6 +35,7 @@ protected:
 	virtual bool process_request() = 0;
 };
 
+} // server
 } // service
 } //dbl
 

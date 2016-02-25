@@ -10,7 +10,7 @@
 
 namespace dbl {
 
-void Options::parse(int argc, char** argv, BaseConfig& config)
+void Options::parse(int argc, char** argv, config::Config& config)
 {
 	namespace fs = boost::filesystem;
 	using std::string;
