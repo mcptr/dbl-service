@@ -7,4 +7,4 @@ class GCC(base.Base):
 		base.Base.__init__(self, "gcc", options)
 
 	def get_bin(self):
-		return "clang++"
+		return "g++"

@@ -1,8 +1,8 @@
 #!/bin/sh
 
-DNS_PROXY=dnsmasq
-DNS_PROXY_INCLUDE_DIR=/etc/dnsmasq.d
-#DNS_PROXY_INCLUDE_DIR=/etc/unbound/unbound.conf.d
+DNS_PROXY=unbound
+#DNS_PROXY_INCLUDE_DIR=/etc/dnsmasq.d
+DNS_PROXY_INCLUDE_DIR=/etc/unbound/unbound.conf.d
 PIDFILE=/var/run/dnsblocker/service.pid
 
 COMMAND=$1
@@ -11,7 +11,6 @@ shift
 start_server()
 {
     ./bin/dnsblocker \
-	-v \
 	--dns-proxy=$DNS_PROXY \
 	--dns-proxy-include-dir=$DNS_PROXY_INCLUDE_DIR \
 	--dns-proxy-generate-config \

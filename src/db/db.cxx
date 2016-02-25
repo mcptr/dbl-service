@@ -3,6 +3,7 @@
 #include "data/initial_data.hxx"
 #include "core/common.hxx"
 
+#include <soci/error.h>
 
 namespace dbl {
 namespace db {
@@ -32,12 +33,17 @@ void DB::init()
 	}
 
 	soci::session sql(pool_);
+	sql.begin();
+
 	sql << DDL::settings_table;
 	sql << DDL::domain_lists_table;
 	sql << DDL::domains_table;
+	sql << DDL::whitelisted_domains_table;
 
 	int total_lists = 0;
-	sql << "SELECT count(*) AS cnt FROM domain_lists", soci::into(total_lists);
+	sql << "SELECT count(*) AS cnt FROM domain_lists",
+		soci::into(total_lists);
+
 	if(!total_lists) {
 		for(auto const& q : dbl::db::data::domain_lists) {
 			LOG(INFO) << q;
@@ -49,6 +55,8 @@ void DB::init()
 			sql << q;
 		}
 	}
+
+	sql.commit();
 }
 
 std::unique_ptr<db::types::DomainListsSet_t>
@@ -62,7 +70,6 @@ DB::get_domain_lists()
 	session sql(pool_);
 
 	DomainList record;
-	DomainListsSet_t records;
 
 	statement st = (
 		sql.prepare << (
@@ -90,12 +97,8 @@ DB::get_domains(bool active_only)
 	session sql(pool_);
 
 	Domain record;
-	DomainSet_t records;
 
-	std::string q(
-		"SELECT id, list_id, name, active, description"
-		"  FROM domains"
-	);
+	std::string q(get_domains_query);
 
 	if(active_only) {
 		q.append(" WHERE active = 1");
@@ -103,6 +106,94 @@ DB::get_domains(bool active_only)
 
 	q.append(" ORDER BY name asc");
 	statement st = (sql.prepare << q, into(record));
+
+	st.execute();
+	while(st.fetch()) {
+		ptr->push_back(record);
+	}
+
+	return std::move(ptr);
+}
+
+std::unique_ptr<db::types::Domain>
+DB::get_domain(const std::string& name)
+{
+	using namespace soci;
+	using db::types::Domain;
+	std::unique_ptr<Domain> record(new Domain());
+
+	std::string q(get_domains_query + "  WHERE d.name = ?");
+
+	soci::session sql(pool_);
+	sql << q, use(name), into(*record);
+	return std::move(record);
+}
+
+std::unique_ptr<db::types::DomainSet_t>
+DB::get_whitelisted_domains()
+{
+	using namespace soci;
+	using db::types::DomainSet_t;
+
+	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
+	session sql(pool_);
+
+	Domain record;
+
+	std::string q(
+		"SELECT id, name, active, list_id, description, '' as list_name"
+		"  FROM whitelisted_domains ORDER BY name asc"
+	);
+
+	statement st = (sql.prepare << q, into(record));
+
+	st.execute();
+	while(st.fetch()) {
+		ptr->push_back(record);
+	}
+
+	return std::move(ptr);
+}
+
+std::unique_ptr<db::types::DomainSet_t>
+DB::get_blocked_domains()
+{
+	using namespace soci;
+	using db::types::DomainSet_t;
+
+	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
+
+	Domain record;
+	session sql(pool_);
+	LOG(INFO) << get_blocked_domains_query;
+	statement st = (
+		sql.prepare << get_blocked_domains_query,
+		into(record)
+	);
+
+	st.execute();
+	while(st.fetch()) {
+		ptr->push_back(record);
+	}
+
+	return std::move(ptr);
+}
+
+std::unique_ptr<db::types::DomainSet_t>
+DB::get_blocked_domains(const DB::NamesList_t& lists_names)
+{
+	using namespace soci;
+	using db::types::DomainSet_t;
+
+	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
+	std::string q = (
+		get_blocked_domains_query +
+		"  WHERE dl.name IN (?) "
+	);
+
+	Domain record;
+	session sql(pool_);
+	statement st = (sql.prepare << q, use(lists_names), into(record));
 
 	st.execute();
 	while(st.fetch()) {

@@ -88,6 +88,7 @@ translation_units = {
 	"dnsproxy/unbound" : {},
 	"main" : {},
 	"options/options" : {},
+	"query/query" : {},
 	"service/configurator/configurator" : {},
 	"service/configurator/factory" : {},
 	"service/server/connection" : {},

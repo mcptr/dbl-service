@@ -10,7 +10,7 @@ namespace data {
 
 std::vector<std::string> domain_lists = {
 	"INSERT INTO domain_lists(name, description, custom)"
-	"  VALUES('Default', 'Default, uncategorized list', 1)",
+	"  VALUES('CUSTOM', 'Custom, uncategorized list', 1)",
 };
 
 std::vector<std::string> domains = {

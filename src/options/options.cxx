@@ -21,6 +21,7 @@ void Options::parse(int argc, char** argv, config::Config& config)
 	po::options_description network("Network options");
 	po::options_description http_responder("HTTP Responder");
 	po::options_description lists("DNS lists options");
+	po::options_description query("Querying options");
 	po::options_description config_file_options("");
 
 	string config_path;
@@ -126,6 +127,9 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		 ),
 		 "Do not update blocking lists"
 		)
+		("list-ids",
+		 po::value<std::vector<std::string>>(&(config.list_ids))->multitoken()
+		)
 		;
 	
 	dnsproxy.add_options()
@@ -219,7 +223,25 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		)
 		;
 
+	query.add_options()
+		("query,Q",
+		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Query/info mode"
+		)
+		("domain-lists,L",
+		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false)
+		)
+		("domains,l",
+		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false)
+		)
+		("domain,d",
+		 po::value<std::string>()->default_value(""),
+		 "Display domain info"
+		)
+		;
+
 	all_.add(flags)
+		.add(query)
 		.add(service)
 		.add(network)
 		.add(dnsproxy)

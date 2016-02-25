@@ -11,7 +11,13 @@ BUILD_DIR="$ROOTDIR/tmp/soci-build"
 
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
-cmake -DCMAKE_INSTALL_PREFIX=$ROOTDIR -G "Unix Makefiles" -DWITH_BOOST=OFF -DWITH_SQLITE=ON $EXTERNDIR/repos/soci
+
+cmake -DCMAKE_INSTALL_PREFIX=$ROOTDIR -G "Unix Makefiles" \
+    -DWITH_BOOST=ON \
+    -DWITH_SQLITE3=ON \
+    -DSOCI_CXX_C11=ON \
+    $EXTERNDIR/repos/soci
+
 make -j4
 make install
 make clean

@@ -3,6 +3,7 @@
 #include "options/options.hxx"
 #include "status/status.hxx"
 #include "service/service.hxx"
+#include "query/query.hxx"
 
 #if defined(__unix)
 #include "config/unix.hxx"
@@ -76,12 +77,6 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	if(!config.is_test) {
-		LOG(INFO) << std::endl;
-		LOG(INFO) << "Starting...";
-		LOG(INFO) << "################################################";
-	}
-
 	std::shared_ptr<dbl::core::Api> api;
 	std::shared_ptr<dbl::db::DB> db;
 
@@ -94,8 +89,22 @@ int main(int argc, char** argv)
 		}
 
 		db.reset(new dbl::db::DB(config.service_db, 5));
+		db->init();
+
 		api.reset(new dbl::core::Api(config, db));
 		
+		if(po.get<bool>("query")) {
+			dbl::query::Query q(po, api);
+			bool success = q.run();
+			return (success ? EXIT_SUCCESS : EXIT_FAILURE);
+		}
+
+		if(!config.is_test) {
+			LOG(INFO) << std::endl;
+			LOG(INFO) << "Starting...";
+			LOG(INFO) << "################################################";
+		}
+
 		// dbl::Status status(api);
 		// status.print_lists();
 		// status.print_domains();
@@ -108,8 +117,6 @@ int main(int argc, char** argv)
 			throw std::runtime_error("Another instance already running");
 		}
 
-		db->init();
-
 		dbl::service::Service::service_ptr->configure();
 	}
 	catch(const fs::filesystem_error& e) {
@@ -121,11 +128,12 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 	catch(const std::exception& e) {
-		std::cerr << e.what() << std::endl;
+		std::cerr << "Exception in main(): " << e.what() << std::endl;
 		LOG(ERROR) << e.what();
-		if(dbl::service::Service::service_ptr) {
-			dbl::service::Service::service_ptr->stop();
-		}
+		LOG(ERROR) << "Aborting";
+		// if(dbl::service::Service::service_ptr) {
+		// 	dbl::service::Service::service_ptr->stop();
+		// }
 		return EXIT_FAILURE;
 	}
 

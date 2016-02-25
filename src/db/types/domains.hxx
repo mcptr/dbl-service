@@ -19,6 +19,7 @@ public:
 	int list_id = int();
 	std::string name = std::string();
 	boost::optional<std::string> description = std::string();
+	boost::optional<std::string> list_name = std::string();
 	int active = int();
 };
 
@@ -39,9 +40,10 @@ struct type_conversion<Domain>
 	void from_base(values const& v, indicator /* ind */, Domain& r)
 	{
 		r.id = v.get<int>("id");
-		r.list_id = v.get<int>("list_id");
+		r.list_id = v.get<int>("list_id", 0);
+		r.list_name = v.get<boost::optional<std::string>>("list_name");
 		r.name = v.get<std::string>("name");
-		r.active = v.get<int>("active");
+		r.active = v.get<int>("active", true);
 		r.description = v.get<boost::optional<std::string>>("description");
 	}
 	

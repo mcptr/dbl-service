@@ -2,6 +2,7 @@
 #define DBL_CONFIG_CONFIG_HXX
 
 #include <string>
+#include <vector>
 
 namespace dbl {
 namespace config {
@@ -61,6 +62,10 @@ public:
 	std::string service_user = "dnsblocker";
 
 	bool disable_list_update = false;
+
+	std::vector<std::string> list_ids = {
+		"CUSTOM"
+	};
 };
 
 } // config
