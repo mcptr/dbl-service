@@ -104,7 +104,7 @@ void Service::start_servers()
 	}
 
 	if(!api_->config.no_update) {
-		updater_ptr_.reset(new service::Updater(api_));
+		updater_ptr_.reset(new updater::Updater(api_));
 
 		updater_ptr_->enable_list_update(
 			!api_->config.disable_list_update

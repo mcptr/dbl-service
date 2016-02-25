@@ -2,6 +2,7 @@
 
 namespace dbl {
 namespace service {
+namespace updater {
 
 Updater::Updater(std::shared_ptr<core::Api> api)
 	: api_(api)
@@ -49,5 +50,6 @@ bool Updater::update()
 	return false;
 }
 
+} // updater
 } // service
 } // dbl

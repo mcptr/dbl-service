@@ -74,7 +74,7 @@ protected:
 		server::Server<server::HTTPResponderConnection>
 		> http_responder_ptr_;
 
-	std::unique_ptr<service::Updater> updater_ptr_;
+	std::unique_ptr<updater::Updater> updater_ptr_;
 };
 
 } // service

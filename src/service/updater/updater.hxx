@@ -9,6 +9,7 @@
 
 namespace dbl {
 namespace service {
+namespace updater {
 
 class Updater
 {
@@ -32,6 +33,7 @@ protected:
 	bool update();
 };
 
+} // updater
 } // service
 } // dbl
 
