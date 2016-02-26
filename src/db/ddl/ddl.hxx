@@ -26,7 +26,6 @@ const std::string domains_table =
 	"  list_id INTEGER NOT NULL, "
 	"  name VARCHAR(255) NOT NULL UNIQUE, "
 	"  description VARCHAR(255) DEFAULT '', "
-	"  active BOOLEAN DEFAULT 1, "
 	"  FOREIGN KEY(list_id) REFERENCES domain_lists(id) "
 	"    ON UPDATE CASCADE ON DELETE CASCADE"
 	")";
@@ -35,8 +34,7 @@ const std::string whitelisted_domains_table =
 	"CREATE TABLE IF NOT EXISTS whitelisted_domains("
 	"  id INTEGER NOT NULL PRIMARY KEY, "
 	"  name VARCHAR(255) NOT NULL UNIQUE, "
-	"  description VARCHAR(255) DEFAULT '', "
-	"  active BOOLEAN DEFAULT 1"
+	"  description VARCHAR(255) DEFAULT '' "
 	")";
 
 } // DDL

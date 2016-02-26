@@ -43,10 +43,8 @@ void Query::print_blocked_domains()
 	for(auto const& r : *ptr) {
 		std::cout << r.name;
 		if(api_->config.is_verbose) {
-			if(r.description.is_initialized()
-			   && !r.description->empty())
-			{
-				std::cout << " - " << r.description;
+			if(r.description.is_initialized()) {
+				std::cout << " - " << r.description.get();
 			}
 		}
 
@@ -59,7 +57,6 @@ bool Query::print_domain_details(const std::string& domain)
 	auto ptr = api_->db()->get_domain(domain);
 	if(ptr->id) {
 		std::cout << ptr->name << "\n"
-				  << "Active: " << ptr->active << ", "
 				  << "List: " << ptr->list_id 
 				  << ", " << ptr->list_name << "\n"
 				  << ptr->description

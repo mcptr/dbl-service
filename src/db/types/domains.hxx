@@ -20,7 +20,6 @@ public:
 	std::string name = std::string();
 	boost::optional<std::string> description = std::string();
 	boost::optional<std::string> list_name = std::string();
-	int active = int();
 };
 
 } // types
@@ -41,10 +40,9 @@ struct type_conversion<Domain>
 	{
 		r.id = v.get<int>("id");
 		r.list_id = v.get<int>("list_id", 0);
-		r.list_name = v.get<boost::optional<std::string>>("list_name");
 		r.name = v.get<std::string>("name");
-		r.active = v.get<int>("active", true);
 		r.description = v.get<boost::optional<std::string>>("description");
+		r.list_name = v.get<boost::optional<std::string>>("list_name");
 	}
 	
 	static
@@ -55,7 +53,6 @@ struct type_conversion<Domain>
 		v.set("id", r.id);
 		v.set("list_id", r.id);
 		v.set("name", r.name);
-		v.set("active", r.active);
 		set_optional_value(v, "description", r.description);
 
 		ind = i_ok;

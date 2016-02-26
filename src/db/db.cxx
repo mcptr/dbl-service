@@ -72,10 +72,7 @@ DB::get_domain_lists()
 	DomainList record;
 
 	statement st = (
-		sql.prepare << (
-			"SELECT id, name, active, custom, description "
-			"FROM domain_lists"
-		),
+		sql.prepare << get_domain_lists_query,
 		into(record)
 	);
 
@@ -84,6 +81,18 @@ DB::get_domain_lists()
 		ptr->push_back(record);
 	}
 
+	return std::move(ptr);
+}
+
+std::unique_ptr<db::types::DomainList>
+DB::get_domain_list_by_name(const std::string& name)
+{
+	std::unique_ptr<db::types::DomainList> ptr(
+		new db::types::DomainList()
+	);
+	std::string q(get_domain_lists_query + " WHERE name = ?");
+	soci::session sql(pool_);
+	sql << q, soci::use(name), soci::into(*ptr);
 	return std::move(ptr);
 }
 
@@ -139,15 +148,12 @@ DB::get_whitelisted_domains()
 	session sql(pool_);
 
 	Domain record;
-
-	std::string q(
-		"SELECT id, name, active, list_id, description, '' as list_name"
-		"  FROM whitelisted_domains ORDER BY name asc"
+	statement st = (
+		sql.prepare << get_whitelisted_domains_query,
+		into(record)
 	);
 
-	statement st = (sql.prepare << q, into(record));
-
-	st.execute();
+	st.execute(true);
 	while(st.fetch()) {
 		ptr->push_back(record);
 	}
@@ -160,10 +166,12 @@ DB::get_blocked_domains()
 {
 	using namespace soci;
 	using db::types::DomainSet_t;
+	using db::types::Domain;
 
 	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
 
 	Domain record;
+
 	session sql(pool_);
 	LOG(INFO) << get_blocked_domains_query;
 	statement st = (
@@ -179,28 +187,87 @@ DB::get_blocked_domains()
 	return std::move(ptr);
 }
 
-std::unique_ptr<db::types::DomainSet_t>
-DB::get_blocked_domains(const DB::NamesList_t& lists_names)
+// std::unique_ptr<db::types::DomainSet_t>
+// DB::get_blocked_domains(const DB::NamesList_t& lists)
+// {
+// 	using namespace soci;
+// 	using db::types::DomainSet_t;
+
+// 	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
+// 	std::string q = (
+// 		get_blocked_domains_query +
+// 		"  WHERE dl.name IN (?) "
+// 	);
+
+// 	Domain record;
+// 	session sql(pool_);
+// 	statement st = (sql.prepare << q, use(lists), into(record));
+
+// 	st.execute(true);
+// 	while(st.fetch()) {
+// 		ptr->push_back(record);
+// 	}
+
+// 	return std::move(ptr);
+// }
+
+void DB::block_domains(const NamesList_t& domains)
 {
-	using namespace soci;
-	using db::types::DomainSet_t;
-
-	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
-	std::string q = (
-		get_blocked_domains_query +
-		"  WHERE dl.name IN (?) "
-	);
-
-	Domain record;
-	session sql(pool_);
-	statement st = (sql.prepare << q, use(lists_names), into(record));
-
-	st.execute();
-	while(st.fetch()) {
-		ptr->push_back(record);
+	if(domains.empty()) {
+		return;
 	}
 
-	return std::move(ptr);
+	int list_id = create_domain_list("CUSTOM");
+	soci::session sql(pool_);
+	sql.begin();
+
+	soci::statement st_del = (
+		sql.prepare << "DELETE FROM whitelisted_domains WHERE name = ?",
+		soci::use(domains)
+	);
+	st_del.execute(true);
+
+	std::string q(
+		"INSERT OR REPLACE INTO domains(name, list_id)"
+		"  VALUES(?, " + std::to_string(list_id) + ")"
+	);
+
+	soci::statement st_ins = (sql.prepare << q, soci::use(domains));
+	st_ins.execute(true);
+	sql.commit();
+}
+
+void DB::unblock_domains(const NamesList_t& domains)
+{
+	soci::session sql(pool_);
+	sql.begin();
+	std::string q(
+		"INSERT OR IGNORE INTO whitelisted_domains(name)"
+		"  VALUES(?)"
+	);
+
+	soci::statement st = (sql.prepare << q, soci::use(domains));
+	st.execute(true);
+	sql.commit();
+}
+
+int DB::create_domain_list(const std::string& name)
+{
+	using namespace soci;
+	using db::types::DomainList;
+
+	std::string q(
+		"INSERT OR IGNORE INTO domain_lists(name, custom)"
+		"  VALUES(?, 1)"
+	);
+
+	session sql(pool_);
+	sql.begin();
+	sql << q, use(name);
+	sql.commit();
+
+	auto ptr = get_domain_list_by_name(name);
+	return ptr->id;
 }
 
 } // db

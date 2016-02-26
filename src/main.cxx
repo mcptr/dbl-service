@@ -16,6 +16,8 @@ typedef dbl::config::Unix ConfigImplementation_t;
 
 #include <cstdlib>
 #include <memory>
+#include <string>
+#include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
@@ -98,6 +100,39 @@ int main(int argc, char** argv)
 			bool success = q.run();
 			return (success ? EXIT_SUCCESS : EXIT_FAILURE);
 		}
+
+		if(!config.unblock_domains.empty()) {
+			db->unblock_domains(config.unblock_domains);
+		}
+
+		if(!config.block_domains.empty()) {
+			auto const& ubd = config.unblock_domains;
+			if(!ubd.empty()) {
+				for(auto const& domain: config.block_domains) {
+					// slow...
+					bool found = std::find(
+						ubd.begin(),
+						ubd.end(),
+						domain
+					) != ubd.end();
+
+					if(found) {
+						std::string msg(
+							"Duplicate domain (will be blocked): "
+						);
+						msg.append(domain);
+						std::cerr << msg << std::endl;
+						LOG(WARNING) << msg;
+					}
+				}
+			}
+			db->block_domains(config.block_domains);
+		}
+
+		if(po.get<bool>("manage")) {
+			return EXIT_SUCCESS;
+		}
+		return EXIT_SUCCESS;
 
 		if(!config.is_test) {
 			LOG(INFO) << std::endl;

@@ -66,6 +66,9 @@ public:
 	std::vector<std::string> list_ids = {
 		"CUSTOM"
 	};
+
+	std::vector<std::string> block_domains = {};
+	std::vector<std::string> unblock_domains = {};
 };
 
 } // config

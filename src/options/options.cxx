@@ -22,6 +22,7 @@ void Options::parse(int argc, char** argv, config::Config& config)
 	po::options_description http_responder("HTTP Responder");
 	po::options_description lists("DNS lists options");
 	po::options_description query("Querying options");
+	po::options_description operations("Operations");
 	po::options_description config_file_options("");
 
 	string config_path;
@@ -38,26 +39,29 @@ void Options::parse(int argc, char** argv, config::Config& config)
 
 	bool no_config = false;
 
+	std::vector<std::string> empty_str_vec {};
+
+
 	flags.add_options()
 		("help,h", "Display this help")
 		("debug,D",
-		 po::value(&(config.is_debug))->implicit_value(true)->zero_tokens()->default_value(config.is_debug),
+		 po::value(&(config.is_debug))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Debug mode"
 		)
 		("fatal,F",
-		 po::value(&(config.is_fatal))->implicit_value(true)->zero_tokens()->default_value(config.is_fatal),
+		 po::value(&(config.is_fatal))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Make all errors fatal"
 		)
 		("foreground,f",
-		 po::value(&(config.is_foreground))->implicit_value(true)->zero_tokens()->default_value(config.is_foreground),
+		 po::value(&(config.is_foreground))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Do not go into background"
 		)
 		("verbose,v",
-		 po::value(&(config.is_verbose))->implicit_value(true)->zero_tokens()->default_value(config.is_verbose),
+		 po::value(&(config.is_verbose))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Verbose run"
 		)
 		("test,T",
-		 po::value(&(config.is_test))->implicit_value(true)->zero_tokens()->default_value(config.is_test),
+		 po::value(&(config.is_test))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Do not start/generate anything - just test init"
 		)
 		;
@@ -232,11 +236,27 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false)
 		)
 		("domains,l",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false)
+		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
+		 "List blocked domains"
 		)
 		("domain,d",
 		 po::value<std::string>()->default_value(""),
 		 "Display domain info"
+		)
+		;
+
+	operations.add_options()
+		("manage,M",
+		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Management mode (do not run server, just perform an operation)"
+		)
+		("block,B",
+		 po::value(&(config.block_domains))->multitoken(),
+		 "Block domain(s)"
+		)
+		("unblock,U",
+		 po::value(&(config.unblock_domains))->multitoken(),
+		 "Unblock domain(s)"
 		)
 		;
 
@@ -247,7 +267,8 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		.add(dnsproxy)
 		.add(dnsproxy_custom)
 		.add(http_responder)
-		.add(lists);
+		.add(lists)
+		.add(operations);
 
 	try {
 		po::store(po::command_line_parser(argc, argv).options(all_).run(), vm_);
