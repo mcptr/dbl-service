@@ -100,39 +100,43 @@ int main(int argc, char** argv)
 			bool success = q.run();
 			return (success ? EXIT_SUCCESS : EXIT_FAILURE);
 		}
+		else { // management
+			if(!config.unblock_domains.empty()) {
+				db->unblock_domains(config.unblock_domains);
+			}
 
-		if(!config.unblock_domains.empty()) {
-			db->unblock_domains(config.unblock_domains);
-		}
+			if(!config.block_domains.empty()) {
+				auto const& ubd = config.unblock_domains;
+				if(!ubd.empty()) {
+					for(auto const& domain: config.block_domains) {
+						// slow...
+						bool found = std::find(
+							ubd.begin(),
+							ubd.end(),
+							domain
+						) != ubd.end();
 
-		if(!config.block_domains.empty()) {
-			auto const& ubd = config.unblock_domains;
-			if(!ubd.empty()) {
-				for(auto const& domain: config.block_domains) {
-					// slow...
-					bool found = std::find(
-						ubd.begin(),
-						ubd.end(),
-						domain
-					) != ubd.end();
-
-					if(found) {
-						std::string msg(
-							"Duplicate domain (will be blocked): "
-						);
-						msg.append(domain);
-						std::cerr << msg << std::endl;
-						LOG(WARNING) << msg;
+						if(found) {
+							std::string msg(
+								"Conflicting domain (will be blocked): "
+							);
+							msg.append(domain);
+							if(config.is_fatal) {
+								throw std::runtime_error(msg);
+							}
+							std::cerr << "WARNING: " << msg 
+									  << std::endl;
+							LOG(WARNING) << msg;
+						}
 					}
 				}
+				db->block_domains(config.block_domains);
 			}
-			db->block_domains(config.block_domains);
-		}
 
-		if(po.get<bool>("manage")) {
-			return EXIT_SUCCESS;
+			if(po.get<bool>("manage")) {
+				return EXIT_SUCCESS;
+			}
 		}
-		return EXIT_SUCCESS;
 
 		if(!config.is_test) {
 			LOG(INFO) << std::endl;
