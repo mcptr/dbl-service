@@ -4,6 +4,7 @@
 #define SOCI_USE_BOOST
 
 #include "types/types.hxx"
+#include "list/list.hxx"
 
 #include <string>
 #include <vector>
@@ -48,10 +49,13 @@ public:
 	// std::unique_ptr<db::types::DomainSet_t>
 	// get_blocked_domains(const NamesList_t& lists);
 
-	void block_domains(const NamesList_t& domains);
+	void import_list(const types::DomainList& lst, bool custom = false);
+	void block_domains(const NamesList_t& domains, int list_id = 0);
 	void unblock_domains(const NamesList_t& domains);
 
-	int create_domain_list(const std::string& name);
+	int create_domain_list(const std::string& name,
+						   const std::string& description = std::string(),
+						   bool custom = false);
 
 private:
 	const std::string db_path_;

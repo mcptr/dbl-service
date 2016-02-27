@@ -9,7 +9,7 @@
 #include "server/service_connection.hxx"
 
 #include "service/configurator/configurator.hxx"
-#include "service/updater/updater.hxx"
+#include "updater/updater.hxx"
 
 #include <string>
 #include <set>

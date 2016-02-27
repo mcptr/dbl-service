@@ -5,6 +5,15 @@
 #include "service/service.hxx"
 #include "query/query.hxx"
 
+#include <cstdlib>
+#include <memory>
+#include <string>
+#include <vector>
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
+#include <curl/curl.h>
+
+
 #if defined(__unix)
 #include "config/unix.hxx"
 #include "service/unix.hxx"
@@ -14,12 +23,6 @@ typedef dbl::config::Unix ConfigImplementation_t;
 //...
 #endif
 
-#include <cstdlib>
-#include <memory>
-#include <string>
-#include <vector>
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 
 
 void setup_logging(const dbl::Options& po)
@@ -81,6 +84,8 @@ int main(int argc, char** argv)
 
 	std::shared_ptr<dbl::core::Api> api;
 	std::shared_ptr<dbl::db::DB> db;
+
+	curl_global_init(CURL_GLOBAL_DEFAULT);
 
 	try {
 		if(!fs::exists(config.service_db)) {
@@ -170,9 +175,9 @@ int main(int argc, char** argv)
 		std::cerr << "Exception in main(): " << e.what() << std::endl;
 		LOG(ERROR) << e.what();
 		LOG(ERROR) << "Aborting";
-		// if(dbl::service::Service::service_ptr) {
-		// 	dbl::service::Service::service_ptr->stop();
-		// }
+		if(dbl::service::Service::service_ptr) {
+			dbl::service::Service::service_ptr->stop();
+		}
 		return EXIT_FAILURE;
 	}
 
@@ -183,6 +188,8 @@ int main(int argc, char** argv)
 	dbl::service::Service::service_ptr.reset();
 	api.reset();
 	db.reset();
+
+	curl_global_cleanup();
 
 	LOG(DEBUG) << "main() exit success";
 	return EXIT_SUCCESS;

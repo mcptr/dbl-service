@@ -25,7 +25,7 @@ DB::~DB()
 
 void DB::init()
 {
-	LOG(INFO) << "Opening database: " << db_path_;
+	LOG(DEBUG) << "Opening database: " << db_path_;
 	for(std::size_t i = 0; i < pool_size_; i++) {
 		soci::session& sql = pool_.at(i);
 		sql.open("sqlite3://" + db_path_);
@@ -46,12 +46,10 @@ void DB::init()
 
 	if(!total_lists) {
 		for(auto const& q : dbl::db::data::domain_lists) {
-			LOG(INFO) << q;
 			sql << q;
 		}
 
 		for(auto const& q : dbl::db::data::domains) {
-			LOG(INFO) << q;
 			sql << q;
 		}
 	}
@@ -113,7 +111,7 @@ DB::get_domains(bool active_only)
 		q.append(" WHERE active = 1");
 	}
 
-	q.append(" ORDER BY name asc");
+	q.append(" ORDER BY d.name asc");
 	statement st = (sql.prepare << q, into(record));
 
 	st.execute();
@@ -173,7 +171,6 @@ DB::get_blocked_domains()
 	Domain record;
 
 	session sql(pool_);
-	LOG(INFO) << get_blocked_domains_query;
 	statement st = (
 		sql.prepare << get_blocked_domains_query,
 		into(record)
@@ -211,13 +208,16 @@ DB::get_blocked_domains()
 // 	return std::move(ptr);
 // }
 
-void DB::block_domains(const NamesList_t& domains)
+void DB::block_domains(const NamesList_t& domains, int list_id)
 {
 	if(domains.empty()) {
 		return;
 	}
 
-	int list_id = create_domain_list("CUSTOM");
+	if(!list_id) {
+		list_id = create_domain_list("CUSTOM", "Custom list", true);
+	}
+
 	soci::session sql(pool_);
 	sql.begin();
 
@@ -237,6 +237,40 @@ void DB::block_domains(const NamesList_t& domains)
 	sql.commit();
 }
 
+void DB::import_list(const types::DomainList& lst, bool custom)
+{
+	using namespace soci;
+	int list_id = create_domain_list(
+		lst.name,
+		(lst.description.is_initialized() ? lst.description.get() : ""),
+		custom
+	);
+
+	session sql(pool_);
+	sql.begin();
+
+	std::string q(
+		"INSERT OR REPLACE INTO domains(name, description, list_id)"
+		"  VALUES(?, ?, ?)"
+	);
+
+	std::string name;
+	std::string description;
+	statement st_ins = (
+		sql.prepare << q, use(name), use(description), use(list_id)
+	);
+	for(auto const& domain : lst.domains) {
+		LOG(INFO) << "IMPORTING DOMAIN: " << domain.name;
+		name = domain.name;
+		description = (
+			domain.description.is_initialized() 
+			? domain.description.get() : ""
+		);
+		st_ins.execute(true);
+	}
+	sql.commit();
+}
+
 void DB::unblock_domains(const NamesList_t& domains)
 {
 	soci::session sql(pool_);
@@ -251,22 +285,27 @@ void DB::unblock_domains(const NamesList_t& domains)
 	sql.commit();
 }
 
-int DB::create_domain_list(const std::string& name)
+int DB::create_domain_list(const std::string& name,
+						   const std::string& description,
+						   bool custom)
 {
 	using namespace soci;
 	using db::types::DomainList;
 
 	std::string q(
-		"INSERT OR IGNORE INTO domain_lists(name, custom)"
-		"  VALUES(?, 1)"
+		"INSERT OR IGNORE INTO domain_lists(name, description, custom)"
+		"  VALUES(?, ?, ?)"
 	);
 
+	std::string list_name(name.empty() ? "CUSTOM" : name);
+
+	int is_custom = custom;
 	session sql(pool_);
 	sql.begin();
-	sql << q, use(name);
+	sql << q, use(list_name), use(description), use(is_custom);
 	sql.commit();
 
-	auto ptr = get_domain_list_by_name(name);
+	auto ptr = get_domain_list_by_name(list_name);
 	return ptr->id;
 }
 

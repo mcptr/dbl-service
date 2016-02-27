@@ -2,6 +2,8 @@
 #define DBL_DB_TYPES_DOMAIN_LISTS_HXX
 
 #include "db/utils/utils.hxx"
+#include "domains.hxx"
+
 #include <soci/soci.h>
 #include <boost/optional.hpp>
 #include <string>
@@ -20,6 +22,9 @@ public:
 	boost::optional<std::string> description = std::string();
 	int active = int();
 	int custom = int();
+
+	std::vector<Domain> domains;
+
 };
 
 } // types

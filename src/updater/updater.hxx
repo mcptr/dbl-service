@@ -1,14 +1,14 @@
-#ifndef DBL_SERVICE_UPDATER_HXX
-#define DBL_SERVICE_UPDATER_HXX
+#ifndef DBL_UPDATER_UPDATER_HXX
+#define DBL_UPDATER_UPDATER_HXX
 
 #include "core/api.hxx"
+#include "net/net.hxx"
 
 #include <memory>
 #include <atomic>
 #include <condition_variable>
 
 namespace dbl {
-namespace service {
 namespace updater {
 
 class Updater
@@ -29,12 +29,13 @@ protected:
 	std::condition_variable cv_;
 
 	bool enable_list_update_;
+	bool is_updated_ = false;
 
-	bool update();
+	void update();
+	void update_lists();
 };
 
 } // updater
-} // service
 } // dbl
 
 #endif

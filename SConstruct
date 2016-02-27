@@ -47,7 +47,8 @@ builder.add_library(
 	"boost_filesystem",
 	"soci_core",
 	"soci_sqlite3",
-	"c++",
+	"jsoncpp",
+	"curl",
 )
 
 builder.add_include_path(Dirs.source, Dirs.extern_source)
@@ -86,7 +87,9 @@ translation_units = {
 	"dnsproxy/dnsproxy" : {},
 	"dnsproxy/factory" : {},
 	"dnsproxy/unbound" : {},
+	"list/list": {},
 	"main" : {},
+	"net/net": {},
 	"options/options" : {},
 	"query/query" : {},
 	"service/configurator/configurator" : {},
@@ -95,12 +98,13 @@ translation_units = {
 	"service/server/http_responder_connection" : {},
 	"service/server/service_connection" : {},
 	"service/service" : {},
-	"service/updater/updater" : {},
 	"status/status" : {},
 	"sys/command": {},
 	"sys/script/script": {},
 	"template/template": {},
+	"updater/updater" : {},
 	"util/fs" : {},
+	"validator/domain": {},
 }
 
 platform_translation_units = {

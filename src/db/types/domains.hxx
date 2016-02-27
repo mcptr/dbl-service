@@ -7,7 +7,6 @@
 #include <string>
 #include <ctime>
 
-
 namespace dbl {
 namespace db {
 namespace types {
