@@ -82,12 +82,12 @@ def extend_env(dest, src):
 translation_units = {
 	"core/api" : {},
 	"db/db": {},
+	"db/types/domain_lists": {},
 	"db/utils/utils": {},
 	"dnsproxy/dnsmasq" : {},
 	"dnsproxy/dnsproxy" : {},
 	"dnsproxy/factory" : {},
 	"dnsproxy/unbound" : {},
-	"list/list": {},
 	"main" : {},
 	"net/net": {},
 	"options/options" : {},

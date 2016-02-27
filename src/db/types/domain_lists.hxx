@@ -25,6 +25,7 @@ public:
 
 	std::vector<Domain> domains;
 
+	bool from_json(const std::string& input);
 };
 
 } // types

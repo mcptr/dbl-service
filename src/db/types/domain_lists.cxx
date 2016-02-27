@@ -1,20 +1,15 @@
-#include "list.hxx"
+#include "domain_lists.hxx"
 #include "core/common.hxx"
 #include "validator/types.hxx"
 #include "validator/domain.hxx"
 
-#include <unordered_map>
 #include <json/json.h>
 
 namespace dbl {
-namespace list {
+namespace db {
+namespace types {
 
-List::List(const std::string& lst_name)
-{
-	name = lst_name;
-}
-
-bool List::from_json(const std::string& input)
+bool DomainList::from_json(const std::string& input)
 {
 	using namespace validator::domain;
 
@@ -60,5 +55,6 @@ bool List::from_json(const std::string& input)
 	return true;
 }
 
-} // list
+} // types
+} // db
 } // dbl

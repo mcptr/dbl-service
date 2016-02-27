@@ -1,6 +1,6 @@
 #include "updater.hxx"
 #include "core/constants.hxx"
-#include "list/list.hxx"
+#include "db/types/types.hxx"
 
 #include <algorithm>
 
@@ -27,7 +27,7 @@ void Updater::stop()
 bool Updater::run()
 {
 	for(auto const& it : api_->config.list_ids) {
-		LOG(INFO) << "LIST: " << it;
+		LOG(DEBUG) << "UPDATER LIST: " << it;
 	}
 
 	LOG(INFO) << "Running initial update";
@@ -63,7 +63,7 @@ void Updater::update_lists()
 	auto lists = api_->db()->get_domain_lists();
 
 	auto const& ids = api_->config.list_ids;
-	for(auto const& lst : *lists) {
+	for(auto& lst : *lists) {
 		// if(lst.custom) {
 		// 	continue;
 		// }
@@ -79,12 +79,10 @@ void Updater::update_lists()
 			url.append("/" + lst.name + ".json");
 			if(rq.fetch(url, 200)) {
 				//2DO: check last modif tstamp
-
-				list::List dl(lst.name);
-				if(dl.from_json(rq.get_result())) {
-					LOG(INFO) << "Importing domain list: " << dl.name;
-					api_->db()->import_list(dl, false);
-					is_updated_ = true;
+				if(lst.from_json(rq.get_result())) {
+					LOG(INFO) << "Updating domain list: " << lst.name;
+					api_->db()->import_list(lst, false);
+					//is_updated_ = true;
 				}
 			}
 		}

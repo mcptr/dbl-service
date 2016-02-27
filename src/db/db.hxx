@@ -4,7 +4,6 @@
 #define SOCI_USE_BOOST
 
 #include "types/types.hxx"
-#include "list/list.hxx"
 
 #include <string>
 #include <vector>
