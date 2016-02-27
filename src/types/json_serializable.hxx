@@ -10,6 +10,8 @@ namespace types {
 class JSONSerializable
 {
 public:
+	virtual operator Json::Value() const;
+
 	virtual std::string to_json() const;
 	virtual bool parse_json(const std::string& input);
 	virtual bool from_json(const std::string& input) = 0;

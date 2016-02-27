@@ -23,7 +23,7 @@ namespace service {
 Unix::Unix(std::shared_ptr<core::Api> api)
 	: Service(api)
 {
-	pidof_bin_ = dbl::find_executable("pidof");
+	pidof_bin_ = dbl::util::fs::find_executable("pidof");
 	if(pidof_bin_.empty()) {
 		LOG(ERROR) << "Unable to locate 'pidof'. "
 				   << "You may need to install it.";

@@ -6,9 +6,13 @@
 #include <string>
 
 namespace dbl {
+namespace util {
+namespace fs {
 
 std::string find_executable(const std::string& name);
 
+} // fs
+} // util
 } // dbl
 
 #endif

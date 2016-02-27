@@ -4,6 +4,12 @@
 namespace dbl {
 namespace types {
 
+JSONSerializable::operator Json::Value() const
+{
+	return json_root_;
+}
+
+
 bool JSONSerializable::parse_json(const std::string& input)
 {
 	Json::Reader reader;

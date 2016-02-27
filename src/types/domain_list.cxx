@@ -51,5 +51,25 @@ bool DomainList::from_json(const std::string& input)
 	return true;
 }
 
+std::string DomainList::to_json() const
+{
+	Json::Value root;
+
+	root["name"] = name;
+
+	if(description.is_initialized()) {
+		root["description"] = description.get();
+	}
+
+	root["domains"] = Json::arrayValue;
+
+	for(auto const& domain : domains) {
+		root["domains"].append(domain);
+	}
+
+	return root.toStyledString();
+}
+
+
 } // types
 } // dbl

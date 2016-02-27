@@ -104,7 +104,7 @@ std::string Unix::find_proxy_executable() const
 	std::string executable = api_->config.dns_proxy_executable;
 
 	if(executable.empty()) {
-		executable = dbl::find_executable(
+		executable = dbl::util::fs::find_executable(
 			this->get_proxy_executable_name()
 		);
 	}

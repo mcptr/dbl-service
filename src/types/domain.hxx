@@ -1,6 +1,7 @@
 #ifndef DBL_TYPES_DOMAIN_HXX
 #define DBL_TYPES_DOMAIN_HXX
 
+#include "json_serializable.hxx"
 #include "db/utils/utils.hxx"
 #include <soci/soci.h>
 #include <boost/optional.hpp>
@@ -10,7 +11,7 @@
 namespace dbl {
 namespace types {
 
-class Domain
+class Domain : public JSONSerializable
 {
 public:
 	int id = int();
@@ -18,6 +19,8 @@ public:
 	std::string name = std::string();
 	boost::optional<std::string> description = std::string();
 	boost::optional<std::string> list_name = std::string();
+
+	virtual bool from_json(const std::string& input);
 };
 
 } // types

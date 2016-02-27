@@ -8,6 +8,8 @@
 
 
 namespace dbl {
+namespace util {
+namespace fs {
 
 std::string find_executable(const std::string& name)
 {
@@ -38,4 +40,6 @@ std::string find_executable(const std::string& name)
 	return "";
 }
 
+} // fs
+} // util
 } // dbl

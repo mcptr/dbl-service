@@ -1,7 +1,6 @@
 #include "core/common.hxx"
 
 #include "options/options.hxx"
-#include "status/status.hxx"
 #include "service/service.hxx"
 #include "query/query.hxx"
 
@@ -149,10 +148,6 @@ int main(int argc, char** argv)
 			LOG(INFO) << "################################################";
 		}
 
-		// dbl::Status status(api);
-		// status.print_lists();
-		// status.print_domains();
-		
 		dbl::service::Service::service_ptr.reset(
 			new ServiceImplementation_t(api)
 		);
