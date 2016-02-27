@@ -102,6 +102,7 @@ translation_units = {
 	"sys/command": {},
 	"sys/script/script": {},
 	"template/template": {},
+	"types/json_serializable": {},
 	"updater/updater" : {},
 	"util/fs" : {},
 	"validator/domain": {},

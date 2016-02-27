@@ -13,27 +13,24 @@ bool DomainList::from_json(const std::string& input)
 {
 	using namespace validator::domain;
 
-	Json::Reader reader;
-	Json::Value root;
-	bool success = reader.parse(input, root);
-	if(!success) {
-		LOG(ERROR) << reader.getFormattedErrorMessages();
+	if(!this->parse_json(input)) {
 		return false;
 	}
-	else if(!root["domains"].isArray()) {
+
+	else if(!json_root_["domains"].isArray()) {
 		LOG(ERROR) << "Invalid format, expected array at 'domains'";
 		return false;
 	}
 
-	if(!root["name"].empty()) {
-		name = root["name"].asString();
+	if(!json_root_["name"].empty()) {
+		name = json_root_["name"].asString();
 	}
 
-	if(!root["description"].empty()) {
-		description = root["description"].asString();
+	if(!json_root_["description"].empty()) {
+		description = json_root_["description"].asString();
 	}
 
-	const Json::Value& entries = root["domains"];
+	const Json::Value& entries = json_root_["domains"];
 	for(auto const& item : entries) {
 		if(!item["name"].empty()) {
 			validator::Errors_t errors;

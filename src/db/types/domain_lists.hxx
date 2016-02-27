@@ -3,6 +3,7 @@
 
 #include "db/utils/utils.hxx"
 #include "domains.hxx"
+#include "types/json_serializable.hxx"
 
 #include <soci/soci.h>
 #include <boost/optional.hpp>
@@ -14,7 +15,7 @@ namespace dbl {
 namespace db {
 namespace types {
 
-class DomainList
+class DomainList : public dbl::types::JSONSerializable
 {
 public:
 	int id = int();
