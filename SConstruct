@@ -82,7 +82,6 @@ def extend_env(dest, src):
 translation_units = {
 	"core/api" : {},
 	"db/db": {},
-	"db/types/domain_lists": {},
 	"db/utils/utils": {},
 	"dnsproxy/dnsmasq" : {},
 	"dnsproxy/dnsproxy" : {},
@@ -103,6 +102,7 @@ translation_units = {
 	"sys/script/script": {},
 	"template/template": {},
 	"types/json_serializable": {},
+	"types/domain_list": {},
 	"updater/updater" : {},
 	"util/fs" : {},
 	"validator/domain": {},

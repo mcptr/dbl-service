@@ -24,31 +24,31 @@ public:
 
 	void init();
 
-	std::unique_ptr<db::types::DomainListsSet_t>
+	std::unique_ptr<dbl::types::DomainListsSet_t>
 	get_domain_lists();
 
-	std::unique_ptr<db::types::DomainList>
+	std::unique_ptr<dbl::types::DomainList>
 	get_domain_list_by_name(const std::string& name);
 
-	std::unique_ptr<db::types::DomainListsSet_t>
+	std::unique_ptr<dbl::types::DomainListsSet_t>
 	get_active_domain_lists();
 
-	std::unique_ptr<db::types::DomainSet_t>
+	std::unique_ptr<dbl::types::DomainSet_t>
 	get_domains(bool active_only = false);
 
-	std::unique_ptr<db::types::Domain>
+	std::unique_ptr<dbl::types::Domain>
 	get_domain(const std::string& name);
 
-	std::unique_ptr<db::types::DomainSet_t>
+	std::unique_ptr<dbl::types::DomainSet_t>
 	get_whitelisted_domains();
 
-	std::unique_ptr<db::types::DomainSet_t>
+	std::unique_ptr<dbl::types::DomainSet_t>
 	get_blocked_domains();
 
-	// std::unique_ptr<db::types::DomainSet_t>
+	// std::unique_ptr<dbl::types::DomainSet_t>
 	// get_blocked_domains(const NamesList_t& lists);
 
-	void import_list(const types::DomainList& lst, bool custom = false);
+	void import_list(const dbl::types::DomainList& lst, bool custom = false);
 	void block_domains(const NamesList_t& domains, int list_id = 0);
 	void unblock_domains(const NamesList_t& domains);
 

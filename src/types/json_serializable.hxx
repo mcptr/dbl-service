@@ -1,5 +1,5 @@
-#ifndef DBL_TYPES_TYPES_HXX
-#define DBL_TYPES_TYPES_HXX
+#ifndef DBL_TYPES_JSON_SERIALIZABLE_HXX
+#define DBL_TYPES_JSON_SERIALIZABLE_HXX
 
 #include <string>
 #include <json/json.h>

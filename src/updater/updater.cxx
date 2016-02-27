@@ -1,6 +1,6 @@
 #include "updater.hxx"
 #include "core/constants.hxx"
-#include "db/types/types.hxx"
+#include "types/types.hxx"
 
 #include <algorithm>
 

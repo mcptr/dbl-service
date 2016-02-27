@@ -1,5 +1,5 @@
-#ifndef DBL_DB_TYPES_DOMAINS_HXX
-#define DBL_DB_TYPES_DOMAINS_HXX
+#ifndef DBL_TYPES_DOMAIN_HXX
+#define DBL_TYPES_DOMAIN_HXX
 
 #include "db/utils/utils.hxx"
 #include <soci/soci.h>
@@ -8,7 +8,6 @@
 #include <ctime>
 
 namespace dbl {
-namespace db {
 namespace types {
 
 class Domain
@@ -22,12 +21,11 @@ public:
 };
 
 } // types
-} // db
 } // dbl
 
 namespace soci {
 
-using dbl::db::types::Domain;
+using dbl::types::Domain;
 
 template<>
 struct type_conversion<Domain>

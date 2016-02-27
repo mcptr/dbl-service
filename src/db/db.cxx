@@ -57,12 +57,12 @@ void DB::init()
 	sql.commit();
 }
 
-std::unique_ptr<db::types::DomainListsSet_t>
+std::unique_ptr<dbl::types::DomainListsSet_t>
 DB::get_domain_lists()
 {
 	using namespace soci;
-	using db::types::DomainListsSet_t;
-	using db::types::DomainList;
+	using dbl::types::DomainListsSet_t;
+	using dbl::types::DomainList;
 
 	std::unique_ptr<DomainListsSet_t> ptr(new DomainListsSet_t());
 	session sql(pool_);
@@ -82,11 +82,11 @@ DB::get_domain_lists()
 	return std::move(ptr);
 }
 
-std::unique_ptr<db::types::DomainList>
+std::unique_ptr<dbl::types::DomainList>
 DB::get_domain_list_by_name(const std::string& name)
 {
-	std::unique_ptr<db::types::DomainList> ptr(
-		new db::types::DomainList()
+	std::unique_ptr<dbl::types::DomainList> ptr(
+		new dbl::types::DomainList()
 	);
 	std::string q(get_domain_lists_query + " WHERE name = ?");
 	soci::session sql(pool_);
@@ -94,11 +94,11 @@ DB::get_domain_list_by_name(const std::string& name)
 	return std::move(ptr);
 }
 
-std::unique_ptr<db::types::DomainSet_t>
+std::unique_ptr<dbl::types::DomainSet_t>
 DB::get_domains(bool active_only)
 {
 	using namespace soci;
-	using db::types::DomainSet_t;
+	using dbl::types::DomainSet_t;
 
 	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
 	session sql(pool_);
@@ -122,11 +122,11 @@ DB::get_domains(bool active_only)
 	return std::move(ptr);
 }
 
-std::unique_ptr<db::types::Domain>
+std::unique_ptr<dbl::types::Domain>
 DB::get_domain(const std::string& name)
 {
 	using namespace soci;
-	using db::types::Domain;
+	using dbl::types::Domain;
 	std::unique_ptr<Domain> record(new Domain());
 
 	std::string q(get_domains_query + "  WHERE d.name = ?");
@@ -136,11 +136,11 @@ DB::get_domain(const std::string& name)
 	return std::move(record);
 }
 
-std::unique_ptr<db::types::DomainSet_t>
+std::unique_ptr<dbl::types::DomainSet_t>
 DB::get_whitelisted_domains()
 {
 	using namespace soci;
-	using db::types::DomainSet_t;
+	using dbl::types::DomainSet_t;
 
 	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
 	session sql(pool_);
@@ -159,12 +159,12 @@ DB::get_whitelisted_domains()
 	return std::move(ptr);
 }
 
-std::unique_ptr<db::types::DomainSet_t>
+std::unique_ptr<dbl::types::DomainSet_t>
 DB::get_blocked_domains()
 {
 	using namespace soci;
-	using db::types::DomainSet_t;
-	using db::types::Domain;
+	using dbl::types::DomainSet_t;
+	using dbl::types::Domain;
 
 	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
 
@@ -184,11 +184,11 @@ DB::get_blocked_domains()
 	return std::move(ptr);
 }
 
-// std::unique_ptr<db::types::DomainSet_t>
+// std::unique_ptr<dbl::types::DomainSet_t>
 // DB::get_blocked_domains(const DB::NamesList_t& lists)
 // {
 // 	using namespace soci;
-// 	using db::types::DomainSet_t;
+// 	using dbl::types::DomainSet_t;
 
 // 	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
 // 	std::string q = (
@@ -237,7 +237,7 @@ void DB::block_domains(const NamesList_t& domains, int list_id)
 	sql.commit();
 }
 
-void DB::import_list(const types::DomainList& lst, bool custom)
+void DB::import_list(const dbl::types::DomainList& lst, bool custom)
 {
 	using namespace soci;
 	int list_id = create_domain_list(
@@ -290,7 +290,7 @@ int DB::create_domain_list(const std::string& name,
 						   bool custom)
 {
 	using namespace soci;
-	using db::types::DomainList;
+	using dbl::types::DomainList;
 
 	std::string q(
 		"INSERT OR IGNORE INTO domain_lists(name, description, custom)"

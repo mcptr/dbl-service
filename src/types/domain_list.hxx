@@ -1,8 +1,8 @@
-#ifndef DBL_DB_TYPES_DOMAIN_LISTS_HXX
-#define DBL_DB_TYPES_DOMAIN_LISTS_HXX
+#ifndef DBL_TYPES_DOMAIN_LIST_HXX
+#define DBL_TYPES_DOMAIN_LIST_HXX
 
 #include "db/utils/utils.hxx"
-#include "domains.hxx"
+#include "domain.hxx"
 #include "types/json_serializable.hxx"
 
 #include <soci/soci.h>
@@ -12,10 +12,9 @@
 
 
 namespace dbl {
-namespace db {
 namespace types {
 
-class DomainList : public dbl::types::JSONSerializable
+class DomainList : public JSONSerializable
 {
 public:
 	int id = int();
@@ -30,12 +29,11 @@ public:
 };
 
 } // types
-} // db
 } // dbl
 
 namespace soci {
 
-using dbl::db::types::DomainList;
+using dbl::types::DomainList;
 
 template<>
 struct type_conversion<DomainList>

@@ -1,4 +1,4 @@
-#include "domain_lists.hxx"
+#include "domain_list.hxx"
 #include "core/common.hxx"
 #include "validator/types.hxx"
 #include "validator/domain.hxx"
@@ -6,7 +6,6 @@
 #include <json/json.h>
 
 namespace dbl {
-namespace db {
 namespace types {
 
 bool DomainList::from_json(const std::string& input)
@@ -35,7 +34,7 @@ bool DomainList::from_json(const std::string& input)
 		if(!item["name"].empty()) {
 			validator::Errors_t errors;
 			if(is_valid(item["name"].asString(), errors)) {
-				db::types::Domain domain;
+				Domain domain;
 				domain.name = item["name"].asString();
 				domain.description = item["description"].asString();
 				domains.push_back(domain);
@@ -53,5 +52,4 @@ bool DomainList::from_json(const std::string& input)
 }
 
 } // types
-} // db
 } // dbl
