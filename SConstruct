@@ -32,7 +32,7 @@ class Dirs(object):
 	objects = "%s/objs" % build
 	target = "%s/target" % build
 	source = "#src"
-	extern_source = os.path.join(Dir("#extern").path, "root", "include")
+	extern_source = os.path.join(os.environ["PROJECT_ROOT"], "include")
 	project_source = source
 	destdir = "bin"
 
@@ -41,6 +41,10 @@ MAIN_TARGET_NAME = "dnsblocker"
 THIS_PLATFORM = os.uname()[0].lower()
 
 builder = Builder({}, "clang")
+builder.add_lib_path(
+	os.path.join(os.environ["PROJECT_ROOT"], "lib"),
+	os.path.join(os.environ["PROJECT_ROOT"], "lib64"),
+)
 builder.add_library(
 	"boost_system",
 	"boost_program_options",

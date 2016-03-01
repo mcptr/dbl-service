@@ -20,8 +20,6 @@
 #include "dbl/service/unix.hxx"
 typedef dbl::service::Unix ServiceImplementation_t;
 typedef dbl::config::Unix ConfigImplementation_t;
-#elif defined(_WIN32)
-//...
 #endif
 
 void setup_logging(const dbl::Options& po);
@@ -175,7 +173,6 @@ void setup_logging(const dbl::Options& po)
 	std::string path = po.get<std::string>("logger-config-path");
 	el::Configurations conf(path);
 
-
 	if(!logfile.empty()) {
 		conf.setGlobally(el::ConfigurationType::Filename, logfile);
 	}
@@ -188,7 +185,6 @@ void setup_logging(const dbl::Options& po)
 		el::Level::Debug,
 		el::ConfigurationType::Enabled,
 		is_debug ? "true" : "false");
-
 
 	el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
 	el::Loggers::addFlag(el::LoggingFlag::ImmediateFlush);

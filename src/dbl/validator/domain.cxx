@@ -20,6 +20,7 @@ bool is_valid(const std::string& name)
 bool is_valid(const std::string& name, types::Errors_t& errors)
 {
 	errors.clear();
+
 	struct addrinfo* result = nullptr;
 	int error = getaddrinfo(name.c_str(), nullptr, nullptr, &result);
 

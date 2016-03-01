@@ -53,6 +53,10 @@ class Builder(object):
 		for inc in paths:
 			self._config["CPPPATH"].append(inc)
 
+	def add_lib_path(self, *paths):
+		for p in paths:
+			self._config["LIBPATH"].append(p)
+
 	def resolve_include_path(self, inc):
 		for inc_dir in self.platform.get_include_paths():
 			fp = os.path.isdir(os.path.join(inc_dir, inc))
