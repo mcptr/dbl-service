@@ -1,4 +1,5 @@
 #include "connection.hxx"
+#include <boost/bind.hpp>
 
 namespace dbl {
 namespace service {
@@ -22,23 +23,44 @@ void Connection::read()
 
 	auto self(shared_from_this());
 	socket_.async_read_some(
-		boost::asio::buffer(request_data_, CONNECTION_BUFFER_SIZE),
-		[this, self](error_code error, std::size_t /* len */) {
-			if(!error) {
-				this->process_request();
-				respond();
+		boost::asio::buffer(data_, MAX_REQUEST_SIZE),
+		[this, self](error_code error, std::size_t len) {
+			if(error) {
+				LOG(ERROR) << "Handler error: " << error;
+			}
+			else {
+				std::string request;
+
+				std::copy(
+					data_.begin(),
+					data_.begin() + len,
+					std::back_inserter(request)
+				);
+
+				std::string response;
+
+				try {
+					this->process_request(request, response);
+				}
+				catch(const std::exception& e) {
+					LOG(ERROR) << "Processing request failed: "
+							   << e.what();
+					response = "Unknown error";
+				}
+
+				this->respond(response);
 			}
 		}
 	);
 }
 
-void Connection::respond()
+void Connection::respond(const std::string& response)
 {
 	using boost::system::error_code;
 
 	auto self(shared_from_this());
 	boost::asio::async_write(
-		socket_, boost::asio::buffer(response_, response_.length()),
+		socket_, boost::asio::buffer(response, response.length()),
 		[this, self](error_code error, std::size_t /*len*/) {
 			if(!error) {
 				read();

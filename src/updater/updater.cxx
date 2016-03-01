@@ -37,7 +37,7 @@ bool Updater::run()
 		std::unique_lock<std::mutex> lock(mtx_);
 
 		std::cv_status status = 
-			cv_.wait_for(lock, std::chrono::seconds(5));//3600 * 4));
+			cv_.wait_for(lock, std::chrono::seconds(3600 * 4));
 
 		if(status == std::cv_status::timeout) {
 			update();

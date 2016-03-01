@@ -67,8 +67,6 @@ public:
 		"CUSTOM"
 	};
 
-	std::vector<std::string> block_domains = {};
-	std::vector<std::string> unblock_domains = {};
 };
 
 } // config

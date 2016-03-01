@@ -83,19 +83,29 @@ DB::get_domain_lists()
 }
 
 std::unique_ptr<dbl::types::DomainList>
-DB::get_domain_list_by_name(const std::string& name)
+DB::get_domain_list_by_name(const std::string& name,
+							bool with_domains)
 {
 	std::unique_ptr<dbl::types::DomainList> ptr(
 		new dbl::types::DomainList()
 	);
 	std::string q(get_domain_lists_query + " WHERE name = ?");
 	soci::session sql(pool_);
+
 	sql << q, soci::use(name), soci::into(*ptr);
+
+	if(with_domains) {
+		auto domains_ptr = get_domains(ptr->id);
+		for(auto const& d : *domains_ptr) {
+			ptr->domains.push_back(d);
+		}
+	}
+
 	return std::move(ptr);
 }
 
 std::unique_ptr<dbl::types::DomainSet_t>
-DB::get_domains(bool active_only)
+DB::get_domains(int list_id)
 {
 	using namespace soci;
 	using dbl::types::DomainSet_t;
@@ -107,8 +117,9 @@ DB::get_domains(bool active_only)
 
 	std::string q(get_domains_query);
 
-	if(active_only) {
-		q.append(" WHERE active = 1");
+	if(list_id) {
+		q.append(" WHERE list_id = ");
+		q.append(std::to_string(list_id));
 	}
 
 	q.append(" ORDER BY d.name asc");
@@ -307,6 +318,49 @@ int DB::create_domain_list(const std::string& name,
 
 	auto ptr = get_domain_list_by_name(list_name);
 	return ptr->id;
+}
+
+std::string DB::get_setting(const std::string& key)
+{
+	using namespace soci;
+	session sql(pool_);
+	std::string value;
+	sql << "SELECT value FROM settings WHERE name = ?",
+		use(key), into(value); 
+	return value;
+}
+
+std::string DB::get_service_password()
+{
+	return get_setting("service_password");
+}
+
+void DB::set_service_password(const std::string& hash)
+{
+	set_setting("service_password", hash);
+}
+
+
+void DB::set_setting(const std::string& key,
+					 const std::string& value)
+{
+	using namespace soci;
+	session sql(pool_);
+
+	sql.begin();
+	sql << "INSERT OR REPLACE INTO settings(name, value) VALUES(?, ?)",
+		use(key), use(value); 
+	sql.commit();
+}
+
+void DB::remove_setting(const std::string& key)
+{
+	using namespace soci;
+	session sql(pool_);
+
+	sql.begin();
+	sql << "DELETE FROM settings WHERE name = ?",use(key); 
+	sql.commit();
 }
 
 } // db

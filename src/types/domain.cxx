@@ -36,5 +36,15 @@ bool Domain::from_json(const std::string& input)
 	return true;
 }
 
+Domain::operator Json::Value() const
+{
+	Json::Value root;
+	root["name"] = name;
+	if(description.is_initialized()) {
+		root["description"] = description.get();
+	}
+	return root;
+}
+
 } // types
 } // dbl

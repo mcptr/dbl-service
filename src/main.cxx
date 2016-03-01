@@ -22,28 +22,14 @@ typedef dbl::config::Unix ConfigImplementation_t;
 //...
 #endif
 
+void setup_logging(const dbl::Options& po);
 
+void manage_domains(std::shared_ptr<dbl::core::Api> api,
+					std::vector<std::string> block,
+					std::vector<std::string> unblock);
 
-void setup_logging(const dbl::Options& po)
-{
-	bool is_foreground = po.get<bool>("foreground");
-	std::string logfile = po.get<std::string>("logfile");
-	std::string path = po.get<std::string>("logger-config-path");
-	el::Configurations conf(path);
-
-
-	conf.setGlobally(
-		el::ConfigurationType::ToStandardOutput,
-		is_foreground ? "true" : "false");
-
-	if(!logfile.empty()) {
-		conf.setGlobally(el::ConfigurationType::Filename, logfile);
-	}
-
-	el::Loggers::setDefaultConfigurations(conf, true);
-	el::Loggers::reconfigureAllLoggers(conf);
-	//el::Helpers::setCrashHandler(crash_handler);
-}
+void manage_import_export(std::shared_ptr<dbl::core::Api> api,
+						  std::vector<std::string> lst);
 
 
 INITIALIZE_EASYLOGGINGPP
@@ -105,39 +91,25 @@ int main(int argc, char** argv)
 			return (success ? EXIT_SUCCESS : EXIT_FAILURE);
 		}
 		else { // management
-			if(!config.unblock_domains.empty()) {
-				db->unblock_domains(config.unblock_domains);
-			}
+			auto const export_lists =
+				po.get<std::vector<std::string>>("export-lists");
 
-			if(!config.block_domains.empty()) {
-				auto const& ubd = config.unblock_domains;
-				if(!ubd.empty()) {
-					for(auto const& domain: config.block_domains) {
-						// slow...
-						bool found = std::find(
-							ubd.begin(),
-							ubd.end(),
-							domain
-						) != ubd.end();
+			auto const block_domains =
+				po.get<std::vector<std::string>>("block");
 
-						if(found) {
-							std::string msg(
-								"Conflicting domain (will be blocked): "
-							);
-							msg.append(domain);
-							if(config.is_fatal) {
-								throw std::runtime_error(msg);
-							}
-							std::cerr << "WARNING: " << msg 
-									  << std::endl;
-							LOG(WARNING) << msg;
-						}
-					}
-				}
-				db->block_domains(config.block_domains);
-			}
+			auto const unblock_domains =
+				po.get<std::vector<std::string>>("unblock");
 
-			if(po.get<bool>("manage")) {
+			bool is_management = (
+				!export_lists.empty() ||
+				!block_domains.empty() ||
+				!unblock_domains.empty()
+			);
+
+			manage_domains(api, block_domains, unblock_domains);
+			manage_import_export(api, export_lists);
+
+			if(is_management) {
 				return EXIT_SUCCESS;
 			}
 		}
@@ -153,7 +125,10 @@ int main(int argc, char** argv)
 		);
 
 		if(dbl::service::Service::service_ptr->is_already_running()) {
-			throw std::runtime_error("Another instance already running");
+			std::string msg("Another instance already running");
+			std::cerr << msg << std::endl;
+			LOG(ERROR) << msg;
+			return EXIT_FAILURE;
 		}
 
 		dbl::service::Service::service_ptr->configure();
@@ -188,4 +163,83 @@ int main(int argc, char** argv)
 
 	LOG(DEBUG) << "main() exit success";
 	return EXIT_SUCCESS;
+}
+
+void setup_logging(const dbl::Options& po)
+{
+	bool is_foreground = po.get<bool>("foreground");
+	bool is_debug = po.get<bool>("debug");
+	std::string logfile = po.get<std::string>("logfile");
+	std::string path = po.get<std::string>("logger-config-path");
+	el::Configurations conf(path);
+
+
+	if(!logfile.empty()) {
+		conf.setGlobally(el::ConfigurationType::Filename, logfile);
+	}
+
+	conf.setGlobally(
+		el::ConfigurationType::ToStandardOutput,
+		is_foreground ? "true" : "false");
+
+	conf.set(
+		el::Level::Debug,
+		el::ConfigurationType::Enabled,
+		is_debug ? "true" : "false");
+
+
+	el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+	el::Loggers::addFlag(el::LoggingFlag::ImmediateFlush);
+	el::Loggers::setDefaultConfigurations(conf, true);
+	el::Loggers::reconfigureAllLoggers(conf);
+	//el::Helpers::setCrashHandler(crash_handler);
+}
+
+void manage_domains(std::shared_ptr<dbl::core::Api> api,
+					std::vector<std::string> block,
+					std::vector<std::string> unblock)
+{
+	if(!unblock.empty()) {
+		api->db()->unblock_domains(unblock);
+	}
+
+	if(!block.empty()) {
+		for(auto const& domain : block) {
+			// slow...
+			bool found = std::find(
+				unblock.begin(),
+				unblock.end(),
+				domain
+			) != unblock.end();
+
+			if(found) {
+				std::string msg(
+					"Conflicting domain (will be blocked): "
+				);
+				msg.append(domain);
+				if(api->config.is_fatal) {
+					throw std::runtime_error(msg);
+				}
+				std::cerr << "WARNING: " << msg 
+						  << std::endl;
+				LOG(WARNING) << msg;
+			}
+		}
+
+		api->db()->block_domains(block);
+	}
+}
+
+void manage_import_export(std::shared_ptr<dbl::core::Api> api,
+						  std::vector<std::string> lst)
+{
+	if(lst.size()) {
+		for(auto const& name : lst) {
+			auto dl = api->db()->get_domain_list_by_name(name, true);
+			if(dl) {
+				std::cout << "\nList: " << name << std::endl;
+				std::cout << dl->to_json() << std::endl;
+			}
+		}
+	}
 }

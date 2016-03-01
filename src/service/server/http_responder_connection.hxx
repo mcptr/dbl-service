@@ -3,6 +3,7 @@
 
 #include "connection.hxx"
 
+#include <string>
 #include <memory>
 
 namespace dbl {
@@ -19,7 +20,8 @@ public:
 	virtual ~HTTPResponderConnection() = default;
 
 protected:
-	virtual bool process_request();
+	virtual void process_request(const std::string& request,
+								 std::string& response);
 };
 
 } // server

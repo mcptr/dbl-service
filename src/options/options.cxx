@@ -23,6 +23,7 @@ void Options::parse(int argc, char** argv, config::Config& config)
 	po::options_description lists("DNS lists options");
 	po::options_description query("Querying options");
 	po::options_description operations("Operations");
+	po::options_description import_export("Import/Export");
 	po::options_description config_file_options("");
 
 	string config_path;
@@ -246,17 +247,19 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		;
 
 	operations.add_options()
-		("manage,M",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
-		 "Management mode (do not run server, just perform an operation)"
-		)
 		("block,B",
-		 po::value(&(config.block_domains))->multitoken(),
+		 po::value<std::vector<std::string>>()->multitoken(),
 		 "Block domain(s)"
 		)
 		("unblock,U",
-		 po::value(&(config.unblock_domains))->multitoken(),
+		 po::value<std::vector<std::string>>()->multitoken(),
 		 "Unblock domain(s)"
+		)
+		;
+
+	import_export.add_options()
+		("export-lists,E", po::value<std::vector<std::string>>()->multitoken(),
+		 "Export lists"
 		)
 		;
 
@@ -268,7 +271,8 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		.add(dnsproxy_custom)
 		.add(http_responder)
 		.add(lists)
-		.add(operations);
+		.add(operations)
+		.add(import_export);
 
 	try {
 		po::store(po::command_line_parser(argc, argv).options(all_).run(), vm_);

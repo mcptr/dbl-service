@@ -15,10 +15,9 @@ HTTPResponderConnection::HTTPResponderConnection(
 {
 }
 
-bool HTTPResponderConnection::process_request()
+void HTTPResponderConnection::process_request(const std::string& request,
+											  std::string& response)
 {
-	response_.clear();
-
 	std::vector<std::string> reply;
 
 	reply.push_back(
@@ -33,12 +32,10 @@ bool HTTPResponderConnection::process_request()
 	reply.push_back("Content-Length: 0");
 
 	for(auto const& item : reply) {
-		response_.append(item + "\r\n");
+		response.append(item + "\r\n");
 	}
 
-	response_.append("\r\n");
-
-	return true;
+	response.append("\r\n\r\n");
 }
 
 } // server

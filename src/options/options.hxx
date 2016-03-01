@@ -23,9 +23,12 @@ public:
 	const T get(const std::string& k) const
 	{
 		try {
+			if(vm_[k].empty()) {
+				return T();
+			}
 			return vm_[k].as<T>();
 		}
-		catch(boost::bad_any_cast& e) {
+		catch(const boost::bad_any_cast& e) {
 			std::cerr << "ERROR: Options::get(): " << k << std::endl;
 			throw e;
 		}

@@ -28,13 +28,14 @@ public:
 	get_domain_lists();
 
 	std::unique_ptr<dbl::types::DomainList>
-	get_domain_list_by_name(const std::string& name);
+	get_domain_list_by_name(const std::string& name,
+							bool with_domains = false);
 
 	std::unique_ptr<dbl::types::DomainListsSet_t>
 	get_active_domain_lists();
 
 	std::unique_ptr<dbl::types::DomainSet_t>
-	get_domains(bool active_only = false);
+	get_domains(int list_id = 0);
 
 	std::unique_ptr<dbl::types::Domain>
 	get_domain(const std::string& name);
@@ -47,6 +48,15 @@ public:
 
 	// std::unique_ptr<dbl::types::DomainSet_t>
 	// get_blocked_domains(const NamesList_t& lists);
+
+	std::string get_setting(const std::string& key);
+	std::string get_service_password();
+	void set_service_password(const std::string& hash);
+
+	void set_setting(const std::string& key,
+					 const std::string& value);
+
+	void remove_setting(const std::string& key);
 
 	void import_list(const dbl::types::DomainList& lst, bool custom = false);
 	void block_domains(const NamesList_t& domains, int list_id = 0);

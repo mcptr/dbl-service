@@ -82,7 +82,9 @@ void Server<ConnectionType>::accept()
 			if(!error) {
 				std::make_shared<ConnectionType>(api_, std::move(socket_))->handle();
 			}
-
+			else {
+				LOG(ERROR) << "Server accept() failed";
+			}
 			accept();
 		}
 	);

@@ -49,6 +49,7 @@ builder.add_library(
 	"soci_sqlite3",
 	"jsoncpp",
 	"curl",
+	"crypto",
 )
 
 builder.add_include_path(Dirs.source, Dirs.extern_source)
@@ -80,6 +81,7 @@ def extend_env(dest, src):
 
 
 translation_units = {
+	"auth/auth": {},
 	"core/api" : {},
 	"db/db": {},
 	"db/utils/utils": {},
@@ -104,6 +106,7 @@ translation_units = {
 	"types/domain": {},
 	"types/domain_list": {},
 	"updater/updater" : {},
+	"util/crypto" : {},
 	"util/fs" : {},
 	"validator/domain": {},
 }

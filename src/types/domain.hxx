@@ -21,6 +21,8 @@ public:
 	boost::optional<std::string> list_name = std::string();
 
 	virtual bool from_json(const std::string& input);
+
+	operator Json::Value() const;
 };
 
 } // types
