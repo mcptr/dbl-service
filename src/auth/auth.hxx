@@ -2,7 +2,7 @@
 #define DBL_AUTH_AUTH_HXX
 
 #include "core/api.hxx"
-#include "core/types.hxx"
+#include "types/types.hxx"
 
 #include <string>
 #include <set>
@@ -23,7 +23,7 @@ public:
 
 	bool set_password(const std::string& passwd_hash,
 					  const std::string& hashed_token,
-					  core::Errors_t& errors);
+					  types::Errors_t& errors);
 
 	bool remove_password();
 

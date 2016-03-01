@@ -1,4 +1,6 @@
 #include "query.hxx"
+#include "manager/domain_manager.hxx"
+#include "manager/domain_list_manager.hxx"
 
 #include <iostream>
 
@@ -28,7 +30,8 @@ bool Query::run()
 
 void Query::print_domain_lists()
 {
-	auto records_ptr = api_->db()->get_domain_lists();
+	manager::DomainListManager mgr(api_);
+	auto records_ptr = mgr.get();
 	for(auto const& r : *records_ptr) {
 		std::cout << r.name << " :: "
 				  << "Active: " << r.active << ", Custom: " << r.custom
@@ -39,7 +42,8 @@ void Query::print_domain_lists()
 
 void Query::print_blocked_domains()
 {
-	auto ptr = api_->db()->get_blocked_domains();
+	manager::DomainManager mgr(api_);
+	auto ptr = mgr.get_blocked();
 	for(auto const& r : *ptr) {
 		std::cout << r.name;
 		if(api_->config.is_verbose) {
@@ -54,7 +58,8 @@ void Query::print_blocked_domains()
 
 bool Query::print_domain_details(const std::string& domain)
 {
-	auto ptr = api_->db()->get_domain(domain);
+	manager::DomainManager mgr(api_);
+	auto ptr = mgr.get(domain);
 	if(ptr->id) {
 		std::cout << ptr->name << "\n"
 				  << "List: " << ptr->list_id 

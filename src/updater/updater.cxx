@@ -1,5 +1,6 @@
 #include "updater.hxx"
 #include "core/constants.hxx"
+#include "manager/domain_list_manager.hxx"
 #include "types/types.hxx"
 
 #include <algorithm>
@@ -59,8 +60,8 @@ void Updater::update()
 
 void Updater::update_lists()
 {
-	
-	auto lists = api_->db()->get_domain_lists();
+	manager::DomainListManager mgr(api_);
+	auto lists = mgr.get();
 
 	auto const& ids = api_->config.list_ids;
 	for(auto& lst : *lists) {
@@ -81,7 +82,7 @@ void Updater::update_lists()
 				//2DO: check last modif tstamp
 				if(lst.from_json(rq.get_result())) {
 					LOG(INFO) << "Updating domain list: " << lst.name;
-					api_->db()->import_list(lst, false);
+					mgr.import(lst, false);
 					//is_updated_ = true;
 				}
 			}

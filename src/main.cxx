@@ -1,5 +1,7 @@
 #include "core/common.hxx"
 
+#include "manager/domain_manager.hxx"
+#include "manager/domain_list_manager.hxx"
 #include "options/options.hxx"
 #include "service/service.hxx"
 #include "query/query.hxx"
@@ -198,9 +200,11 @@ void setup_logging(const dbl::Options& po)
 void manage_domains(std::shared_ptr<dbl::core::Api> api,
 					std::vector<std::string> block,
 					std::vector<std::string> unblock)
-{
+{	
+	dbl::manager::DomainManager mgr(api);
+
 	if(!unblock.empty()) {
-		api->db()->unblock_domains(unblock);
+		mgr.unblock_domains(unblock);
 	}
 
 	if(!block.empty()) {
@@ -226,7 +230,7 @@ void manage_domains(std::shared_ptr<dbl::core::Api> api,
 			}
 		}
 
-		api->db()->block_domains(block);
+		mgr.block_domains(block);
 	}
 }
 
@@ -234,8 +238,9 @@ void manage_import_export(std::shared_ptr<dbl::core::Api> api,
 						  std::vector<std::string> lst)
 {
 	if(lst.size()) {
+		dbl::manager::DomainListManager mgr(api);
 		for(auto const& name : lst) {
-			auto dl = api->db()->get_domain_list_by_name(name, true);
+			auto dl = mgr.get(name, true);
 			if(dl) {
 				std::cout << "\nList: " << name << std::endl;
 				std::cout << dl->to_json() << std::endl;

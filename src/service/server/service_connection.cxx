@@ -1,5 +1,5 @@
 #include "service_connection.hxx"
-#include "core/types.hxx"
+#include "types/types.hxx"
 
 #include <string>
 #include <vector>
@@ -49,6 +49,7 @@ void ServiceConnection::process_request(const std::string& request,
 		response_json["status"] = "ERROR";
 		response_json["status_message"] = e.what();
 		response_json["error_details"] = Json::arrayValue;
+
 		for(auto const& err : e.get_errors()) {
 			response_json["error_details"].append(err);
 		}
@@ -65,7 +66,7 @@ void ServiceConnection::dispatch(const std::string& cmd,
 								 const Json::Value& data,
 								 Json::Value& response_json)
 {
-	core::Errors_t errors;
+	types::Errors_t errors;
 
 	if(cmd.compare("GET_TOKEN") == 0) {
 		response_json["TOKEN"] = auth_.get_token();
@@ -92,13 +93,16 @@ void ServiceConnection::dispatch(const std::string& cmd,
 			auth_.remove_password();
 		}
 		else if(cmd.compare("FLUSH_DNS") == 0) {
+			throw ServiceOperationError("not implemented");
 
 		}
 		else if(cmd.compare("IMPORT") == 0) {
+			throw ServiceOperationError("not implemented");
 
 		}
 		else if(cmd.compare("BLOCK") == 0) {
-
+			
+			//api_->db()->block_domains(data["domains"].asArray());
 		}
 		else if(cmd.compare("UNBLOCK") == 0) {
 

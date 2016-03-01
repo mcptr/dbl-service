@@ -2,8 +2,8 @@
 #define DBL_SERVICE_SERVER_SERVICE_CONNECTION_HXX
 
 #include "connection.hxx"
-#include "core/types.hxx"
 #include "auth/auth.hxx"
+#include "types/types.hxx"
 
 #include <memory>
 
@@ -22,7 +22,7 @@ public:
 
 	explicit ServiceOperationError(
 		const std::string& msg,
-		const core::Errors_t& errors)
+		const types::Errors_t& errors)
 		: std::runtime_error(msg),
 		  errors_(errors)
 	{
@@ -32,14 +32,14 @@ public:
 
 	virtual const char* what() const throw();
 
-	virtual inline const core::Errors_t& get_errors() const
+	virtual inline const types::Errors_t& get_errors() const
 	{
 		return errors_;
 	}
 
 protected:
 	const std::string msg_;
-	const core::Errors_t errors_;
+	const types::Errors_t errors_;
 };
 
 

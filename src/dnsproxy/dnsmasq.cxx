@@ -1,4 +1,5 @@
 #include "dnsmasq.hxx"
+#include "manager/domain_manager.hxx"
 #include "template/template.hxx"
 
 #include <boost/filesystem.hpp>
@@ -110,7 +111,8 @@ void DNSMasq::generate_domains_config(std::ofstream& ofh) const
 		}
 	}
 
-	auto ptr = std::move(api_->db()->get_domains());
+	manager::DomainManager domain_mgr(api_);
+	auto ptr = std::move(domain_mgr.get());
 	for(auto const& domain : *ptr) {
 		if(!api_->config.network_no_ip4) {
 			this->save_domain(

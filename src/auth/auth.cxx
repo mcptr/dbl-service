@@ -1,4 +1,5 @@
 #include "auth.hxx"
+#include "manager/settings_manager.hxx"
 #include "util/crypto.hxx"
 
 #include <sstream>
@@ -25,7 +26,8 @@ bool Auth::auth(const std::string& token,
 		return false;
 	}
 
-	std::string passwd = api_->db()->get_service_password();
+	manager::SettingsManager settings_mgr(api_);
+	std::string passwd = settings_mgr.get("service_password", "");
 	if(passwd.empty()) {
 		LOG(WARNING) << "AUTH: No password set";
 		return true;
@@ -40,7 +42,7 @@ bool Auth::auth(const std::string& token,
 
 bool Auth::set_password(const std::string& passwd_hash,
 						const std::string& hashed_token,
-						core::Errors_t& errors)
+						types::Errors_t& errors)
 {
 	if(passwd_hash.empty()) {
 		errors.push_back("Cannot set empty password");
@@ -58,14 +60,14 @@ bool Auth::set_password(const std::string& passwd_hash,
 		return false;
 	}
 
-	api_->db()->set_service_password(passwd_hash);
-	return true;
+	manager::SettingsManager settings_mgr(api_);
+	return settings_mgr.set("service_password", passwd_hash);
 }
 
 bool Auth::remove_password()
 {
-	api_->db()->remove_setting("service_password");
-	return true;
+	manager::SettingsManager settings_mgr(api_);
+	return settings_mgr.remove("service_password");
 }
 
 
