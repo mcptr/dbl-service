@@ -3,8 +3,8 @@
 # NOTE: You need sqlite development files, e.g. on ubuntu:
 # libsqlite3-dev
 
-if test ! -d $PROJECT_ROOT; then
-    echo "Need PROJECT_ROOT env"
+if test ! -d $VIRTUAL_ENV; then
+    echo "Need VIRTUAL_ENV env"
     exit 1
 fi
 
@@ -16,7 +16,7 @@ BUILD_DIR="$ROOTDIR/tmp/soci-build"
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
 
-cmake -DCMAKE_INSTALL_PREFIX=$PROJECT_ROOT -G "Unix Makefiles" \
+cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV -G "Unix Makefiles" \
     -DWITH_BOOST=ON \
     -DWITH_SQLITE3=ON \
     -DSOCI_CXX_C11=ON \

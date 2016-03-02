@@ -29,6 +29,8 @@ void Service::configure()
 void Service::run_service()
 {
 	this->start_servers();
+	bool is_ok = true;
+
 	if(api_->config.is_foreground) {
 		LOG(WARNING) << "\n#############################################\n"
 					 << "# WARNING: Running in foreground\n"
@@ -43,11 +45,20 @@ void Service::run_service()
 		);
 	}
 	else {
-		this->drop_privileges();
+		LOG(DEBUG) << "Dropping privileges";
+		try {
+			this->drop_privileges();
+		}
+		catch(const std::runtime_error& e) {
+			LOG(ERROR) << e.what();
+			is_ok = false;
+		}
 	}
 
-	std::unique_lock<std::mutex> lock(service_mtx_);
-	service_cv_.wait(lock);
+	if(is_ok) {
+		std::unique_lock<std::mutex> lock(service_mtx_);
+		service_cv_.wait(lock);
+	}
 }
 
 void Service::start_servers()

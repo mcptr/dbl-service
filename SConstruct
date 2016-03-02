@@ -32,7 +32,7 @@ class Dirs(object):
 	objects = "%s/objs" % build
 	target = "%s/target" % build
 	source = "#src"
-	extern_source = os.path.join(os.environ["PROJECT_ROOT"], "include")
+	extern_source = os.path.join(os.environ["VIRTUAL_ENV"], "include")
 	project_source = source
 	destdir = "bin"
 
@@ -43,8 +43,8 @@ THIS_PLATFORM = os.uname()[0].lower()
 builder = Builder({}, "clang")
 
 builder.add_lib_path(
-	os.path.join(os.environ["PROJECT_ROOT"], "lib"),
-	os.path.join(os.environ["PROJECT_ROOT"], "lib64"),
+	os.path.join(os.environ["VIRTUAL_ENV"], "lib"),
+	os.path.join(os.environ["VIRTUAL_ENV"], "lib64"),
 )
 
 builder.add_library(

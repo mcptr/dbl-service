@@ -65,18 +65,18 @@ void Unix::configure_interface()
 
 	inet_pton(AF_INET, ip4address_.c_str(), &saddr->sin_addr);
 	if(ioctl(sock, SIOCSIFADDR, &ifr) < 0) {
-		perror("ioctl(SIOCSIFADDR)");
+		PLOG(ERROR) << "ioctl(SIOCSIFADDR)";
 		failed = true;
 	}
 	else if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-		perror("ioctl(SIOCGIFFLAGS)");
+		PLOG(ERROR) << "ioctl(SIOCGIFFLAGS)";
 		failed = true;
 	}
 
 	if(!failed) {
 		ifr.ifr_flags |= (IFF_UP | IFF_RUNNING);
 		if(ioctl(sock, SIOCSIFFLAGS, &ifr) < 0) {
-			perror("ioctl(SIOCGIFFLAGS)");
+			PLOG(ERROR) << "ioctl(SIOCGIFFLAGS)";
 		}
 		failed = true;
 	}

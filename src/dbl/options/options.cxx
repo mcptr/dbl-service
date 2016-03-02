@@ -65,6 +65,14 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		 po::value(&(config.is_test))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Do not start/generate anything - just test init"
 		)
+		("no-chdir",
+		 po::value(&(config.no_chdir))->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Do not chdir after daemonizing"
+		)
+		("no-close-fds",
+		 po::value(&(config.no_chdir))->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Do not close file descriptors after daemonizing"
+		)
 		;
 	
 	service.add_options()

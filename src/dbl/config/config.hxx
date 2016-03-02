@@ -16,6 +16,9 @@ public:
 	bool is_test = false;
 	bool is_verbose = false;
 
+	bool no_chdir = false;
+	bool no_close_fds = false;
+
 	std::string platform;
 	std::string base_dir;
 	std::string db_dir;
@@ -27,7 +30,7 @@ public:
 	int service_port = 7654;
 
 	bool http_responder_enable = true;
-	short http_responder_port = 80;
+	int http_responder_port = 80;
 	int http_responder_status_code = 404;
 	std::string http_responder_status_text = "Not found";
 

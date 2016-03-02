@@ -1,14 +1,14 @@
 #!/bin/sh
 
-if test ! -d $PROJECT_ROOT; then
-    echo "Need PROJECT_ROOT env"
+if test ! -d $VIRTUAL_ENV; then
+    echo "Need VIRTUAL_ENV env"
     exit 1
 fi
 
 ME=$(readlink -f $0)
 MY_DIR=$(dirname $ME)
 EXTERNDIR=$(readlink -f "$MY_DIR/../extern")
-BUILD_DIR="$PROJECT_ROOT/tmp/jsoncpp-build"
+BUILD_DIR="$VIRTUAL_ENV/tmp/jsoncpp-build"
 
 
 mkdir -p $BUILD_DIR
@@ -19,7 +19,7 @@ cd $BUILD_DIR
 cmake  -G "Unix Makefiles" \
     -DBUILD_STATIC_LIBS=OFF \
     -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_INSTALL_PREFIX=$PROJECT_ROOT \
+    -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV \
     $EXTERNDIR/repos/jsoncpp
 
 make -j4

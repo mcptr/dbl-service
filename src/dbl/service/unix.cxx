@@ -48,7 +48,9 @@ bool Unix::is_already_running()
 void Unix::run()
 {
 	if(!api_->config.is_foreground) {
-		if(daemon(0, 0) != 0) {
+		bool nochdir = api_->config.no_chdir;
+		bool noclose = api_->config.no_close_fds;
+		if(daemon(nochdir, noclose) != 0) {
 			LOG(ERROR) << "Daemonizing failed " << strerror(errno);
 			throw std::runtime_error(strerror(errno));
 		}
@@ -139,8 +141,6 @@ void Unix::run()
 
 void Unix::drop_privileges()
 {
-		LOG(INFO) << "Dropping privileges";
-
 		struct passwd* p = getpwnam(api_->config.service_user.c_str());
 
 		if(p == nullptr) {
@@ -160,23 +160,34 @@ void Unix::drop_privileges()
 		}
 
 		if(setgroups(0, nullptr) != 0) {
-			perror("setgroups()");
-			throw std::runtime_error(
-				"Cannot drop privileges (setgroups() failed)"
-			);
+			PLOG(ERROR) << "setgroups()";
 		}
 		
 		if(setgid(group_id) != 0) {
-			perror("setgid()");
+			PLOG(ERROR) << "setgid(" << group_id << ")";
 			throw std::runtime_error(
 				"Cannot drop privileges (setgid() failed)"
 			);
 		}
 
+		if(setegid(group_id) != 0) {
+			PLOG(ERROR) << "setegid(" << group_id << ")";
+			throw std::runtime_error(
+				"Cannot drop privileges (setegid() failed)"
+			);
+		}
+
 		if(setuid(user_id) != 0) {
-			perror("setuid()");
+			PLOG(ERROR) << "setuid(" << user_id << ")";
 			throw std::runtime_error(
 				"Cannot drop privileges (setuid() failed)"
+			);
+		}
+
+		if(seteuid(user_id) != 0) {
+			PLOG(ERROR) << "seteuid(" << user_id << ")";
+			throw std::runtime_error(
+				"Cannot drop privileges (seteuid() failed)"
 			);
 		}
 

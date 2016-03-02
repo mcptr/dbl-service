@@ -20,7 +20,7 @@ class Server
 {
 public:
 	Server() = delete;
-	Server(std::shared_ptr<core::Api> api, short port);
+	Server(std::shared_ptr<core::Api> api, int port);
 	virtual ~Server();
 
 	virtual void run() final;
@@ -28,7 +28,7 @@ public:
 
 private:
 	std::shared_ptr<core::Api> api_;
-	short port_;
+	int port_;
 	std::unique_ptr<boost::asio::io_service> io_service_;
 	boost::asio::ip::tcp::socket socket_;
 	boost::asio::ip::tcp::acceptor acceptor_;
@@ -38,7 +38,7 @@ private:
 
 
 template<class ConnectionType>
-Server<ConnectionType>::Server(std::shared_ptr<core::Api> api, short port)
+Server<ConnectionType>::Server(std::shared_ptr<core::Api> api, int port)
 	: api_(api),
 	  port_(port),
 	  io_service_(new boost::asio::io_service()),
@@ -59,9 +59,14 @@ Server<ConnectionType>::~Server()
 template<class ConnectionType>
 void Server<ConnectionType>::run()
 {
-	accept();
-	LOG(INFO) << "Activating server on port " << port_;
-	io_service_->run();
+	try {
+		accept();
+		LOG(INFO) << "Activating server on port " << port_;
+		//io_service_->run();
+	}
+	catch(const std::exception& e) {
+		LOG(ERROR) << e.what();
+	}
 }
 
 template<class ConnectionType>
