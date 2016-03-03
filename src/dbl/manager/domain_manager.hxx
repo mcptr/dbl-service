@@ -19,8 +19,8 @@ public:
 	std::unique_ptr<types::DomainSet_t> get_blocked();
 	std::unique_ptr<types::DomainSet_t> get_whitelisted();
 
-	void block_domains(const types::Names_t& domains, int list_id = 0);
-	void unblock_domains(const types::Names_t& domains);
+	bool block_domains(const types::Names_t& domains, int list_id = 0);
+	bool unblock_domains(const types::Names_t& domains);
 };
 
 } // manager

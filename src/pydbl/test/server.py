@@ -14,6 +14,7 @@ stdout_handler = logging.StreamHandler()
 
 class Server(object):
 	def __init__(self, **kwargs):
+		self._instance_id = time.time()
 		self._kwargs = kwargs
 		self._verbose = kwargs.pop("verbose", False)
 		self._logger = logging.getLogger(__name__)
@@ -29,18 +30,18 @@ class Server(object):
 		self._pidfile = os.path.join(
 			self._virtual_env_root,
 			"tmp",
-			"dbl-test-%d.pid" % os.getpid()
+			"dbl-test-%s.pid" % self._instance_id
 		)
 		self._server_params = kwargs.pop("params", {})
 		self._logfile = os.path.join(
 			self._virtual_env_root,
 			"tmp",
-			"dbl-log-%d.log" % os.getpid()
+			"dbl-log-%s.log" % self._instance_id
 		)
 		self._db = os.path.join(
 			self._virtual_env_root,
 			"tmp",
-			"dbl-db-%d.db" % os.getpid()
+			"dbl-db-%s.db" % self._instance_id
 		)
 		self._templates_dir = os.path.join(
 			self._project_root,
@@ -53,7 +54,7 @@ class Server(object):
 			self._virtual_env_root,
 			"var",
 			"run",
-			"dnsblocker-%d" % os.getpid()
+			"dnsblocker-%s" % self._instance_id
 		)
 
 		self._tail_thread = threading.Thread(target=self.tail_logfile)
@@ -185,7 +186,6 @@ class Server(object):
 				self._logger.debug("### Server: Server stopped")
 			except OSError as e:
 				if e.errno != errno.ESRCH:
-					print(")!@&#()*!@&#)(*!@&)()@#")
 					self._logger.exception(e)
 					raise
 		self._stop_threads_flag = True

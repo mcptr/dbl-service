@@ -5,7 +5,41 @@ import hashlib
 
 
 class TestAuth(unittest.TestCase):
-	def test_init(self):
+	def test_cmds_fail_without_auth(self):
+		with Server() as server:
+			self.assertTrue(server.get_pid() > 0, "Server alive")
+			client = Client(server=server)
+			hashed_password = hashlib.md5(
+				"testpassword".encode("utf-8")).hexdigest()
+			response = client.call("get_token")
+			token = response.data()["token"]
+			concatenated = str(hashed_password + token).encode("utf-8")
+			hashed_token = hashlib.md5(concatenated).hexdigest()
+			response = client.call("set_service_password", dict(
+				password_hash=hashed_password,
+				token_hash=hashed_token,
+			))
+			self.assertTrue(response.is_ok(), "Password changed")
+
+			cmds = [
+				"status",
+				"set_service_password",
+				"remove_service_password",
+				"block",
+				"unblock",
+				"flush_dns",
+				"import",
+				"delete_list",
+				"export_list",
+				"reload",
+			]
+
+			client = Client(server=server)
+			for cmd in cmds:
+				response = client.call(cmd)
+				self.assertFalse(response.is_ok(), "Denied - not authenticated")
+
+	def test_auth_full(self):
 		with Server() as server:
 			self.assertTrue(server.get_pid() > 0, "Server alive")
 

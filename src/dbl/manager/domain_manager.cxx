@@ -126,14 +126,16 @@ DomainManager::get_whitelisted()
 	return std::move(ptr);
 }
 
-void DomainManager::block_domains(const types::Names_t& domains,
+bool DomainManager::block_domains(const types::Names_t& domains,
 								  int list_id)
 {
 	using namespace soci;
 
 	if(domains.empty()) {
-		return;
+		return false;
 	}
+
+	//TODO: validate domains
 
 	if(!list_id) {
 		DomainListManager list_mgr(api_);
@@ -163,10 +165,13 @@ void DomainManager::block_domains(const types::Names_t& domains,
 	}
 	catch(const std::runtime_error& e) {
 		LOG(ERROR) << e.what();
+		return false;
 	}
+
+	return true;
 }
 
-void DomainManager::unblock_domains(const types::Names_t& domains)
+bool DomainManager::unblock_domains(const types::Names_t& domains)
 {
 	using namespace soci;
 
@@ -185,7 +190,10 @@ void DomainManager::unblock_domains(const types::Names_t& domains)
 	}
 	catch(const std::runtime_error& e) {
 		LOG(ERROR) << e.what();
+		return false;
 	}
+
+	return true;
 }
 
 } // manager

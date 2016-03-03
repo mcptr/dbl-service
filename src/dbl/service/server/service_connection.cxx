@@ -1,5 +1,6 @@
 #include "service_connection.hxx"
 #include "dbl/types/types.hxx"
+#include "dbl/manager/domain_manager.hxx"
 
 #include <string>
 #include <vector>
@@ -108,12 +109,21 @@ void ServiceConnection::dispatch(const std::string& cmd,
 			throw ServiceOperationError("not implemented");
 
 		}
-		else if(cmd.compare("block") == 0) {
-			
-			//api_->db()->block_domains(data["domains"].asArray());
-		}
-		else if(cmd.compare("unblock") == 0) {
-
+		else if(cmd.compare("block") == 0 || cmd.compare("unblock") == 0) {
+			manager::DomainManager mgr(api_);
+			if(!data["domains"].isArray()) {
+				throw ServiceOperationError("Expected array of domains");
+			}
+			types::Names_t domains;
+			for(auto const& domain : data["domains"]) {
+				domains.push_back(domain.asString());
+			}
+			if(cmd.compare("block") == 0) {
+				mgr.block_domains(domains);
+			}
+			else {
+				mgr.unblock_domains(domains);
+			}
 		}
 		else if(cmd.compare("delete_list") == 0) {
 
