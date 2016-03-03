@@ -11,12 +11,11 @@ deactivate nondestructive
 
 setenv VIRTUAL_ENV "$HOME/Devel/dbl"
 setenv PROJECT_ROOT "$VIRTUAL_ENV/project"
-set PROJECT_LIBDIR="$VIRTUAL_ENV/lib"
-setenv LD_LIBRARY_PATH "$PROJECT_LIBDIR"
+setenv LD_LIBRARY_PATH "$VIRTUAL_ENV/lib:$VIRTUAL_ENV/lib64"
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/bin:$PATH"
-setenv PYTHONPATH "$PROJECT_ROOT/src/nix/python"
+setenv PYTHONPATH "$PROJECT_ROOT/src"
 
 
 set _OLD_VIRTUAL_PROMPT="$prompt"
