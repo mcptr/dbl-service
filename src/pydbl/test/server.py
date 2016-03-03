@@ -9,10 +9,17 @@ import threading
 import logging
 from subprocess import Popen, PIPE
 
+stdout_handler = logging.StreamHandler()
+
+
 class Server(object):
 	def __init__(self, **kwargs):
 		self._kwargs = kwargs
+		self._verbose = kwargs.pop("verbose", False)
 		self._logger = logging.getLogger(__name__)
+		if self._verbose:
+			self._logger.addHandler(stdout_handler)
+		self._logger.setLevel(logging.DEBUG)
 		self._server_process = None
 		self._project_root = os.getenv("PROJECT_ROOT")
 		self._virtual_env_root = os.getenv("VIRTUAL_ENV")
@@ -24,7 +31,6 @@ class Server(object):
 			"tmp",
 			"dbl-test-%d.pid" % os.getpid()
 		)
-		self._verbose = kwargs.pop("verbose", False)
 		self._server_params = kwargs.pop("params", {})
 		self._logfile = os.path.join(
 			self._virtual_env_root,
@@ -74,13 +80,21 @@ class Server(object):
 	def get_pid(self):
 		return self._server_pid
 
+	def get_address(self):
+		return "127.0.0.1"
+
+	def get_port(self):
+		return self._service_port
+
+	def get_dns_port(self):
+		return self._dns_proxy_port
+
 	def tail_logfile(self):
 		with open(self._logfile, "r") as handle:
 			while not self._stop_threads_flag:
 				data = handle.read()
 				if data:
 					self._logger.info(data.rstrip())
-					#print(data, end="")
 
 	def __enter__(self):
 		self._setup_env()
@@ -94,20 +108,21 @@ class Server(object):
 			"-D",
 			"-v",
 			#"-f",
+			#"--no-chdir",
+			#"--no-close-fds",
 			"--no-system-dns-proxy",
 			"--no-update",
-			"--no-chdir",
-			"--no-close-fds",
-			"--dns-proxy-generate-config",
 			"--pidfile", self._pidfile,
 			"--logfile", self._logfile,
+			"--network-ip4address", self.get_address(),
 			"--dns-proxy", "unbound",
+			"--dns-proxy-generate-config",
 			"--dns-proxy-port", str(self._dns_proxy_port),
+			"--dns-proxy-config-destdir", self._dns_proxy_config_destdir,
 			"--service-user", getpass.getuser(),
 			"--service-port", str(self._service_port),
 			"--db", self._db,
 			"--templates-dir", self._templates_dir,
-			"--dns-proxy-config-destdir", self._dns_proxy_config_destdir
 		]
 
 		for sparam in self._server_params:

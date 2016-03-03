@@ -35,15 +35,16 @@ void ServiceConnection::process_request(const std::string& request,
 			throw ServiceOperationError("Invalid format", errors);
 		}
 
-		std::string cmd(root["COMMAND"].asString());
-		boost::algorithm::to_upper(cmd);
-		Json::Value& data = root["DATA"];
+		std::string cmd(root["command"].asString());
+		boost::algorithm::to_lower(cmd);
+		Json::Value& data = root["data"];
 
+		response_json["success"] = true;
 		this->dispatch(cmd, data, response_json);
 	}
 	catch(const ServiceOperationError& e) {
-		response_json["status"] = "ERROR";
-		response_json["status_message"] = e.what();
+		response_json["success"] = false;
+		response_json["error_message"] = e.what();
 		response_json["error_details"] = Json::arrayValue;
 
 		for(auto const& err : e.get_errors()) {
@@ -51,8 +52,8 @@ void ServiceConnection::process_request(const std::string& request,
 		}
 	}
 	catch(const std::runtime_error& e) {
-		response_json["status"] = "ERROR";
-		response_json["status_message"] = e.what();
+		response_json["success"] = false;
+		response_json["error_message"] = e.what();
 	}
 
 	response = response_json.toStyledString();
@@ -64,53 +65,56 @@ void ServiceConnection::dispatch(const std::string& cmd,
 {
 	types::Errors_t errors;
 
-	if(cmd.compare("GET_TOKEN") == 0) {
-		response_json["TOKEN"] = auth_.get_token();
+	if(cmd.compare("get_token") == 0) {
+		response_json["token"] = auth_.get_token();
 	}
-	else if(cmd.compare("AUTH") == 0) {
+	else if(cmd.compare("auth") == 0) {
 		is_authenticated_ = auth_.auth(
-			data["TOKEN"].asString(),
-			data["HASH"].asString()
+			data["token"].asString(),
+			data["hash"].asString()
 		);
-		response_json["AUTH_STATUS"] = is_authenticated_;
+		response_json["auth_status"] = is_authenticated_;
 	}
 	else if(!is_authenticated_) {
-		response_json["AUTH_ERROR"] = true;
+		response_json["auth_error"] = true;
 	}
 	else {
-		if(cmd.compare("SET_SERVICE_PASSWORD") == 0) {
+		if(cmd.compare("set_service_password") == 0) {
 			auth_.set_password(
 				data["password_hash"].asString(),
 				data["hashed_token"].asString(),
 				errors
 			);
 		}
-		if(cmd.compare("REMOVE_SERVICE_PASSWORD") == 0) {
+		if(cmd.compare("remove_service_password") == 0) {
 			auth_.remove_password();
 		}
-		else if(cmd.compare("FLUSH_DNS") == 0) {
+		else if(cmd.compare("flush_dns") == 0) {
 			throw ServiceOperationError("not implemented");
 
 		}
-		else if(cmd.compare("IMPORT") == 0) {
+		else if(cmd.compare("import") == 0) {
 			throw ServiceOperationError("not implemented");
 
 		}
-		else if(cmd.compare("BLOCK") == 0) {
+		else if(cmd.compare("block") == 0) {
 			
 			//api_->db()->block_domains(data["domains"].asArray());
 		}
-		else if(cmd.compare("UNBLOCK") == 0) {
+		else if(cmd.compare("unblock") == 0) {
 
 		}
-		else if(cmd.compare("DELETE_LIST") == 0) {
+		else if(cmd.compare("delete_list") == 0) {
 
 		}
-		else if(cmd.compare("EXPORT_LIST") == 0) {
+		else if(cmd.compare("export_list") == 0) {
 
 		}
-		else if(cmd.compare("RELOAD") == 0) {
+		else if(cmd.compare("reload") == 0) {
 
+		}
+		else {
+			throw std::runtime_error("Unknown command");
 		}
 	}
 }

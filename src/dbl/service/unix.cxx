@@ -160,7 +160,7 @@ void Unix::drop_privileges()
 		}
 
 		if(setgroups(0, nullptr) != 0) {
-			PLOG(ERROR) << "setgroups()";
+			PLOG(WARNING) << "setgroups()";
 		}
 		
 		if(setgid(group_id) != 0) {

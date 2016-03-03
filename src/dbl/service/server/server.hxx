@@ -59,14 +59,9 @@ Server<ConnectionType>::~Server()
 template<class ConnectionType>
 void Server<ConnectionType>::run()
 {
-	try {
-		accept();
-		LOG(INFO) << "Activating server on port " << port_;
-		//io_service_->run();
-	}
-	catch(const std::exception& e) {
-		LOG(ERROR) << e.what();
-	}
+	accept();
+	LOG(INFO) << "Activating server on port " << port_;
+	io_service_->run();
 }
 
 template<class ConnectionType>
