@@ -16,34 +16,34 @@ Auth::Auth(std::shared_ptr<core::Api> api)
 	static boost::uuids::random_generator rg;
 	std::stringstream s;
 	s << rg();
+	LOG(INFO) << "############# NEW AUTH, TOKEN: " << s.str();
 	token_ = s.str();
 }
 
-bool Auth::auth(const std::string& token,
-				const std::string& response_hash)
+bool Auth::auth(const std::string& hash)
 {
-	if(token_.compare(token) != 0) {
-		return false;
-	}
-
 	manager::SettingsManager settings_mgr(api_);
 	std::string passwd = settings_mgr.get("service_password", "");
 	if(passwd.empty()) {
 		LOG(WARNING) << "AUTH: No password set";
 		return true;
 	}
-	else if(response_hash.empty()) {
+	else if(hash.empty()) {
 		return false;
 	}
 
-	std::string expected(crypto::md5(passwd + token));
-	return (expected.compare(response_hash) == 0);
+
+	std::string expected(crypto::md5(passwd + token_));
+	LOG(DEBUG) << "AUTH::AUTH TOKEN" << token_;
+	return (expected.compare(hash) == 0);
 }
 
 bool Auth::set_password(const std::string& passwd_hash,
 						const std::string& hashed_token,
 						types::Errors_t& errors)
 {
+	LOG(DEBUG) << "SET PASSWOF" << passwd_hash;
+
 	if(passwd_hash.empty()) {
 		errors.push_back("Cannot set empty password");
 		return false;
@@ -61,6 +61,7 @@ bool Auth::set_password(const std::string& passwd_hash,
 	}
 
 	manager::SettingsManager settings_mgr(api_);
+	LOG(DEBUG) << "SETTING PWD HASH" << passwd_hash;
 	return settings_mgr.set("service_password", passwd_hash);
 }
 

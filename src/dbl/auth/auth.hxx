@@ -18,8 +18,7 @@ public:
 	Auth(std::shared_ptr<core::Api> api);
 	~Auth() = default;
 
-	bool auth(const std::string& token,
-			  const std::string& hash);
+	bool auth(const std::string& hash);
 
 	bool set_password(const std::string& passwd_hash,
 					  const std::string& hashed_token,

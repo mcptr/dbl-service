@@ -16,8 +16,8 @@ ServiceConnection::ServiceConnection(
 	: Connection(api, std::move(socket)),
 	  auth_(auth::Auth(api))
 {
-	// if password is not set - allow all commands
-	is_authenticated_ = auth_.auth(auth_.get_token(), "");
+	// if password is not set - treat this connection as authenticated
+	is_authenticated_ = auth_.auth("");
 }
 
 void ServiceConnection::process_request(const std::string& request,
@@ -45,10 +45,12 @@ void ServiceConnection::process_request(const std::string& request,
 	catch(const ServiceOperationError& e) {
 		response_json["success"] = false;
 		response_json["error_message"] = e.what();
-		response_json["error_details"] = Json::arrayValue;
+		if(!e.get_errors().empty()) {
+			response_json["error_details"] = Json::arrayValue;
 
-		for(auto const& err : e.get_errors()) {
-			response_json["error_details"].append(err);
+			for(auto const& err : e.get_errors()) {
+				response_json["error_details"].append(err);
+			}
 		}
 	}
 	catch(const std::runtime_error& e) {
@@ -69,24 +71,33 @@ void ServiceConnection::dispatch(const std::string& cmd,
 		response_json["token"] = auth_.get_token();
 	}
 	else if(cmd.compare("auth") == 0) {
-		is_authenticated_ = auth_.auth(
-			data["token"].asString(),
-			data["hash"].asString()
-		);
-		response_json["auth_status"] = is_authenticated_;
+		LOG(DEBUG) << "AUTH HASH" << data["hash"].asString();
+		if(!auth_.auth(data["hash"].asString())) {
+			throw ServiceOperationError("Invalid auth");
+		}
+		else {
+			is_authenticated_ = true;
+		}
 	}
 	else if(!is_authenticated_) {
-		response_json["auth_error"] = true;
+		throw ServiceOperationError("Not authenticated");
 	}
 	else {
-		if(cmd.compare("set_service_password") == 0) {
-			auth_.set_password(
+
+		if(cmd.compare("status") == 0) {
+			response_json["status"] = "alive";
+		}
+		else if(cmd.compare("set_service_password") == 0) {
+			bool success = auth_.set_password(
 				data["password_hash"].asString(),
-				data["hashed_token"].asString(),
+				data["token_hash"].asString(),
 				errors
 			);
+			if(!success) {
+				throw ServiceOperationError("Could not set password", errors);
+			}
 		}
-		if(cmd.compare("remove_service_password") == 0) {
+		else if(cmd.compare("remove_service_password") == 0) {
 			auth_.remove_password();
 		}
 		else if(cmd.compare("flush_dns") == 0) {

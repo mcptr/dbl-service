@@ -7,7 +7,10 @@ class Response(object):
 		self._data = json.loads(data)
 
 	def is_ok(self):
-		return (self._data.get("success", False) == True)
+		return (self._data.get("success", False) is True)
+
+	def error_message(self):
+		return self._data.get("error_message", "")
 
 	def data(self):
 		return self._data
