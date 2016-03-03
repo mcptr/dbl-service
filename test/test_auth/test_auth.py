@@ -13,6 +13,7 @@ class TestAuth(unittest.TestCase):
 				"testpassword".encode("utf-8")).hexdigest()
 
 			client = Client(server=server)
+
 			# check status without auth
 			response = client.call("status")
 			self.assertTrue(response.is_ok(), "Got status without auth")
@@ -68,3 +69,12 @@ class TestAuth(unittest.TestCase):
 
 			response = second_client.call("auth", {"hash": second_hashed_token})
 			self.assertTrue(response.is_ok(), "Auth ok (client 2)")
+
+			# remove password
+			response = client.call("remove_service_password")
+			self.assertTrue(response.is_ok(), "Password removed")
+
+			# third client
+			second_client = Client(server=server)
+			response = second_client.call("status")
+			self.assertTrue(response.is_ok(), "Granted after removing password")

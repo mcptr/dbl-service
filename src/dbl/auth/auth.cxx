@@ -16,7 +16,6 @@ Auth::Auth(std::shared_ptr<core::Api> api)
 	static boost::uuids::random_generator rg;
 	std::stringstream s;
 	s << rg();
-	LOG(INFO) << "############# NEW AUTH, TOKEN: " << s.str();
 	token_ = s.str();
 }
 
@@ -34,7 +33,6 @@ bool Auth::auth(const std::string& hash)
 
 
 	std::string expected(crypto::md5(passwd + token_));
-	LOG(DEBUG) << "AUTH::AUTH TOKEN" << token_;
 	return (expected.compare(hash) == 0);
 }
 
@@ -42,8 +40,6 @@ bool Auth::set_password(const std::string& passwd_hash,
 						const std::string& hashed_token,
 						types::Errors_t& errors)
 {
-	LOG(DEBUG) << "SET PASSWOF" << passwd_hash;
-
 	if(passwd_hash.empty()) {
 		errors.push_back("Cannot set empty password");
 		return false;
@@ -61,7 +57,6 @@ bool Auth::set_password(const std::string& passwd_hash,
 	}
 
 	manager::SettingsManager settings_mgr(api_);
-	LOG(DEBUG) << "SETTING PWD HASH" << passwd_hash;
 	return settings_mgr.set("service_password", passwd_hash);
 }
 
