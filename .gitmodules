@@ -9,7 +9,7 @@
 	url = https://github.com/SOCI/soci.git
 [submodule "extern/repos/easyloggingcpp"]
 	path = extern/repos/easyloggingcpp
-	url = https://github.com/easylogging/easyloggingpp
+	url = https://github.com/easylogging/easyloggingpp.git
 [submodule "extern/repos/jsoncpp"]
 	path = extern/repos/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp
