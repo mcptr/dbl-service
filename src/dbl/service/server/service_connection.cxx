@@ -247,8 +247,6 @@ void ServiceConnection::handle_reload(
 	throw ServiceOperationError("not implemented");
 }
 
-
-
 } // server
 } // service
 } // dbl
