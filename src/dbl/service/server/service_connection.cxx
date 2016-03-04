@@ -1,6 +1,7 @@
 #include "service_connection.hxx"
 #include "dbl/types/types.hxx"
 #include "dbl/manager/domain_manager.hxx"
+#include "dbl/manager/domain_list_manager.hxx"
 
 #include <string>
 #include <vector>
@@ -103,11 +104,9 @@ void ServiceConnection::dispatch(const std::string& cmd,
 		}
 		else if(cmd.compare("flush_dns") == 0) {
 			throw ServiceOperationError("not implemented");
-
 		}
 		else if(cmd.compare("import") == 0) {
 			throw ServiceOperationError("not implemented");
-
 		}
 		else if(cmd.compare("block") == 0 || cmd.compare("unblock") == 0) {
 			manager::DomainManager mgr(api_);
@@ -123,6 +122,14 @@ void ServiceConnection::dispatch(const std::string& cmd,
 			}
 			else {
 				mgr.unblock_domains(domains);
+			}
+		}
+		else if(cmd.compare("get_lists") == 0) {
+			manager::DomainListManager mgr(api_);
+			auto result_ptr = mgr.get();
+			response_json["domain_lists"] = Json::arrayValue;
+			for(auto const& lst : *result_ptr) {
+				response_json["domain_lists"].append((Json::Value)lst);
 			}
 		}
 		else if(cmd.compare("delete_list") == 0) {

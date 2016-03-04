@@ -6,44 +6,36 @@
 namespace dbl {
 namespace types {
 
-bool Domain::from_json(const std::string& input)
+void Domain::init_from_json(const Json::Value& root)
 {
 	using namespace validator::domain;
 
-	if(!this->parse_json(input)) {
-		return false;
-	}
-
-	else if(!json_root_.isObject()) {
+	if(!root.isObject()) {
 		LOG(ERROR) << "Invalid format, expected object at root";
-		return false;
+		throw std::runtime_error("Invalid format");
 	}
 
-	if(!json_root_["name"].empty()) {
+	if(!root["name"].empty()) {
 		types::Errors_t errors;
-		if(is_valid(json_root_["name"].asString(), errors)) {
-			name = json_root_["name"].asString();
-			description = json_root_["description"].asString();
+		if(is_valid(root["name"].asString(), errors)) {
+			name = root["name"].asString();
+			description = root["description"].asString();
 		}
 		else {
 			for(auto const& err : errors) {
-				LOG(WARNING) << json_root_["name"].asString()
+				LOG(WARNING) << root["name"].asString()
 							 << ": " << err;
 			}
 		}
 	}
-
-	return true;
 }
 
-Domain::operator Json::Value() const
+void Domain::to_json(Json::Value& root) const
 {
-	Json::Value root;
 	root["name"] = name;
 	if(description.is_initialized()) {
 		root["description"] = description.get();
 	}
-	return root;
 }
 
 } // types

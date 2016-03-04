@@ -20,9 +20,8 @@ public:
 	boost::optional<std::string> description = std::string();
 	boost::optional<std::string> list_name = std::string();
 
-	virtual bool from_json(const std::string& input);
-
-	operator Json::Value() const;
+	void init_from_json(const Json::Value& input);
+	void to_json(Json::Value& root) const;
 };
 
 } // types

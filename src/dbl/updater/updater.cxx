@@ -80,10 +80,14 @@ void Updater::update_lists()
 			url.append("/" + lst.name + ".json");
 			if(rq.fetch(url, 200)) {
 				//2DO: check last modif tstamp
-				if(lst.from_json(rq.get_result())) {
+				try {
+					lst.from_json(rq.get_result());
 					LOG(INFO) << "Updating domain list: " << lst.name;
 					mgr.import(lst, false);
 					//is_updated_ = true;
+				}
+				catch(const std::runtime_error& e) {
+					LOG(ERROR) << e.what();
 				}
 			}
 		}

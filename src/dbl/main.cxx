@@ -239,7 +239,7 @@ void manage_import_export(std::shared_ptr<dbl::core::Api> api,
 			auto dl = mgr.get(name, true);
 			if(dl) {
 				std::cout << "\nList: " << name << std::endl;
-				std::cout << dl->to_json() << std::endl;
+				std::cout << dl->to_json_string() << std::endl;
 			}
 		}
 	}

@@ -25,8 +25,8 @@ public:
 
 	std::vector<Domain> domains;
 
-	bool from_json(const std::string& input);
-	std::string to_json() const;
+	void init_from_json(const Json::Value& input);
+	void to_json(Json::Value& root) const;
 };
 
 } // types

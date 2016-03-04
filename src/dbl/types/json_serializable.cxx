@@ -6,24 +6,42 @@ namespace types {
 
 JSONSerializable::operator Json::Value() const
 {
-	return json_root_;
+	Json::Value root;
+	this->to_json(root);
+	return root;
 }
 
-bool JSONSerializable::parse_json(const std::string& input)
+bool JSONSerializable::parse_json(const std::string& input,
+								  Json::Value& root) const
 {
 	Json::Reader reader;
-
-	bool success = reader.parse(input, json_root_);
+	bool success = reader.parse(input, root);
 	if(!success) {
 		LOG(ERROR) << reader.getFormattedErrorMessages();
 		return false;
 	}
+
 	return true;
 }
 
-std::string JSONSerializable::to_json() const
+void JSONSerializable::from_json(const std::string& input)
 {
-	return json_root_.toStyledString();
+	Json::Value root;
+	if(this->parse_json(input, root)) {
+		this->init_from_json(root);
+	}
+}
+
+void JSONSerializable::from_json(const Json::Value& input)
+{
+	this->init_from_json(input);
+}
+
+std::string JSONSerializable::to_json_string() const
+{
+	Json::Value root;
+	this->to_json(root);
+	return root.toStyledString();
 }
 
 
