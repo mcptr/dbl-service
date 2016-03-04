@@ -87,65 +87,167 @@ void ServiceConnection::dispatch(const std::string& cmd,
 	else {
 
 		if(cmd.compare("status") == 0) {
-			response_json["status"] = "alive";
+			handle_status(data, response_json, errors);
 		}
 		else if(cmd.compare("set_service_password") == 0) {
-			bool success = auth_.set_password(
-				data["password_hash"].asString(),
-				data["token_hash"].asString(),
-				errors
-			);
-			if(!success) {
-				throw ServiceOperationError("Could not set password", errors);
-			}
+			handle_set_service_password(data, response_json, errors);
 		}
 		else if(cmd.compare("remove_service_password") == 0) {
-			auth_.remove_password();
+			handle_remove_service_password(data, response_json, errors);
 		}
 		else if(cmd.compare("flush_dns") == 0) {
-			throw ServiceOperationError("not implemented");
+			handle_flush_dns(data, response_json, errors);
 		}
 		else if(cmd.compare("import") == 0) {
-			throw ServiceOperationError("not implemented");
+			handle_import(data, response_json, errors);
 		}
-		else if(cmd.compare("block") == 0 || cmd.compare("unblock") == 0) {
-			manager::DomainManager mgr(api_);
-			if(!data["domains"].isArray()) {
-				throw ServiceOperationError("Expected array of domains");
-			}
-			types::Names_t domains;
-			for(auto const& domain : data["domains"]) {
-				domains.push_back(domain.asString());
-			}
-			if(cmd.compare("block") == 0) {
-				mgr.block_domains(domains);
-			}
-			else {
-				mgr.unblock_domains(domains);
-			}
+		else if(cmd.compare("block") == 0) {
+			handle_block(data, response_json, errors);
+		}
+		else if(cmd.compare("unblock") == 0) {
+			handle_unblock(data, response_json, errors);
 		}
 		else if(cmd.compare("get_lists") == 0) {
-			manager::DomainListManager mgr(api_);
-			auto result_ptr = mgr.get();
-			response_json["domain_lists"] = Json::arrayValue;
-			for(auto const& lst : *result_ptr) {
-				response_json["domain_lists"].append((Json::Value)lst);
-			}
+			handle_get_lists(data, response_json, errors);
 		}
 		else if(cmd.compare("delete_list") == 0) {
-
+			handle_delete_list(data, response_json, errors);
 		}
-		else if(cmd.compare("export_list") == 0) {
-
+		else if(cmd.compare("get_domains") == 0) {
+			handle_get_domains(data, response_json, errors);
 		}
 		else if(cmd.compare("reload") == 0) {
-
+			handle_reload(data, response_json, errors);
 		}
 		else {
 			throw std::runtime_error("Unknown command");
 		}
 	}
 }
+
+
+void ServiceConnection::handle_status(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors) const
+
+{
+	response["status"] = "alive";
+}
+
+void ServiceConnection::handle_flush_dns(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors) const
+
+{
+	throw ServiceOperationError("not implemented");
+}
+
+void ServiceConnection::handle_import(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors) const
+
+{
+	throw ServiceOperationError("not implemented");
+}
+
+void ServiceConnection::handle_block(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors) const
+{
+	manager::DomainManager mgr(api_);
+	if(!data["domains"].isArray()) {
+		throw ServiceOperationError("Expected array of domains");
+	}
+	types::Names_t domains;
+	for(auto const& domain : data["domains"]) {
+		domains.push_back(domain.asString());
+	}
+
+	mgr.block_domains(domains);
+}
+
+void ServiceConnection::handle_unblock(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors) const
+{
+	manager::DomainManager mgr(api_);
+	if(!data["domains"].isArray()) {
+		throw ServiceOperationError("Expected array of domains");
+	}
+	types::Names_t domains;
+	for(auto const& domain : data["domains"]) {
+		domains.push_back(domain.asString());
+	}
+
+	mgr.unblock_domains(domains);
+}
+
+void ServiceConnection::handle_set_service_password(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors)
+{
+	bool success = auth_.set_password(
+		data["password_hash"].asString(),
+		data["token_hash"].asString(),
+		errors
+	);
+	if(!success) {
+		throw ServiceOperationError("Could not set password", errors);
+	}
+}
+
+void ServiceConnection::handle_remove_service_password(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors)
+{
+	auth_.remove_password();
+}
+
+void ServiceConnection::handle_get_lists(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors) const
+{
+	manager::DomainListManager mgr(api_);
+	auto result_ptr = mgr.get();
+	response["domain_lists"] = Json::arrayValue;
+	for(auto const& lst : *result_ptr) {
+		response["domain_lists"].append((Json::Value)lst);
+	}
+}
+
+void ServiceConnection::handle_get_domains(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors) const
+{
+	throw ServiceOperationError("not implemented");
+}
+
+void ServiceConnection::handle_delete_list(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors) const
+{
+	throw ServiceOperationError("not implemented");
+}
+
+void ServiceConnection::handle_reload(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& errors) const
+{
+	throw ServiceOperationError("not implemented");
+}
+
+
 
 } // server
 } // service

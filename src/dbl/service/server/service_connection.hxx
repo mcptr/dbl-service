@@ -55,9 +55,67 @@ protected:
 	virtual void process_request(const std::string& request,
 								 std::string& response);
 
-	virtual void dispatch(const std::string& cmd,
-						  const Json::Value& data,
-						  Json::Value& value);
+	void dispatch(const std::string& cmd,
+				  const Json::Value& data,
+				  Json::Value& value);
+
+	// op handlers
+	void handle_status(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
+
+
+	void handle_flush_dns(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
+
+
+	void handle_import(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
+
+	void handle_block(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
+
+	void handle_unblock(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
+
+	void handle_set_service_password(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors);
+
+	void handle_remove_service_password(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors);
+
+	void handle_get_lists(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
+
+	void handle_delete_list(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
+
+	void handle_get_domains(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
+
+	void handle_reload(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
 
 };
 
