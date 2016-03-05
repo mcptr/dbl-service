@@ -45,7 +45,12 @@ void Connection::read()
 				catch(const std::exception& e) {
 					LOG(ERROR) << "Processing request failed: "
 							   << e.what();
-					response = "Unknown error";
+					LOG(ERROR) << request;
+					response = "Processing failed.";
+					if(this->api_->config.is_debug) {
+						response.append("\n");
+						response.append(e.what());
+					}
 				}
 
 				this->respond(response);

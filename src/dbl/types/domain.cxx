@@ -33,9 +33,13 @@ void Domain::init_from_json(const Json::Value& root)
 void Domain::to_json(Json::Value& root) const
 {
 	root["name"] = name;
-	if(description.is_initialized()) {
-		root["description"] = description.get();
-	}
+
+	root["description"] = (
+		description.is_initialized()
+		? description.get() : ""
+	);
+
+	root["list_id"] = (list_id.is_initialized() ? list_id.get() : 0);
 }
 
 } // types

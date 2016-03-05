@@ -32,10 +32,8 @@ const std::string get_domain_lists = (
 );
 
 const std::string get_whitelisted_domains = (
-	"SELECT id, name, active, list_id, description,"
-	"  '' as list_name"
+	"SELECT id, null as list_id, null as list_name, name, description"
 	"  FROM whitelisted_domains"
-	"  WHERE active = 1"
 	"  ORDER BY name asc"
 );
 

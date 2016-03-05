@@ -38,6 +38,13 @@ class Server(object):
 			"tmp",
 			"dbl-log-%s.log" % self._instance_id
 		)
+		self._log_config_path = os.path.join(
+			self._project_root,
+			"service",
+			"etc",
+			"dnsblocker",
+			"log.conf"
+		)
 		self._db = os.path.join(
 			self._virtual_env_root,
 			"tmp",
@@ -68,8 +75,15 @@ class Server(object):
 
 	def _cleanup_env(self):
 		shutil.rmtree(self._dns_proxy_config_destdir)
-		if not self._kwargs.pop("preserve_logfile", False):
+		if self._kwargs.pop("keep_logfile", False):
+			print("Preserved log file: ", self._logfile)
+		else:
 			os.unlink(self._logfile)
+
+		if self._kwargs.pop("keep_db", False):	
+			print("Preserved db: ", self._db)
+		else:
+			os.unlink(self._db)
 
 		try:
 			os.unlink(self._pidfile)
@@ -115,6 +129,7 @@ class Server(object):
 			"--no-update",
 			"--pidfile", self._pidfile,
 			"--logfile", self._logfile,
+			"--logger-config-path", self._log_config_path,
 			"--network-ip4address", self.get_address(),
 			"--dns-proxy", "unbound",
 			"--dns-proxy-generate-config",

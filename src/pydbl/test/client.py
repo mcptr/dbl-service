@@ -31,7 +31,7 @@ class Client(object):
 
 	def call(self, cmd, data = None):
 		request = {
-			"command": cmd.upper(),
+			"command": cmd.lower(),
 			"data": (data or {})
 		}
 		self._send(json.dumps(request))

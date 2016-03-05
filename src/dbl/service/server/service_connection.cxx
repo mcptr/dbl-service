@@ -113,6 +113,9 @@ void ServiceConnection::dispatch(const std::string& cmd,
 		else if(cmd.compare("delete_list") == 0) {
 			handle_delete_list(data, response_json, errors);
 		}
+		else if(cmd.compare("get_domain") == 0) {
+			handle_get_domain(data, response_json, errors);
+		}
 		else if(cmd.compare("get_domains") == 0) {
 			handle_get_domains(data, response_json, errors);
 		}
@@ -223,12 +226,44 @@ void ServiceConnection::handle_get_lists(
 	}
 }
 
+void ServiceConnection::handle_get_domain(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const
+{
+
+}
+
 void ServiceConnection::handle_get_domains(
 	const Json::Value& data,
 	Json::Value& response,
 	types::Errors_t& errors) const
 {
-	throw ServiceOperationError("not implemented");
+	manager::DomainManager mgr(api_);
+	std::string type = data["type"].asString();
+	std::unique_ptr<types::DomainSet_t> domains;
+	if(type.compare("blocked") == 0) {
+		domains = std::move(mgr.get_blocked());
+	}
+	else if(type.compare("whitelisted") == 0) {
+		domains = std::move(mgr.get_whitelisted());
+	}
+	else {
+		int list_id = data["list_id"].asInt();
+		if(list_id) {
+			domains = std::move(mgr.get(list_id));
+		}
+	}
+
+	if(!domains) {
+		throw ServiceOperationError("Unable to get domains");
+	}
+
+	response["domains"] = Json::arrayValue;
+
+	for(auto const& domain : *domains) {
+		response["domains"].append(domain);
+	}
 }
 
 void ServiceConnection::handle_delete_list(

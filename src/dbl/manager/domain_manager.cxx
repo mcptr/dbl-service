@@ -102,19 +102,20 @@ DomainManager::get_whitelisted()
 {
 	using namespace soci;
 	using types::DomainSet_t;
+	using types::Domain;
 
 	std::unique_ptr<DomainSet_t> ptr(new DomainSet_t());
 
+	Domain record;
 	try {
 		auto session_ptr = api_->db()->session();
-		Domain record;
 
 		statement st = (
 			session_ptr->prepare << dml::queries::get_whitelisted_domains,
 			into(record)
 		);
 
-		st.execute(true);
+		st.execute();
 		while(st.fetch()) {
 			ptr->push_back(record);
 		}

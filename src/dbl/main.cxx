@@ -190,6 +190,7 @@ void setup_logging(const dbl::Options& po)
 	el::Loggers::addFlag(el::LoggingFlag::ImmediateFlush);
 	el::Loggers::setDefaultConfigurations(conf, true);
 	el::Loggers::reconfigureAllLoggers(conf);
+	LOG(DEBUG) << "Log configuration file:" << path;
 	//el::Helpers::setCrashHandler(crash_handler);
 }
 
