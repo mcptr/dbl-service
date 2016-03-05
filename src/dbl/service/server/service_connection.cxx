@@ -231,7 +231,14 @@ void ServiceConnection::handle_get_domain(
 		Json::Value& response,
 		types::Errors_t& errors) const
 {
+	std::string name = data["name"].asString();
+	if(name.empty()) {
+		throw ServiceOperationError("No domain name given");
+	}
 
+	manager::DomainManager mgr(api_);
+	auto ptr = mgr.get(name);
+	response["domain"] = *ptr;
 }
 
 void ServiceConnection::handle_get_domains(

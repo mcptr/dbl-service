@@ -54,3 +54,24 @@ class TestGetDomains(unittest.TestCase):
 			client = Client(server=server)
 			response = client.call("get_domains", {"list_id": 1})
 			self.assertTrue(response.is_ok(), "Got domains")
+
+	def test_get_domain(self):
+		with Server() as server:
+			client = Client(server=server)
+			blocked_domains = ["testdomain.com", "example-test.com"]
+			response = client.call("block", {
+				"domains" : blocked_domains
+			})
+			response = client.call("get_domain", {"name": "example-test.com"})
+			self.assertTrue(response.is_ok(), "Got domain")
+			self.assertEqual(
+				response.data()["domain"]["name"],
+				"example-test.com",
+				"Name"
+			)
+
+			self.assertEqual(
+				response.data()["domain"]["description"],
+				"",
+				"Description"
+			)
