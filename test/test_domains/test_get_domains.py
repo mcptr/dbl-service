@@ -48,3 +48,9 @@ class TestGetDomains(unittest.TestCase):
 			names = list(map(lambda d: d["name"], response.data()["domains"]))
 			for domain in domains:
 				self.assertTrue(domain in names, "Whitelisted: " + domain)
+
+	def test_by_list_id(self):
+		with Server() as server:
+			client = Client(server=server)
+			response = client.call("get_domains", {"list_id": 1})
+			self.assertTrue(response.is_ok(), "Got domains")
