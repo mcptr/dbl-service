@@ -17,7 +17,7 @@ cd $BUILD_DIR
 #-DCMAKE_BUILD_TYPE=debug \
 
 cmake  -G "Unix Makefiles" \
-    -DBUILD_STATIC_LIBS=OFF \
+    -DBUILD_STATIC_LIBS=ON \
     -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV \
     $EXTERNDIR/repos/jsoncpp
