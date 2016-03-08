@@ -25,7 +25,7 @@ class Linux(base.Base):
 		return []
 
 	def get_linkflags(self):
-		return []
+		return ["-lrt"]
 
 	def get_static_linkflags(self):
 		return ["-static"]

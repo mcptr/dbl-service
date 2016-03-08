@@ -6,9 +6,10 @@
 #include "dbl/service/service.hxx"
 #include "dbl/query/query.hxx"
 
-#include <cstdlib>
 #include <memory>
 #include <string>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -57,6 +58,9 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
+	const std::string bin_abs_path =
+		boost::filesystem::canonical(argv[0]).string();
+
 	std::string proxy = po.get<std::string>("dns-proxy");
 	boost::algorithm::to_lower(proxy);
 	
@@ -64,6 +68,7 @@ int main(int argc, char** argv)
 		std::cerr << "Unsupported dns proxy software: " << proxy
 				  << "\nYou must use 'unbound' or 'dnsmasq'.\n"
 				  << std::endl;
+		LOG(ERROR) << "Invalid dns proxy software";
 		return EXIT_FAILURE;
 	}
 
@@ -155,13 +160,25 @@ int main(int argc, char** argv)
 		dbl::service::Service::service_ptr->run();
 	}
 
-	dbl::service::Service::service_ptr.reset();
 	api.reset();
 	db.reset();
 
 	curl_global_cleanup();
 
-	LOG(DEBUG) << "main() exit success";
+	bool reexecute =
+		dbl::service::Service::service_ptr->is_reload_flag_set();
+
+	dbl::service::Service::service_ptr.reset();
+	LOG(INFO) << "################################################";
+	LOG(INFO) << "Stopped.";
+	if(reexecute) {
+		LOG(INFO) << "REEXECUTE " << bin_abs_path;
+		strncpy(argv[0], bin_abs_path.c_str() + '\0', bin_abs_path.size() + 1);
+		if(execv(bin_abs_path.c_str(), argv) < 0) {
+			PLOG(ERROR) << "reexec";
+		}
+	}
+
 	return EXIT_SUCCESS;
 }
 

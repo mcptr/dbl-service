@@ -3,6 +3,9 @@
 #include "dbl/manager/domain_manager.hxx"
 #include "dbl/manager/domain_list_manager.hxx"
 
+// for static instance - reload
+#include "dbl/service/service.hxx"
+
 #include <string>
 #include <vector>
 #include <boost/algorithm/string.hpp>
@@ -286,7 +289,7 @@ void ServiceConnection::handle_reload(
 	Json::Value& response,
 	types::Errors_t& errors) const
 {
-	throw ServiceOperationError("not implemented");
+	Service::service_ptr->signal_reload();
 }
 
 } // server

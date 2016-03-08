@@ -50,6 +50,11 @@ void Unix::run()
 	if(!api_->config.is_foreground) {
 		bool nochdir = api_->config.no_chdir;
 		bool noclose = api_->config.no_close_fds;
+
+		this->shm_ptr_.reset(
+			new ipc::SharedMemory<ServiceSHM>("DNSService")
+		);
+
 		if(daemon(nochdir, noclose) != 0) {
 			LOG(ERROR) << "Daemonizing failed " << strerror(errno);
 			throw std::runtime_error(strerror(errno));
@@ -93,6 +98,15 @@ void Unix::run()
 				}
 			);
 
+			ServiceSHM* service_shm_ptr = this->shm_ptr_->get_object();
+			if(service_shm_ptr == nullptr) {
+				LOG(ERROR) << "Could not get service shm object";
+			}
+			else {
+				this->run_reloader_thread();
+				service_shm_ptr->sync_semaphore.post();
+			}
+
 			int status;
 			pid_t chd = wait(&status);
 
@@ -111,9 +125,10 @@ void Unix::run()
 
 				this->stop_dns_proxy();
 				this->remove_pidfile();
-				LOG(INFO) << "################################################";
-				LOG(INFO) << "Stopped." << std::endl;
-				_exit(0);
+				this->stop_reloader_thread();
+
+				//Service::service_ptr.reset();
+				//_exit(0);
 			}
 		}
 	}
@@ -141,63 +156,63 @@ void Unix::run()
 
 void Unix::drop_privileges()
 {
-		struct passwd* p = getpwnam(api_->config.service_user.c_str());
+	struct passwd* p = getpwnam(api_->config.service_user.c_str());
 
-		if(p == nullptr) {
-			throw std::runtime_error(
-				"Invalid user: " + api_->config.service_user
-			);
-		}
+	if(p == nullptr) {
+		throw std::runtime_error(
+			"Invalid user: " + api_->config.service_user
+		);
+	}
 
-		uid_t user_id = p->pw_uid;
-		gid_t group_id = p->pw_gid;
+	uid_t user_id = p->pw_uid;
+	gid_t group_id = p->pw_gid;
 
-		if(user_id == 0 || group_id == 0) {
-			throw std::runtime_error(
-				"Not an unprivileged user: " +
-				api_->config.service_user
-			);
-		}
+	if(user_id == 0 || group_id == 0) {
+		throw std::runtime_error(
+			"Not an unprivileged user: " +
+			api_->config.service_user
+		);
+	}
 
-		if(setgroups(0, nullptr) != 0) {
-			PLOG(WARNING) << "setgroups()";
-		}
+	if(setgroups(0, nullptr) != 0) {
+		PLOG(WARNING) << "setgroups()";
+	}
 		
-		if(setgid(group_id) != 0) {
-			PLOG(ERROR) << "setgid(" << group_id << ")";
-			throw std::runtime_error(
-				"Cannot drop privileges (setgid() failed)"
-			);
-		}
+	if(setgid(group_id) != 0) {
+		PLOG(ERROR) << "setgid(" << group_id << ")";
+		throw std::runtime_error(
+			"Cannot drop privileges (setgid() failed)"
+		);
+	}
 
-		if(setegid(group_id) != 0) {
-			PLOG(ERROR) << "setegid(" << group_id << ")";
-			throw std::runtime_error(
-				"Cannot drop privileges (setegid() failed)"
-			);
-		}
+	if(setegid(group_id) != 0) {
+		PLOG(ERROR) << "setegid(" << group_id << ")";
+		throw std::runtime_error(
+			"Cannot drop privileges (setegid() failed)"
+		);
+	}
 
-		if(setuid(user_id) != 0) {
-			PLOG(ERROR) << "setuid(" << user_id << ")";
-			throw std::runtime_error(
-				"Cannot drop privileges (setuid() failed)"
-			);
-		}
+	if(setuid(user_id) != 0) {
+		PLOG(ERROR) << "setuid(" << user_id << ")";
+		throw std::runtime_error(
+			"Cannot drop privileges (setuid() failed)"
+		);
+	}
 
-		if(seteuid(user_id) != 0) {
-			PLOG(ERROR) << "seteuid(" << user_id << ")";
-			throw std::runtime_error(
-				"Cannot drop privileges (seteuid() failed)"
-			);
-		}
+	if(seteuid(user_id) != 0) {
+		PLOG(ERROR) << "seteuid(" << user_id << ")";
+		throw std::runtime_error(
+			"Cannot drop privileges (seteuid() failed)"
+		);
+	}
 
-		if(setuid(0) == 0) {
-			throw std::runtime_error("Dropping privileges failed");
-		}
+	if(setuid(0) == 0) {
+		throw std::runtime_error("Dropping privileges failed");
+	}
 
-		if(setgid(0) == 0) {
-			throw std::runtime_error("Dropping privileges failed");
-		}
+	if(setgid(0) == 0) {
+		throw std::runtime_error("Dropping privileges failed");
+	}
 }
 
 void Unix::stop()
@@ -206,12 +221,6 @@ void Unix::stop()
 		LOG(ERROR) << "Unable to kill service. " << strerror(errno);
 	}
 }
-
-// void Unix::reload()
-// {
-// 	LOG(INFO) << "NOT IMPLREMENTED: RELOAD";
-// }
-
 
 
 void Unix::save_pidfile()

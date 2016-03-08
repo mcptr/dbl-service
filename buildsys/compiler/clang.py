@@ -10,7 +10,7 @@ class Clang(base.Base):
 		return "clang++"
 
 	def get_linkflags(self):
-		return []
+		return ["-pthread"]
 
 	def get_libs(self):
 		return []

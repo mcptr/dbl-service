@@ -51,6 +51,7 @@ builder.add_library(
 	"boost_system",
 	"boost_program_options",
 	"boost_filesystem",
+	"boost_date_time",
 	"soci_core",
 	"soci_sqlite3",
 	"jsoncpp",
