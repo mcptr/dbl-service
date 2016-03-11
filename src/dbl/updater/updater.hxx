@@ -19,19 +19,10 @@ public:
 	virtual ~Updater() = default;
 
 	bool run();
-	void stop();
-	void enable_list_update(bool state = true);
 protected:
 	std::shared_ptr<core::Api> api_;
+	bool is_updated_;
 
-	std::atomic<bool> stop_flag_ {false};
-	std::mutex mtx_;
-	std::condition_variable cv_;
-
-	bool enable_list_update_;
-	bool is_updated_ = false;
-
-	void update();
 	void update_lists();
 };
 

@@ -42,6 +42,7 @@ public:
 
 	bool no_system_dns_proxy = false;
 	bool no_update = false;
+	int update_interval = 3600;
 
 	std::string dns_proxy = "unbound";
 	std::string dns_proxy_chroot = "";

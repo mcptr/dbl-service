@@ -95,7 +95,7 @@ bool DomainListManager::import(const types::DomainList& lst, bool custom)
 	return true;
 }
 
-bool DomainListManager::import(const types::DomainListsSet_t& lst_set)
+bool DomainListManager::import(const types::DomainListsSet_t& /*lst_set*/)
 {
 	return false;
 }

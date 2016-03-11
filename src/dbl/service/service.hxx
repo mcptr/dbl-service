@@ -1,6 +1,7 @@
 #ifndef DBL_SERVICE_SERVICE_HXX
 #define DBL_SERVICE_SERVICE_HXX
 
+#include "worker/worker.hxx"
 #include "server/server.hxx"
 #include "server/http_responder_connection.hxx"
 #include "server/service_connection.hxx"
@@ -35,62 +36,37 @@ public:
 class Service
 {
 public:
+	static bool signaled_exit;
+	static std::unique_ptr<Service> service_ptr;
+
 	Service() = delete;
 	explicit Service(std::shared_ptr<dbl::core::Api> api);
 	virtual ~Service();
 
-	static std::unique_ptr<Service> service_ptr;
-
-	virtual void configure();
 	virtual void run() = 0;
 	virtual void stop() = 0;
-	virtual void reload();
+
+	virtual void signal_stop() final;
 
 	virtual bool is_already_running() = 0;
-	virtual void stop_service() final;
 
-	virtual bool is_reload_flag_set() const final;
+	// --
+	virtual void configure();
 
 protected:
 	std::shared_ptr<core::Api> api_;
+	std::unique_ptr<ipc::SharedMemory<ServiceSHM>> shm_ptr_;
 	std::unique_ptr<dnsproxy::DNSProxy> dns_proxy_;
 	std::unique_ptr<configurator::Configurator> configurator_;
 
-	std::vector<std::thread> threads_;
-	std::mutex service_mtx_;
-	std::condition_variable service_cv_;
-
-	std::atomic<bool> reloader_stop_flag_ {false};
-	std::thread reloader_thread_;
-
-	bool needs_reload_ = false;
-
-
-	virtual void run_service() final;
-
-	virtual void run_reloader_thread() final;
-	virtual void stop_reloader_thread() final;
-
-	virtual void start_servers() final;
-	virtual void stop_servers() final;
-
-	virtual void drop_privileges() = 0;
-	// virtual void start() = 0;
+	std::unique_ptr<worker::Worker> worker_ptr_;
+	std::condition_variable cv_;
 
 	virtual void start_dns_proxy() = 0;
 	virtual void stop_dns_proxy() = 0;
 	virtual void flush_dns() = 0;
 
-	std::unique_ptr<
-		server::Server<server::ServiceConnection>
-		> server_ptr_;
-
-	std::unique_ptr<
-		server::Server<server::HTTPResponderConnection>
-		> http_responder_ptr_;
-
-	std::unique_ptr<updater::Updater> updater_ptr_;
-	std::unique_ptr<ipc::SharedMemory<ServiceSHM>> shm_ptr_;
+	virtual void run_worker();
 };
 
 } // service

@@ -13,54 +13,22 @@ Updater::Updater(std::shared_ptr<core::Api> api)
 {
 }
 
-void Updater::enable_list_update(bool state)
-{
-	enable_list_update_ = state;
-}
-
-void Updater::stop()
-{
-	stop_flag_ = true;
-	cv_.notify_all();
-}
-
-
 bool Updater::run()
 {
-	for(auto const& it : api_->config.list_ids) {
-		LOG(DEBUG) << "UPDATER LIST: " << it;
-	}
+	is_updated_ = false;
 
-	// FIXME: REMOVE
-	LOG(INFO) << "Running initial update";
-	update();
-
-	while(!is_updated_ && !stop_flag_) {
-		std::unique_lock<std::mutex> lock(mtx_);
-
-		std::cv_status status = 
-			cv_.wait_for(lock, std::chrono::seconds(3600 * 4));
-
-		if(status == std::cv_status::timeout) {
-			update();
-		}
-		else {
-			LOG(INFO) << "Updater exiting.";
-			break;
-		}
-	}
+	update_lists();
 
 	return is_updated_;
 }
 
-void Updater::update()
-{
-	LOG(INFO) << "Running update";
-	update_lists();
-}
 
 void Updater::update_lists()
 {
+	if(api_->config.disable_list_update) {
+		return;
+	}
+
 	manager::DomainListManager mgr(api_);
 	auto lists = mgr.get();
 
