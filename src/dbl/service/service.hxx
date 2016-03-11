@@ -44,7 +44,7 @@ public:
 	virtual void configure();
 	virtual void run() = 0;
 	virtual void stop() = 0;
-	virtual void signal_reload();
+	virtual void reload();
 
 	virtual bool is_already_running() = 0;
 	virtual void stop_service() final;

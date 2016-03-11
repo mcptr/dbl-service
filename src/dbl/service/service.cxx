@@ -14,7 +14,8 @@ Service::service_ptr = nullptr;
 
 
 Service::Service(std::shared_ptr<core::Api> api)
-	: api_(api)
+	: api_(api),
+	  shm_ptr_(new ipc::SharedMemory<ServiceSHM>("DNSService"))
 {
 	dns_proxy_ = std::move(dnsproxy::create(api_));
 }
@@ -55,6 +56,7 @@ void Service::run_service()
 		}
 	}
 
+	this->run_reloader_thread();
 	this->start_servers();
 	bool is_ok = true;
 
@@ -151,15 +153,10 @@ void Service::start_servers()
 
 		threads_.push_back(
 			std::thread([this]() {
-					this->needs_reload_ = updater_ptr_->run();
-					if(this->needs_reload_) {
+					bool updated = updater_ptr_->run();
+					if(updated) {
 						LOG(INFO) << "Service update ready";
-						LOG(DEBUG) << "Posting reloader_semaphore";
-
-						this->shm_ptr_->get_object()
-							->reloader_semaphore.post();
-
-						this->stop_service();
+						this->reload();
 					}
 				}
 			)
@@ -184,6 +181,7 @@ void Service::stop_servers()
 	LOG(DEBUG) << "Joining threads";
 	for(auto& t : threads_) {
 		t.join();
+		LOG(INFO) << "THREAD JOINED";
 	}
 	LOG(DEBUG) << "All threads joined";
 
@@ -196,8 +194,12 @@ void Service::stop_servers()
 
 void Service::stop_service()
 {
-	service_cv_.notify_all();
+	if(api_->config.is_foreground) {
+		this->stop_reloader_thread();
+	}
+
 	this->stop_servers();
+	service_cv_.notify_all();
 }
 
 void Service::run_reloader_thread()
@@ -205,14 +207,21 @@ void Service::run_reloader_thread()
 	reloader_thread_ = std::thread(
 		[this]() {
 			using namespace boost::posix_time;
+			bool reload_signaled = false;
 			while(!this->reloader_stop_flag_) {
 				ptime t = microsec_clock::universal_time();
 				if(this->shm_ptr_->get_object()->reloader_semaphore.timed_wait(
 					   t + milliseconds(300)))
 				{
-					this->needs_reload_ = true;
-					this->stop();
+					if(!this->reloader_stop_flag_) {
+						reload_signaled = true;
+						break;
+					}
 				}
+			}
+			
+			if(reload_signaled) {
+				this->reload();
 			}
 			LOG(DEBUG) << "Reloader thread finished";
 		}
@@ -223,22 +232,28 @@ void Service::stop_reloader_thread()
 {
 	LOG(DEBUG) << "Stopping reloader";
 	reloader_stop_flag_ = true;
+	this->shm_ptr_->get_object()->reloader_semaphore.post();
 	LOG(DEBUG) << "Joining Reloader";
 	reloader_thread_.join();
-	LOG(DEBUG) << "Joined";
 	LOG(DEBUG) << "Reloader stopped";
 }
 
-void Service::signal_reload()
+void Service::reload()
 {
-	this->shm_ptr_->get_object()->reloader_semaphore.post();
+	LOG(INFO) << "RELOAD CALLED &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&";
+	needs_reload_ = true;
+	if(api_->config.is_foreground) {
+		this->stop_service();
+	}
+	else {
+		this->stop();
+	}
 }
 
 bool Service::is_reload_flag_set() const
 {
 	return needs_reload_;
 }
-
 
 } // service
 } // dbl

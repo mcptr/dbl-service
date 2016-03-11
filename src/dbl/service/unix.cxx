@@ -51,10 +51,6 @@ void Unix::run()
 		bool nochdir = api_->config.no_chdir;
 		bool noclose = api_->config.no_close_fds;
 
-		this->shm_ptr_.reset(
-			new ipc::SharedMemory<ServiceSHM>("DNSService")
-		);
-
 		if(daemon(nochdir, noclose) != 0) {
 			LOG(ERROR) << "Daemonizing failed " << strerror(errno);
 			throw std::runtime_error(strerror(errno));
@@ -103,7 +99,7 @@ void Unix::run()
 				LOG(ERROR) << "Could not get service shm object";
 			}
 			else {
-				this->run_reloader_thread();
+				LOG(DEBUG) << "Parent: posting sync semaphore";
 				service_shm_ptr->sync_semaphore.post();
 			}
 
@@ -217,6 +213,7 @@ void Unix::drop_privileges()
 
 void Unix::stop()
 {
+	LOG(INFO) << "UNIX STOP ACLLED #############################";
 	if(kill(service_pid_, SIGTERM) < 0) {
 		LOG(ERROR) << "Unable to kill service. " << strerror(errno);
 	}

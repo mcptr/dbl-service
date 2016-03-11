@@ -49,6 +49,9 @@ class Builder(object):
 		self.platform.configure()
 		self._config.update(self.platform.as_dict())
 
+	def add_define(self, k):
+		self._config["CXXFLAGS"].append("-D" + k)
+
 	def add_include_path(self, *paths):
 		for inc in paths:
 			self._config["CPPPATH"].append(inc)
@@ -77,6 +80,8 @@ class Builder(object):
 	def set_static_build(self):
 		self._static_build = True
 
+	def set_debug_build(self):
+		self._config["CXXFLAGS"].append("-g")
 
 	def as_dict(self):
 		if self._static_build:

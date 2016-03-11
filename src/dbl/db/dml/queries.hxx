@@ -27,7 +27,7 @@ const std::string get_domains = (
 );
 
 const std::string get_domain_lists = (
-	"SELECT id, name, active, custom, description "
+	"SELECT id, name, active, custom, mtime, description "
 	"  FROM domain_lists"
 );
 

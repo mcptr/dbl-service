@@ -40,7 +40,12 @@ class Dirs(object):
 MAIN_TARGET_NAME = "dnsblocker"
 THIS_PLATFORM = os.uname()[0].lower()
 
-builder = Builder({}, "clang")
+builder_options = dict()
+builder = Builder(builder_options, "clang")
+
+if GetOption("debug_build"):
+	builder.add_define("DEBUG")
+	builder.set_debug_build()
 
 builder.add_lib_path(
 	os.path.join(os.environ["VIRTUAL_ENV"], "lib"),
@@ -101,7 +106,8 @@ translation_units = {
 	"dbl/manager/domain_list_manager": {},
 	"dbl/manager/manager": {},
 	"dbl/manager/settings_manager": {},
-	"dbl/net/net": {},
+	"dbl/net/http/request": {},
+	"dbl/net/http/response": {},
 	"dbl/options/options" : {},
 	"dbl/query/query" : {},
 	"dbl/service/configurator/configurator" : {},

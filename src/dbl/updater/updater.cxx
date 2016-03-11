@@ -31,6 +31,7 @@ bool Updater::run()
 		LOG(DEBUG) << "UPDATER LIST: " << it;
 	}
 
+	// FIXME: REMOVE
 	LOG(INFO) << "Running initial update";
 	update();
 
@@ -65,9 +66,11 @@ void Updater::update_lists()
 
 	auto const& ids = api_->config.list_ids;
 	for(auto& lst : *lists) {
-		// if(lst.custom) {
-		// 	continue;
-		// }
+		LOG(INFO) << "########################" << lst.name;
+		if(lst.custom) {
+			//continue;
+		}
+
 		bool do_update = ids.empty();
 		if(!ids.empty()) {
 			do_update = std::find(
@@ -75,19 +78,31 @@ void Updater::update_lists()
 		}
 
 		if(do_update) {
-			net::HTTPRequest rq;
 			std::string url(core::constants::UPDATE_URL);
 			url.append("/" + lst.name + ".json");
-			if(rq.fetch(url, 200)) {
-				//2DO: check last modif tstamp
-				try {
-					lst.from_json(rq.get_result());
-					LOG(INFO) << "Updating domain list: " << lst.name;
-					mgr.import(lst, false);
-					//is_updated_ = true;
-				}
-				catch(const std::runtime_error& e) {
-					LOG(ERROR) << e.what();
+			net::http::Request rq(url);
+			rq.set_if_modified_since(lst.mtime);
+			auto response_ptr = rq.fetch();
+			LOG(DEBUG) << "HEAD OK";
+			long last_modified = (
+				response_ptr ? response_ptr->get_last_modified() : 0
+			);
+
+			if(!last_modified || (lst.mtime < last_modified)) {
+				LOG(INFO) << "FETCHING:" << url;
+				auto ptr = rq.fetch();
+				LOG(INFO) << "FETCHED:" << url;
+				if(ptr) {
+					LOG(DEBUG) << "MTIME" << lst.mtime << "LAST MODIF: " << last_modified;
+					try {
+						lst.from_json(ptr->get_data());
+						LOG(INFO) << "Updating domain list: " << lst.name;
+						mgr.import(lst, false);
+						is_updated_ = true;
+					}
+					catch(const std::runtime_error& e) {
+						LOG(ERROR) << e.what();
+					}
 				}
 			}
 		}

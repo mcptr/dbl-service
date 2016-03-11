@@ -289,7 +289,7 @@ void ServiceConnection::handle_reload(
 	Json::Value& response,
 	types::Errors_t& errors) const
 {
-	Service::service_ptr->signal_reload();
+	Service::service_ptr->reload();
 }
 
 } // server
