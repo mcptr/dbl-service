@@ -17,7 +17,17 @@ Unix::Unix(std::shared_ptr<dbl::core::Api> api)
 void Unix::run(std::condition_variable& cv)
 {
 	this->run_servers();
-	this->drop_privileges();
+	if(api_->config.is_foreground) {
+		LOG(WARNING) << "\n#############################################\n"
+					 << "# WARNING: Running in foreground\n"
+					 << "# without dropping privileges.\n"
+					 << "#\n"
+					 << "# Use SIGINT to quit\n"
+					 << "#############################################\n";
+	}
+	else {
+		this->drop_privileges();
+	}
 	this->Worker::run(cv);
 }
 

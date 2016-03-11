@@ -288,8 +288,7 @@ void ServiceConnection::handle_reload(
 	Json::Value& /*response*/,
 	types::Errors_t& /* errors */) const
 {
-	// FIXME
-	//Service::service_ptr->reload();
+	Service::service_ptr->stop();
 }
 
 } // server

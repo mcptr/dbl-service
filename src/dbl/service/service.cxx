@@ -16,7 +16,6 @@ Service::service_ptr = nullptr;
 
 Service::Service(std::shared_ptr<core::Api> api)
 	: api_(api),
-	  shm_ptr_(new ipc::SharedMemory<ServiceSHM>("DNSService")),
 	  dns_proxy_(std::move(dnsproxy::create(api_)))
 {
 }
@@ -37,7 +36,6 @@ void Service::run_worker()
 {
 	worker_ptr_.reset(new worker::Worker(api_));
 	worker_ptr_->run(cv_);
-	std::cout << "RUN WORKED ENDED" << std::endl;
 }
 
 void Service::signal_stop()

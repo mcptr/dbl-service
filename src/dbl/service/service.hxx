@@ -55,8 +55,8 @@ public:
 
 protected:
 	std::shared_ptr<core::Api> api_;
-	std::unique_ptr<ipc::SharedMemory<ServiceSHM>> shm_ptr_;
 	std::unique_ptr<dnsproxy::DNSProxy> dns_proxy_;
+	std::unique_ptr<ipc::SharedMemory<ServiceSHM>> shm_ptr_;
 	std::unique_ptr<configurator::Configurator> configurator_;
 
 	std::unique_ptr<worker::Worker> worker_ptr_;

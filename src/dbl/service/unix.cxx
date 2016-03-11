@@ -32,7 +32,6 @@ Unix::Unix(std::shared_ptr<core::Api> api)
 	}
 }
 
-
 bool Unix::is_already_running()
 {
 	namespace fs = boost::filesystem;
@@ -49,75 +48,30 @@ bool Unix::is_already_running()
 
 void Unix::run()
 {
-	LOG(DEBUG) << "Daemonizing (unix)";
-
-	bool nochdir = api_->config.no_chdir;
-	bool noclose = api_->config.no_close_fds;
-
-	daemon(nochdir, noclose);
-	pid_t pid = fork();
-	if(pid < 0) {
-		PLOG(ERROR) << "daemon()";
-		throw std::runtime_error("Daemonizing failed");
-	}
-
-	if(pid == 0) {
-		struct sigaction act;
-		memset(&act, 0, sizeof(act));
-		act.sa_sigaction = [](int sig, siginfo_t* /*siginfo*/, void* /*context*/) {
-			LOG(DEBUG) << "Child caught SIGNAL: " << sig;
-			Service::service_ptr->signal_stop();
-		};
-		act.sa_flags = SA_SIGINFO;
-
-		sigemptyset(&act.sa_mask);
-		sigaction(SIGTERM, &act, nullptr);
-		sigaction(SIGINT, &act, nullptr);
-		sigaction(SIGHUP, &act, nullptr);
-		this->run_worker();
-
-		LOG(DEBUG) << "Worker exiting";
-		_exit(0);
+	if(api_->config.is_foreground) {
+		this->process_foreground();
 	}
 	else {
-		worker_pid_ = pid;
-		this->save_pidfile();
+		LOG(DEBUG) << "Daemonizing (unix)";
+		shm_ptr_.reset(new ipc::SharedMemory<ServiceSHM>("DNSBlocker"));
 
-		try {
-			this->start_dns_proxy();
-			this->flush_dns();
+		bool nochdir = api_->config.no_chdir;
+		bool noclose = api_->config.no_close_fds;
 
-			this->setup_signals();
-			ServiceSHM* service_shm_ptr = this->shm_ptr_->get_object();
-			if(service_shm_ptr == nullptr) {
-				throw std::runtime_error("Could not get service shm object");
-			}
-			else {
-				LOG(DEBUG) << "Parent: posting sync semaphore";
-				service_shm_ptr->sync_semaphore.post();
-			}
-
-		}
-		catch(const std::runtime_error& e) {
-			LOG(ERROR) << e.what();
-			Service::service_ptr->stop();
+		daemon(nochdir, noclose);
+		pid_t pid = fork();
+		if(pid < 0) {
+			PLOG(ERROR) << "daemon()";
+			throw std::runtime_error("Daemonizing failed");
 		}
 
-		int status;
-		waitpid(worker_pid_, &status, 0);
-
-		if(WIFSIGNALED(status)) {
-			LOG(DEBUG) << "Service worker signaled with:" << WTERMSIG(status);
+		if(pid == 0) {
+			this->process_worker();
 		}
-		else if(WIFEXITED(status)) {
-			LOG(DEBUG) <<  "Service worker exit status:" << WEXITSTATUS(status);
+		else {
+			worker_pid_ = pid;
+			this->process_master();
 		}
-
-		this->stop_dns_proxy();
-		this->remove_pidfile();
-		//this->stop_reloader_thread();
-
-		LOG(DEBUG) << "Master process finished";
 	}
 }
 
@@ -339,7 +293,7 @@ void Unix::start_dns_proxy()
 				   << dns_proxy_->get_config_path();
 		
 		std::string output;
-		if(sys::run_command(cmd, output) != 0) {
+		if(system(cmd.c_str()) != 0) {
 			throw std::runtime_error("Unable to start dns proxy. Command: " + cmd);
 		}
 	}
@@ -408,7 +362,7 @@ bool Unix::run_rc(const std::string& action) const
 	return success;
 }
 
-void Unix::setup_signals()
+void Unix::setup_master_signals()
 {
 	struct sigaction act;
 	memset(&act, 0, sizeof(act));
@@ -445,7 +399,93 @@ void Unix::run_worker()
 {
 	worker_ptr_.reset(new worker::Unix(api_));
 	worker_ptr_->run(cv_);
-	std::cout << "RUN WORKED ENDED" << std::endl;
+}
+
+void Unix::process_worker()
+{
+	using namespace boost::posix_time;
+
+	struct sigaction act;
+	memset(&act, 0, sizeof(act));
+	act.sa_sigaction = [](int sig, siginfo_t* /*siginfo*/, void* /*context*/) {
+		LOG(DEBUG) << "Child caught SIGNAL: " << sig;
+		Service::service_ptr->signal_stop();
+	};
+	act.sa_flags = SA_SIGINFO;
+
+	sigemptyset(&act.sa_mask);
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
+	sigaction(SIGHUP, &act, nullptr);
+
+	ptime t = microsec_clock::universal_time();
+	LOG(DEBUG) << "Waiting for master process";
+	auto shm = shm_ptr_->get_object();
+	if(shm->sync_semaphore.timed_wait(t + seconds(10))) {
+		LOG(DEBUG) << "Starting worker";
+		this->run_worker();
+	}
+	else {
+		LOG(ERROR) << "Master process not ready";
+	}
+
+	LOG(DEBUG) << "Worker exiting";
+	_exit(0);
+}
+
+void Unix::process_master()
+{
+	this->save_pidfile();
+
+	try {
+		this->start_dns_proxy();
+		this->flush_dns();
+
+		this->setup_master_signals();
+		LOG(DEBUG) << "Parent: posting sync semaphore";
+		auto shm = shm_ptr_->get_object();
+		shm->sync_semaphore.post();
+	}
+	catch(const std::runtime_error& e) {
+		LOG(ERROR) << e.what();
+		Service::service_ptr->stop();
+	}
+
+	int status;
+	waitpid(worker_pid_, &status, 0);
+
+	if(WIFSIGNALED(status)) {
+		LOG(DEBUG) << "Service worker signaled with:" << WTERMSIG(status);
+	}
+	else if(WIFEXITED(status)) {
+		LOG(DEBUG) <<  "Service worker exit status:" << WEXITSTATUS(status);
+	}
+
+	this->stop_dns_proxy();
+	this->remove_pidfile();
+	LOG(DEBUG) << "Master process finished";
+}
+
+void Unix::process_foreground()
+{
+	this->start_dns_proxy();
+	this->flush_dns();
+	struct sigaction act;
+	memset(&act, 0, sizeof(act));
+	act.sa_sigaction = [](int sig, siginfo_t* /*siginfo*/, void* /*context*/) {
+		Service::signaled_exit = true;
+		Service::service_ptr->signal_stop();
+	};
+	act.sa_flags = SA_SIGINFO;
+
+	sigemptyset(&act.sa_mask);
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
+	sigaction(SIGHUP, &act, nullptr);
+
+	this->run_worker();
+	this->stop_dns_proxy();
+	this->flush_dns();
 }
 
 } // service

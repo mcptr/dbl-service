@@ -5,7 +5,6 @@
 #include "dbl/core/api.hxx"
 #include "dbl/core/common.hxx"
 
-#include <iostream>
 #include <string>
 #include <memory>
 #include <boost/asio.hpp>
