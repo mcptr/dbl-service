@@ -50,7 +50,6 @@ public:
 
 	virtual bool is_already_running() = 0;
 
-	// --
 	virtual void configure();
 
 protected:
