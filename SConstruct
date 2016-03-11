@@ -40,7 +40,12 @@ class Dirs(object):
 MAIN_TARGET_NAME = "dnsblocker"
 THIS_PLATFORM = os.uname()[0].lower()
 
-builder = Builder({}, "clang")
+builder_options = dict()
+builder = Builder(builder_options, "clang")
+
+if GetOption("debug_build"):
+	builder.add_define("DEBUG")
+	builder.set_debug_build()
 
 builder.add_lib_path(
 	os.path.join(os.environ["VIRTUAL_ENV"], "lib"),
@@ -96,12 +101,15 @@ translation_units = {
 	"dbl/dnsproxy/dnsproxy" : {},
 	"dbl/dnsproxy/factory" : {},
 	"dbl/dnsproxy/unbound" : {},
+	"dbl/init/init" : {},
 	"dbl/main" : {},
 	"dbl/manager/domain_manager": {},
 	"dbl/manager/domain_list_manager": {},
 	"dbl/manager/manager": {},
 	"dbl/manager/settings_manager": {},
-	"dbl/net/net": {},
+	"dbl/mgmt/mgmt": {},
+	"dbl/net/http/request": {},
+	"dbl/net/http/response": {},
 	"dbl/options/options" : {},
 	"dbl/query/query" : {},
 	"dbl/service/configurator/configurator" : {},
@@ -110,6 +118,7 @@ translation_units = {
 	"dbl/service/server/http_responder_connection" : {},
 	"dbl/service/server/service_connection" : {},
 	"dbl/service/service" : {},
+	"dbl/service/worker/worker" : {},
 	"dbl/sys/command": {},
 	"dbl/sys/script/script": {},
 	"dbl/template/template": {},
@@ -127,9 +136,9 @@ platform_translation_units = {
 		"dbl/config/unix": {},
 		"dbl/service/configurator/unix" : {},
 		"dbl/service/unix" : {},
+		"dbl/service/worker/unix" : {},
 	}
 }
-
 
 translation_units.update(platform_translation_units[THIS_PLATFORM])
 

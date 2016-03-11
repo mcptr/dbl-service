@@ -22,7 +22,7 @@ public:
 	virtual void stop();
 
 protected:
-	pid_t service_pid_;
+	pid_t worker_pid_;
 	bool system_proxy_was_running_ = false;
 
 	std::string pidof_bin_;
@@ -31,12 +31,18 @@ protected:
 	virtual void stop_dns_proxy();
 	virtual void flush_dns();
 
-	virtual void drop_privileges();
 	virtual void save_pidfile();
 	virtual void remove_pidfile();
 
+	virtual void run_worker();
+
 	virtual int get_pid_of(const std::string& program) const;
 	virtual bool run_rc(const std::string& action) const;
+
+	virtual void setup_master_signals();
+	virtual void process_foreground();
+	virtual void process_worker();
+	virtual void process_master();
 };
 
 } // service

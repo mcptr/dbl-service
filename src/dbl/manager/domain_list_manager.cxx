@@ -78,6 +78,13 @@ bool DomainListManager::import(const types::DomainList& lst, bool custom)
 			);
 			st_ins.execute(true);
 		}
+
+		LOG(DEBUG) << "UPDATING MTIME ";
+		*session_ptr << (
+			"UPDATE domain_lists SET mtime = strftime('%s','now') "
+			"  WHERE id = ?"
+		), use(list_id);
+		
 		session_ptr->commit();
 	}
 	catch(const std::runtime_error& e) {
@@ -88,7 +95,7 @@ bool DomainListManager::import(const types::DomainList& lst, bool custom)
 	return true;
 }
 
-bool DomainListManager::import(const types::DomainListsSet_t& lst_set)
+bool DomainListManager::import(const types::DomainListsSet_t& /*lst_set*/)
 {
 	return false;
 }

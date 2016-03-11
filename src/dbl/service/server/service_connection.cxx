@@ -133,36 +133,35 @@ void ServiceConnection::dispatch(const std::string& cmd,
 
 
 void ServiceConnection::handle_status(
-	const Json::Value& data,
+	const Json::Value& /* data */,
 	Json::Value& response,
-	types::Errors_t& errors) const
+	types::Errors_t& /* errors */) const
 
 {
 	response["status"] = "alive";
 }
 
 void ServiceConnection::handle_flush_dns(
-	const Json::Value& data,
-	Json::Value& response,
-	types::Errors_t& errors) const
+	const Json::Value& /* data */,
+	Json::Value& /* response */,
+	types::Errors_t& /* errors */) const
 
 {
 	throw ServiceOperationError("not implemented");
 }
 
 void ServiceConnection::handle_import(
-	const Json::Value& data,
-	Json::Value& response,
-	types::Errors_t& errors) const
-
+	const Json::Value& /* data */,
+	Json::Value& /* response */,
+	types::Errors_t& /* errors */) const
 {
 	throw ServiceOperationError("not implemented");
 }
 
 void ServiceConnection::handle_block(
 	const Json::Value& data,
-	Json::Value& response,
-	types::Errors_t& errors) const
+	Json::Value& /*response*/,
+	types::Errors_t& /*errors*/) const
 {
 	manager::DomainManager mgr(api_);
 	if(!data["domains"].isArray()) {
@@ -178,8 +177,8 @@ void ServiceConnection::handle_block(
 
 void ServiceConnection::handle_unblock(
 	const Json::Value& data,
-	Json::Value& response,
-	types::Errors_t& errors) const
+	Json::Value& /*response*/,
+	types::Errors_t& /*errors*/) const
 {
 	manager::DomainManager mgr(api_);
 	if(!data["domains"].isArray()) {
@@ -195,7 +194,7 @@ void ServiceConnection::handle_unblock(
 
 void ServiceConnection::handle_set_service_password(
 	const Json::Value& data,
-	Json::Value& response,
+	Json::Value& /*response*/,
 	types::Errors_t& errors)
 {
 	bool success = auth_.set_password(
@@ -209,17 +208,17 @@ void ServiceConnection::handle_set_service_password(
 }
 
 void ServiceConnection::handle_remove_service_password(
-	const Json::Value& data,
-	Json::Value& response,
-	types::Errors_t& errors)
+	const Json::Value& /* data */,
+	Json::Value& /* response */,
+	types::Errors_t& /* errors */)
 {
 	auth_.remove_password();
 }
 
 void ServiceConnection::handle_get_lists(
-	const Json::Value& data,
+	const Json::Value& /* data */,
 	Json::Value& response,
-	types::Errors_t& errors) const
+	types::Errors_t& /* errors */) const
 {
 	manager::DomainListManager mgr(api_);
 	auto result_ptr = mgr.get();
@@ -232,7 +231,7 @@ void ServiceConnection::handle_get_lists(
 void ServiceConnection::handle_get_domain(
 		const Json::Value& data,
 		Json::Value& response,
-		types::Errors_t& errors) const
+		types::Errors_t& /*errors*/) const
 {
 	std::string name = data["name"].asString();
 	if(name.empty()) {
@@ -247,7 +246,7 @@ void ServiceConnection::handle_get_domain(
 void ServiceConnection::handle_get_domains(
 	const Json::Value& data,
 	Json::Value& response,
-	types::Errors_t& errors) const
+	types::Errors_t& /*errors*/) const
 {
 	manager::DomainManager mgr(api_);
 	std::string type = data["type"].asString();
@@ -277,19 +276,19 @@ void ServiceConnection::handle_get_domains(
 }
 
 void ServiceConnection::handle_delete_list(
-	const Json::Value& data,
-	Json::Value& response,
-	types::Errors_t& errors) const
+	const Json::Value& /* data */,
+	Json::Value& /*response*/,
+	types::Errors_t& /* errors */) const
 {
 	throw ServiceOperationError("not implemented");
 }
 
 void ServiceConnection::handle_reload(
-	const Json::Value& data,
-	Json::Value& response,
-	types::Errors_t& errors) const
+	const Json::Value& /* data */,
+	Json::Value& /*response*/,
+	types::Errors_t& /* errors */) const
 {
-	Service::service_ptr->signal_reload();
+	Service::service_ptr->stop();
 }
 
 } // server

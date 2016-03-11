@@ -15,7 +15,7 @@ HTTPResponderConnection::HTTPResponderConnection(
 {
 }
 
-void HTTPResponderConnection::process_request(const std::string& request,
+void HTTPResponderConnection::process_request(const std::string& /*request*/,
 											  std::string& response)
 {
 	std::vector<std::string> reply;

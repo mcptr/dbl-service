@@ -2,9 +2,6 @@
 #define DBL_SYS_COMMAND_HXX
 
 #include <string>
-#include <iostream>
-#include <cstdio>
-#include <memory>
 
 
 namespace dbl {

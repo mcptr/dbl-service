@@ -1,8 +1,7 @@
 #include "command.hxx"
 #include "dbl/core/common.hxx"
 
-#include <cstring>
-#include <errno.h>
+#include <cstdio>
 
 namespace dbl {
 namespace sys {
@@ -12,8 +11,8 @@ int run_command(const std::string& cmd, std::string& result)
 	FILE* ptr(popen(cmd.c_str(), "r"));
 
 	if(ptr == nullptr) {
-		LOG(ERROR) << "popen() failed. " << strerror(errno)
-				   << "\n" << cmd;
+		PLOG(ERROR) << "popen()";
+		LOG(ERROR) << "Command failed:" << cmd;
 		return -1;
 	}
 

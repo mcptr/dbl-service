@@ -131,6 +131,10 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		 po::value(&(config.no_update))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Disable all updates"
 		)
+		("update-interval",
+		 po::value(&(config.update_interval))->default_value(config.update_interval),
+		 "Update interval in seconds (min 3600)"
+		)
 		;
 
 	lists.add_options()

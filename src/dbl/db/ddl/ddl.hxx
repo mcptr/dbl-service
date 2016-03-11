@@ -17,7 +17,8 @@ const std::string domain_lists_table_schema =
 	"  name VARCHAR(255) NOT NULL UNIQUE, "
 	"  description VARCHAR(255) DEFAULT '', "
 	"  active BOOLEAN NOT NULL DEFAULT 1, "
-	"  custom BOOLEAN NOT NULL DEFAULT 0"
+	"  custom BOOLEAN NOT NULL DEFAULT 0, "
+	"  mtime INTEGER DEFAULT 0"
 	")";
 
 const std::string domains_table_schema =

@@ -1,4 +1,5 @@
 #include "unix.hxx"
+#include "worker/unix.hxx"
 #include "dbl/core/common.hxx"
 #include "dbl/util/fs.hxx"
 #include "dbl/sys/command.hxx"
@@ -8,6 +9,7 @@
 #include <cstring>
 #include <cstdio>
 #include <csignal>
+#include <cstdlib>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -30,7 +32,6 @@ Unix::Unix(std::shared_ptr<core::Api> api)
 	}
 }
 
-
 bool Unix::is_already_running()
 {
 	namespace fs = boost::filesystem;
@@ -47,177 +48,141 @@ bool Unix::is_already_running()
 
 void Unix::run()
 {
-	if(!api_->config.is_foreground) {
+	if(api_->config.is_foreground) {
+		this->process_foreground();
+	}
+	else {
+		LOG(DEBUG) << "Daemonizing (unix)";
+		shm_ptr_.reset(new ipc::SharedMemory<ServiceSHM>("DNSBlocker"));
+
 		bool nochdir = api_->config.no_chdir;
 		bool noclose = api_->config.no_close_fds;
 
-		this->shm_ptr_.reset(
-			new ipc::SharedMemory<ServiceSHM>("DNSService")
-		);
-
-		if(daemon(nochdir, noclose) != 0) {
-			LOG(ERROR) << "Daemonizing failed " << strerror(errno);
-			throw std::runtime_error(strerror(errno));
-		}
-
-		this->save_pidfile();
-
+		daemon(nochdir, noclose);
 		pid_t pid = fork();
 		if(pid < 0) {
-			LOG(ERROR) << strerror(errno);
-			throw std::runtime_error(strerror(errno));
-			return;
+			PLOG(ERROR) << "daemon()";
+			throw std::runtime_error("Daemonizing failed");
 		}
-		else if(pid == 0) {
-			signal(SIGTERM, [](int /*sig*/) {
-					LOG(INFO) << "Service instance caught SIGTERM";
-					Service::service_ptr->stop_service();
-				}
-			);
 
-			this->run_service();
-			_exit(0);
+		if(pid == 0) {
+			this->process_worker();
 		}
 		else {
-			this->service_pid_ = pid;
-
-			try {
-				this->start_dns_proxy();
-				this->flush_dns();
-			}
-			catch(const std::runtime_error& e) {
-				LOG(ERROR) << e.what();
-				Service::service_ptr->stop_service();
-			}
-
-			signal(SIGTERM, [](int /*sig*/) {
-					LOG(INFO) << "Caught SIGTERM. Stopping service";
-					// stop() instead of stop_service().
-					// kills child, which does stop_service()
-					Service::service_ptr->stop();
-				}
-			);
-
-			ServiceSHM* service_shm_ptr = this->shm_ptr_->get_object();
-			if(service_shm_ptr == nullptr) {
-				LOG(ERROR) << "Could not get service shm object";
-			}
-			else {
-				this->run_reloader_thread();
-				service_shm_ptr->sync_semaphore.post();
-			}
-
-			int status;
-			pid_t chd = wait(&status);
-
-			if(chd == -1) {
-				LOG(ERROR) << strerror(errno);
-				throw std::runtime_error(strerror(errno));
-			}
-			else {
-				if(WIFSIGNALED(status)) {
-					LOG(INFO) << "Service killed by: " << WTERMSIG(status);
-				}
-
-				if(WIFEXITED(status)) {
-					LOG(INFO) << "Service exited: " << WEXITSTATUS(status);
-				}
-
-				this->stop_dns_proxy();
-				this->remove_pidfile();
-				this->stop_reloader_thread();
-
-				//Service::service_ptr.reset();
-				//_exit(0);
-			}
+			worker_pid_ = pid;
+			this->process_master();
 		}
 	}
-	else {
-		LOG(INFO) << "Starting foreground instance";
-		this->start_dns_proxy();
-		this->flush_dns();
-
-		signal(SIGINT, [](int /*sig*/) {
-				LOG(DEBUG) << "Foreground instance caught SIGINT";
-				Service::service_ptr->stop_service();
-			}
-		);
-
-		signal(SIGTERM, [](int /*sig*/) {
-				LOG(DEBUG) << "Foreground instance caught SIGTERM";
-				Service::service_ptr->stop_service();
-			}
-		);
-
-		this->run_service();
-		this->stop_dns_proxy();
-	}
 }
 
-void Unix::drop_privileges()
-{
-	struct passwd* p = getpwnam(api_->config.service_user.c_str());
+// void Unix::run()
+// {
+// 	if(!api_->config.is_foreground) {
+// 		bool nochdir = api_->config.no_chdir;
+// 		bool noclose = api_->config.no_close_fds;
 
-	if(p == nullptr) {
-		throw std::runtime_error(
-			"Invalid user: " + api_->config.service_user
-		);
-	}
+// 		if(daemon(nochdir, noclose) != 0) {
+// 			LOG(ERROR) << "Daemonizing failed " << strerror(errno);
+// 			throw std::runtime_error(strerror(errno));
+// 		}
 
-	uid_t user_id = p->pw_uid;
-	gid_t group_id = p->pw_gid;
+// 		this->save_pidfile();
 
-	if(user_id == 0 || group_id == 0) {
-		throw std::runtime_error(
-			"Not an unprivileged user: " +
-			api_->config.service_user
-		);
-	}
+// 		pid_t pid = fork();
+// 		if(pid < 0) {
+// 			LOG(ERROR) << strerror(errno);
+// 			throw std::runtime_error(strerror(errno));
+// 			return;
+// 		}
+// 		else if(pid == 0) {
+// 			signal(SIGTERM, [](int /*sig*/) {
+// 					LOG(INFO) << "Service instance caught SIGTERM";
+// 					Service::service_ptr->stop_service();
+// 				}
+// 			);
 
-	if(setgroups(0, nullptr) != 0) {
-		PLOG(WARNING) << "setgroups()";
-	}
-		
-	if(setgid(group_id) != 0) {
-		PLOG(ERROR) << "setgid(" << group_id << ")";
-		throw std::runtime_error(
-			"Cannot drop privileges (setgid() failed)"
-		);
-	}
+// 			this->run_service();
+// 			_exit(0);
+// 		}
+// 		else {
+// 			this->service_pid_ = pid;
 
-	if(setegid(group_id) != 0) {
-		PLOG(ERROR) << "setegid(" << group_id << ")";
-		throw std::runtime_error(
-			"Cannot drop privileges (setegid() failed)"
-		);
-	}
+// 			try {
+// 				this->start_dns_proxy();
+// 				this->flush_dns();
+// 			}
+// 			catch(const std::runtime_error& e) {
+// 				LOG(ERROR) << e.what();
+// 				Service::service_ptr->stop_service();
+// 			}
 
-	if(setuid(user_id) != 0) {
-		PLOG(ERROR) << "setuid(" << user_id << ")";
-		throw std::runtime_error(
-			"Cannot drop privileges (setuid() failed)"
-		);
-	}
+// 			signal(SIGTERM, [](int /*sig*/) {
+// 					LOG(INFO) << "Caught SIGTERM. Stopping service";
+// 					// stop() instead of stop_service().
+// 					// kills child, which does stop_service()
+// 					Service::service_ptr->stop();
+// 				}
+// 			);
 
-	if(seteuid(user_id) != 0) {
-		PLOG(ERROR) << "seteuid(" << user_id << ")";
-		throw std::runtime_error(
-			"Cannot drop privileges (seteuid() failed)"
-		);
-	}
+// 			ServiceSHM* service_shm_ptr = this->shm_ptr_->get_object();
+// 			if(service_shm_ptr == nullptr) {
+// 				LOG(ERROR) << "Could not get service shm object";
+// 			}
+// 			else {
+// 				LOG(DEBUG) << "Parent: posting sync semaphore";
+// 				service_shm_ptr->sync_semaphore.post();
+// 			}
 
-	if(setuid(0) == 0) {
-		throw std::runtime_error("Dropping privileges failed");
-	}
+// 			int status;
+// 			pid_t chd = wait(&status);
 
-	if(setgid(0) == 0) {
-		throw std::runtime_error("Dropping privileges failed");
-	}
-}
+// 			if(chd == -1) {
+// 				LOG(ERROR) << strerror(errno);
+// 				throw std::runtime_error(strerror(errno));
+// 			}
+// 			else {
+// 				if(WIFSIGNALED(status)) {
+// 					LOG(INFO) << "Service killed by: " << WTERMSIG(status);
+// 				}
+
+// 				if(WIFEXITED(status)) {
+// 					LOG(INFO) << "Service exited: " << WEXITSTATUS(status);
+// 				}
+
+// 				this->stop_dns_proxy();
+// 				this->remove_pidfile();
+// 				this->stop_reloader_thread();
+
+// 				//Service::service_ptr.reset();
+// 				//_exit(0);
+// 			}
+// 		}
+// 	}
+// 	else {
+// 		LOG(INFO) << "Starting foreground instance";
+// 		this->start_dns_proxy();
+// 		this->flush_dns();
+
+// 		signal(SIGINT, [](int /*sig*/) {
+// 				LOG(DEBUG) << "Foreground instance caught SIGINT";
+// 				Service::service_ptr->stop_service();
+// 			}
+// 		);
+
+// 		signal(SIGTERM, [](int /*sig*/) {
+// 				LOG(DEBUG) << "Foreground instance caught SIGTERM";
+// 				Service::service_ptr->stop_service();
+// 			}
+// 		);
+
+// 		this->run_service();
+// 		this->stop_dns_proxy();
+// 	}
+// }
 
 void Unix::stop()
 {
-	if(kill(service_pid_, SIGTERM) < 0) {
+	if(kill(worker_pid_, SIGTERM) < 0) {
 		LOG(ERROR) << "Unable to kill service. " << strerror(errno);
 	}
 }
@@ -290,9 +255,9 @@ void Unix::start_dns_proxy()
 			}
 		}
 
-		//if(new_pid > 0) {
-		LOG(DEBUG) << "New dns proxy pid: " << new_pid;
-		//}
+		if(new_pid > 0) {
+			LOG(DEBUG) << "New dns proxy pid: " << new_pid;
+		}
 
 		if(new_pid == current_pid) {
 			std::string msg(
@@ -309,7 +274,7 @@ void Unix::start_dns_proxy()
 				"already running."
 			);
 
-			LOG(ERROR) << msg << std::endl;
+			LOG(ERROR) << msg;
 			throw std::runtime_error(
 				"Unable to start service: " + api_->config.dns_proxy
 			);
@@ -323,13 +288,12 @@ void Unix::start_dns_proxy()
 
 		cmd.append(" -v ");
 		cmd.append(" -c " + dns_proxy_->get_config_path());
-		LOG(DEBUG) << cmd << std::endl;
+		LOG(DEBUG) << cmd;
 		LOG(DEBUG) << "DNS Proxy config file: " 
-				   << dns_proxy_->get_config_path()
-				   << std::endl;
+				   << dns_proxy_->get_config_path();
 		
 		std::string output;
-		if(sys::run_command(cmd, output) != 0) {
+		if(system(cmd.c_str()) != 0) {
 			throw std::runtime_error("Unable to start dns proxy. Command: " + cmd);
 		}
 	}
@@ -389,13 +353,139 @@ bool Unix::run_rc(const std::string& action) const
 	for(auto const& cmd : cmds) {
 		LOG(DEBUG) << "Trying: " << cmd;
 		std::string output;
-		if(sys::run_command(cmd, output) == 0) {
-			LOG(INFO) << "OK, succeeded";
+		if(system(cmd.c_str()) == 0) {
+			LOG(DEBUG) << "Succeeded: " << cmd;
 			success = true;
 			break;
 		}
 	}
 	return success;
+}
+
+void Unix::setup_master_signals()
+{
+	struct sigaction act;
+	memset(&act, 0, sizeof(act));
+	act.sa_sigaction = [](int sig, siginfo_t* /*siginfo*/, void* /*context*/) {
+		switch(sig) {
+		case SIGTERM:
+		case SIGINT:
+			Service::signaled_exit = true;
+			LOG(DEBUG) << "Parent caught SIGNAL:" << sig;
+			Service::service_ptr->stop();
+			break;
+		case SIGHUP:
+			LOG(DEBUG) << "Parent caught SIGNAL:" << sig;
+			Service::service_ptr->stop();
+			break;
+		case SIGCHLD:
+			Service::signaled_exit = true;
+			LOG(DEBUG) << "Parent caught SIGCHLD";
+			break;
+		default:
+			LOG(INFO) << "Unhandled signal caught:" << sig;
+		}
+	};
+
+	act.sa_flags = SA_SIGINFO;
+	sigemptyset(&act.sa_mask);
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
+	sigaction(SIGHUP, &act, nullptr);
+	sigaction(SIGCHLD, &act, nullptr);
+}
+
+void Unix::run_worker()
+{
+	worker_ptr_.reset(new worker::Unix(api_));
+	worker_ptr_->run(cv_);
+}
+
+void Unix::process_worker()
+{
+	using namespace boost::posix_time;
+
+	struct sigaction act;
+	memset(&act, 0, sizeof(act));
+	act.sa_sigaction = [](int sig, siginfo_t* /*siginfo*/, void* /*context*/) {
+		LOG(DEBUG) << "Child caught SIGNAL: " << sig;
+		Service::service_ptr->signal_stop();
+	};
+	act.sa_flags = SA_SIGINFO;
+
+	sigemptyset(&act.sa_mask);
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
+	sigaction(SIGHUP, &act, nullptr);
+
+	ptime t = microsec_clock::universal_time();
+	LOG(DEBUG) << "Waiting for master process";
+	auto shm = shm_ptr_->get_object();
+	if(shm->sync_semaphore.timed_wait(t + seconds(10))) {
+		LOG(DEBUG) << "Starting worker";
+		this->run_worker();
+	}
+	else {
+		LOG(ERROR) << "Master process not ready";
+	}
+
+	LOG(DEBUG) << "Worker exiting";
+	_exit(0);
+}
+
+void Unix::process_master()
+{
+	this->save_pidfile();
+
+	try {
+		this->start_dns_proxy();
+		this->flush_dns();
+
+		this->setup_master_signals();
+		LOG(DEBUG) << "Parent: posting sync semaphore";
+		auto shm = shm_ptr_->get_object();
+		shm->sync_semaphore.post();
+	}
+	catch(const std::runtime_error& e) {
+		LOG(ERROR) << e.what();
+		Service::service_ptr->stop();
+	}
+
+	int status;
+	waitpid(worker_pid_, &status, 0);
+
+	if(WIFSIGNALED(status)) {
+		LOG(DEBUG) << "Service worker signaled with:" << WTERMSIG(status);
+	}
+	else if(WIFEXITED(status)) {
+		LOG(DEBUG) <<  "Service worker exit status:" << WEXITSTATUS(status);
+	}
+
+	this->stop_dns_proxy();
+	this->remove_pidfile();
+	LOG(DEBUG) << "Master process finished";
+}
+
+void Unix::process_foreground()
+{
+	this->start_dns_proxy();
+	this->flush_dns();
+	struct sigaction act;
+	memset(&act, 0, sizeof(act));
+	act.sa_sigaction = [](int sig, siginfo_t* /*siginfo*/, void* /*context*/) {
+		Service::signaled_exit = true;
+		Service::service_ptr->signal_stop();
+	};
+	act.sa_flags = SA_SIGINFO;
+
+	sigemptyset(&act.sa_mask);
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
+	sigaction(SIGHUP, &act, nullptr);
+
+	this->run_worker();
+	this->stop_dns_proxy();
+	this->flush_dns();
 }
 
 } // service

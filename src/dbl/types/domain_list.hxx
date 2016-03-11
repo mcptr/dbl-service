@@ -22,7 +22,7 @@ public:
 	boost::optional<std::string> description = std::string();
 	int active = int();
 	int custom = int();
-
+	int mtime = int();
 	std::vector<Domain> domains;
 
 	void init_from_json(const Json::Value& input);
@@ -48,6 +48,7 @@ struct type_conversion<DomainList>
 		r.name = v.get<std::string>("name");
 		r.active = v.get<int>("active");
 		r.custom = v.get<int>("custom");
+		r.mtime = v.get<int>("mtime");
 		r.description = v.get<boost::optional<std::string>>("description");
 	}
 	
@@ -60,6 +61,7 @@ struct type_conversion<DomainList>
 		v.set("name", r.name);
 		v.set("active", r.active);
 		v.set("custom", r.custom);
+		v.set("mtime", r.mtime);
 		set_optional_value(v, "description", r.description);
 
 		ind = i_ok;
