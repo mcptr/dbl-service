@@ -22,8 +22,7 @@ void Options::parse(int argc, char** argv, config::Config& config)
 	po::options_description http_responder("HTTP Responder");
 	po::options_description lists("DNS lists options");
 	po::options_description query("Querying options");
-	po::options_description operations("Operations");
-	po::options_description import_export("Import/Export");
+	po::options_description management("Management");
 	po::options_description config_file_options("");
 
 	string config_path;
@@ -65,14 +64,6 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		 po::value(&(config.is_test))->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Do not start/generate anything - just test init"
 		)
-		("no-chdir",
-		 po::value(&(config.no_chdir))->implicit_value(true)->zero_tokens()->default_value(false),
-		 "Do not chdir after daemonizing"
-		)
-		("no-close-fds",
-		 po::value(&(config.no_chdir))->implicit_value(true)->zero_tokens()->default_value(false),
-		 "Do not close file descriptors after daemonizing"
-		)
 		;
 	
 	service.add_options()
@@ -99,6 +90,14 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		 po::value(&(config.logger_config_path))->default_value(
 			 config.logger_config_path
 		 )
+		)
+		("no-chdir",
+		 po::value(&(config.no_chdir))->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Do not chdir after daemonizing"
+		)
+		("no-close-fds",
+		 po::value(&(config.no_chdir))->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Do not close file descriptors after daemonizing"
 		)
 		("pidfile",
 		 po::value(&(config.service_pidfile))->default_value(config.service_pidfile)
@@ -246,7 +245,8 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		 "Query/info mode"
 		)
 		("domain-lists,L",
-		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false)
+		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Show domain lists"
 		)
 		("domains,l",
 		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
@@ -258,7 +258,8 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		)
 		;
 
-	operations.add_options()
+
+	management.add_options()
 		("block,B",
 		 po::value<std::vector<std::string>>()->multitoken(),
 		 "Block domain(s)"
@@ -267,9 +268,6 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		 po::value<std::vector<std::string>>()->multitoken(),
 		 "Unblock domain(s)"
 		)
-		;
-
-	import_export.add_options()
 		("add-list,A",
 		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
 		 "Add list (requires name and url)"
@@ -286,21 +284,23 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		 po::value<std::string>()->default_value(""),
 		 "Description of a new list"
 		)
-		("export-lists,E", po::value<std::vector<std::string>>()->multitoken(),
-		 "Export lists"
+		("delete-list", po::value<std::string>()->default_value(""),
+		 "Delete list"
+		)
+		("export-lists,E", po::value<std::string>()->default_value(""),
+		 "Export list"
 		)
 		;
 
 	all_.add(flags)
-		.add(query)
 		.add(service)
 		.add(network)
 		.add(dnsproxy)
 		.add(dnsproxy_custom)
 		.add(http_responder)
 		.add(lists)
-		.add(operations)
-		.add(import_export);
+		.add(management)
+		.add(query);
 
 	try {
 		po::store(po::command_line_parser(argc, argv).options(all_).run(), vm_);

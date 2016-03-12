@@ -75,47 +75,17 @@ int main(int argc, char** argv)
 			db->init();
 
 			api.reset(new core::Api(config, db));
-		
+
 			if(po.get<bool>("query")) {
 				query::Query q(po, api);
 				bool success = q.run();
 				return (success ? EXIT_SUCCESS : EXIT_FAILURE);
 			}
 			else { // management
-				bool add_list =	po.get<bool>("add-list");
-
-				auto const export_lists =
-					po.get<std::vector<std::string>>("export-lists");
-
-				auto const block_domains =
-					po.get<std::vector<std::string>>("block");
-
-				auto const unblock_domains =
-					po.get<std::vector<std::string>>("unblock");
-
-				bool is_management = (
-					add_list ||
-					!export_lists.empty() ||
-					!block_domains.empty() ||
-					!unblock_domains.empty()
-				);
-
-				if(add_list) {
-					int new_list_id = mgmt::manage_add_list(
-						api, 
-						po.get<std::string>("list-name"),
-						po.get<std::string>("list-url"),
-						po.get<std::string>("list-description")
-					);
-
-					return (new_list_id ? EXIT_SUCCESS : EXIT_FAILURE);
-				}
-
-				mgmt::manage_domains(api, block_domains, unblock_domains);
-				mgmt::manage_export_lists(api, export_lists);
-
-				if(is_management) {
-					return EXIT_SUCCESS;
+				mgmt::Mgmt manager(api, po);
+				if(manager.has_work()) {
+					bool ok = manager.manage();
+					return (ok ? EXIT_SUCCESS : EXIT_FAILURE);
 				}
 			}
 

@@ -5,31 +5,70 @@
 namespace dbl {
 namespace mgmt {
 
-void manage_domains(std::shared_ptr<dbl::core::Api> api,
-					std::vector<std::string> block,
-					std::vector<std::string> unblock)
-{	
-	dbl::manager::DomainManager mgr(api);
+Mgmt::Mgmt(std::shared_ptr<core::Api> api,
+		   const Options po)
+	: api_(api),
+	  po_(po),
+	  add_list_(po.get<bool>("add-list")),
+	  delete_list_(po.get<std::string>("delete-list")),
+	  export_list_(po.get<std::string>("export-list")),
+	  block_domains_(po.get<std::vector<std::string>>("block")),
+	  unblock_domains_(po.get<std::vector<std::string>>("unblock"))
+{
+}
 
-	if(!unblock.empty()) {
-		mgr.unblock_domains(unblock);
+bool Mgmt::has_work() const
+{
+	return (
+		add_list_ ||
+		!delete_list_.empty() ||
+		!export_list_.empty() ||
+		!block_domains_.empty() ||
+		!unblock_domains_.empty()
+	);
+}
+
+bool Mgmt::manage()
+{
+	if(add_list_) {
+		return add_list();
+	}
+	else if(!delete_list_.empty()) {
+		return delete_list();
+	}
+	else if(!block_domains_.empty() || ! unblock_domains_.empty()) {
+		return manage_domains();
+	}
+	else if(!export_list_.empty()) {
+		return export_list();
 	}
 
-	if(!block.empty()) {
-		for(auto const& domain : block) {
+	return false;
+}
+
+bool Mgmt::manage_domains()
+{	
+	dbl::manager::DomainManager mgr(api_);
+
+	if(!unblock_domains_.empty()) {
+		mgr.unblock_domains(unblock_domains_);
+	}
+
+	if(!block_domains_.empty()) {
+		for(auto const& domain : block_domains_) {
 			// slow...
 			bool found = std::find(
-				unblock.begin(),
-				unblock.end(),
+				unblock_domains_.begin(),
+				unblock_domains_.end(),
 				domain
-			) != unblock.end();
+			) != unblock_domains_.end();
 
 			if(found) {
 				std::string msg(
 					"Conflicting domain (will be blocked): "
 				);
 				msg.append(domain);
-				if(api->config.is_fatal) {
+				if(api_->config.is_fatal) {
 					throw std::runtime_error(msg);
 				}
 				std::cerr << "WARNING: " << msg 
@@ -38,30 +77,29 @@ void manage_domains(std::shared_ptr<dbl::core::Api> api,
 			}
 		}
 
-		mgr.block_domains(block);
+		mgr.block_domains(block_domains_);
 	}
+
+	return true;
 }
 
-void manage_export_lists(std::shared_ptr<dbl::core::Api> api,
-						 std::vector<std::string> lst)
+bool Mgmt::export_list()
 {
-	if(lst.size()) {
-		dbl::manager::DomainListManager mgr(api);
-		for(auto const& name : lst) {
-			auto dl = mgr.get(name, true);
-			if(dl) {
-				std::cout << "\nList: " << name << std::endl;
-				std::cout << dl->to_json_string() << std::endl;
-			}
-		}
+	dbl::manager::DomainListManager mgr(api_);
+	auto dl = mgr.get(export_list_ , true);
+	if(dl) {
+		std::cout << dl->to_json_string() << std::endl;
 	}
+
+	return true;
 }
 
-bool manage_add_list(std::shared_ptr<dbl::core::Api> api,
-					 const std::string& name,
-					 const std::string& url,
-					 const std::string& description)
+bool Mgmt::add_list()
 {
+	const std::string name = po_.get<std::string>("list-name");
+	const std::string url = po_.get<std::string>("list-url");
+	const std::string description = po_.get<std::string>("list-description");
+
 	if(name.empty()) {
 		throw std::runtime_error("Cannot add list, name missing");
 	}
@@ -70,8 +108,13 @@ bool manage_add_list(std::shared_ptr<dbl::core::Api> api,
 		throw std::runtime_error("Cannot add list, url missing");
 	}
 
-	dbl::manager::DomainListManager mgr(api);
+	dbl::manager::DomainListManager mgr(api_);
 	return (mgr.create(name, url, description, false) > 0);
+}
+
+bool Mgmt::delete_list()
+{
+	return false;
 }
 
 } // mgmt

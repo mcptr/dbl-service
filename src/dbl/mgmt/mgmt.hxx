@@ -2,6 +2,7 @@
 #define DBL_MGMT_MGMT_HXX
 
 #include "dbl/core/api.hxx"
+#include "dbl/options/options.hxx"
 
 #include <string>
 #include <vector>
@@ -10,17 +11,31 @@
 namespace dbl {
 namespace mgmt {
 
-void manage_domains(std::shared_ptr<dbl::core::Api> api,
-					std::vector<std::string> block,
-					std::vector<std::string> unblock);
+class Mgmt
+{
+public:
+	Mgmt() = delete;
+	Mgmt(std::shared_ptr<core::Api> api,
+		 const Options po);
+	~Mgmt() = default;
 
-void manage_export_lists(std::shared_ptr<dbl::core::Api> api,
-						 std::vector<std::string> lst);
+	bool has_work() const;
+	bool manage();
+private:
+ 	std::shared_ptr<core::Api> api_;
+	const Options po_;
 
-bool manage_add_list(std::shared_ptr<dbl::core::Api> api,
-					 const std::string& name,
-					 const std::string& url,
-					 const std::string& description);
+	bool add_list_;
+	const std::string delete_list_;
+	const std::string export_list_;
+	const std::vector<std::string> block_domains_;
+	const std::vector<std::string> unblock_domains_;
+
+	bool add_list();
+	bool delete_list();
+	bool export_list();
+	bool manage_domains();
+};
 
 } // mgmt
 } // dbl

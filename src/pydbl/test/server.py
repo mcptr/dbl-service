@@ -110,6 +110,9 @@ class Server(object):
 	def get_dns_port(self):
 		return self._dns_proxy_port
 
+	def get_db(self):
+		return self._db
+
 	def tail_logfile(self):
 		with open(self._logfile, "r") as handle:
 			while not self._stop_threads_flag:
