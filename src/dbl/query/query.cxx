@@ -3,6 +3,7 @@
 #include "dbl/manager/domain_list_manager.hxx"
 
 #include <iostream>
+#include <iomanip>
 
 namespace dbl {
 namespace query {
@@ -54,9 +55,8 @@ bool Query::print_domain_details(const std::string& domain)
 	manager::DomainManager mgr(api_);
 	auto ptr = mgr.get(domain);
 	if(ptr && !ptr->name.empty()) {
-		std::cout << ptr->name << "\n"
-				  << "List: " << ptr->list_id 
-				  << ", " << ptr->list_name << "\n"
+		std::cout << ptr->name << " :"
+				  << ptr->list_name
 				  << std::endl;
 		return true;
 	}
