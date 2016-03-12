@@ -34,7 +34,6 @@ void Updater::update_lists()
 
 	auto const& ids = api_->config.list_ids;
 	for(auto& lst : *lists) {
-		LOG(INFO) << "########################" << lst.name;
 		if(lst.custom) {
 			//continue;
 		}

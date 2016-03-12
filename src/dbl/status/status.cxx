@@ -8,8 +8,6 @@ Status::Status()
 	: types::JSONSerializable()
 {
 	start_tstamp_ = time(nullptr);
-	LOG(INFO) << "CONSTRUCTING NEW STATUS #################################################"
-			  << start_tstamp_;
 }
 
 void Status::init_from_json(const Json::Value& /*root*/)

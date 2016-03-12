@@ -58,7 +58,6 @@ int main(int argc, char** argv)
 	}
 
 	while(!Service::signaled_exit) {
-		LOG(DEBUG) << "LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP";
 		init::setup_logging(po);
 
 		std::shared_ptr<core::Api> api;
