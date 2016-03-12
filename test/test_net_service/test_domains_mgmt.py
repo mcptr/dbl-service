@@ -4,7 +4,7 @@ import unittest
 
 
 class TestManageDomains(unittest.TestCase):
-	def test_all(self):
+	def test_block_unblock(self):
 		with Server() as server:
 			client = Client(server=server)
 			for cmd in ["block", "unblock"]:
