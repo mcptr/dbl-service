@@ -129,6 +129,7 @@ translation_units = {
 	"dbl/updater/updater" : {},
 	"dbl/util/crypto" : {},
 	"dbl/util/fs" : {},
+	"dbl/util/http" : {},
 	"dbl/validator/domain": {},
 }
 

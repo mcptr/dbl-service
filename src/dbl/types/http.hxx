@@ -1,16 +1,16 @@
-#ifndef DBL_NET_HTTP_TYPES_HXX
-#define DBL_NET_HTTP_TYPES_HXX
+#ifndef DBL_TYPES_HTTP_HXX
+#define DBL_TYPES_HTTP_HXX
 
 #include <unordered_map>
 
 namespace dbl {
-namespace net {
+namespace types {
 namespace http {
 
 typedef std::unordered_map<std::string, std::string> Headers_t;
 
 } // http
-} // net
+} // types
 } // dbl
 
 #endif

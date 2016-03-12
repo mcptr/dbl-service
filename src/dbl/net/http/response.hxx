@@ -1,7 +1,7 @@
 #ifndef DBL_NET_HTTP_RESPONSE_HXX
 #define DBL_NET_HTTP_RESPONSE_HXX
 
-#include "types.hxx"
+#include "dbl/types/http.hxx"
 #include <string>
 
 
@@ -27,7 +27,7 @@ private:
 	std::string body_;
 	long status_code_ = 0;
 
-	Headers_t headers_;
+	types::http::Headers_t headers_;
 };
 
 } // http

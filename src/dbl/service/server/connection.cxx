@@ -26,7 +26,9 @@ void Connection::read()
 		boost::asio::buffer(data_, MAX_REQUEST_SIZE),
 		[this, self](error_code error, std::size_t len) {
 			if(error) {
-				LOG(ERROR) << "Handler error: " << error;
+				if(error != boost::asio::error::connection_reset) {
+					LOG(ERROR) << "Handler error: " << error;
+				}
 			}
 			else {
 				std::string request;

@@ -11,10 +11,14 @@ const std::string settings_table_schema =
 	"  value VARCHAR(255) DEFAULT ''"
 	")";
 
+
+// WARNING: no unique constaint on url, although
+// in sqlite3 it would work.
 const std::string domain_lists_table_schema =
 	"CREATE TABLE IF NOT EXISTS domain_lists("
 	"  id INTEGER NOT NULL PRIMARY KEY, "
 	"  name VARCHAR(255) NOT NULL UNIQUE, "
+	"  url VARCHAR(255) DEFAULT NULL, "
 	"  description VARCHAR(255) DEFAULT '', "
 	"  active BOOLEAN NOT NULL DEFAULT 1, "
 	"  custom BOOLEAN NOT NULL DEFAULT 0, "

@@ -19,6 +19,7 @@ class DomainList : public JSONSerializable
 public:
 	int id = int();
 	std::string name = std::string();
+	boost::optional<std::string> url = std::string();
 	boost::optional<std::string> description = std::string();
 	int active = int();
 	int custom = int();
@@ -50,6 +51,7 @@ struct type_conversion<DomainList>
 		r.custom = v.get<int>("custom");
 		r.mtime = v.get<int>("mtime");
 		r.description = v.get<boost::optional<std::string>>("description");
+		r.url = v.get<boost::optional<std::string>>("url");
 	}
 	
 	static
@@ -62,6 +64,7 @@ struct type_conversion<DomainList>
 		v.set("active", r.active);
 		v.set("custom", r.custom);
 		v.set("mtime", r.mtime);
+		set_optional_value(v, "url", r.url);
 		set_optional_value(v, "description", r.description);
 
 		ind = i_ok;

@@ -1,8 +1,8 @@
 #include "response.hxx"
 #include "dbl/core/common.hxx"
+#include "dbl/util/http.hxx"
 
 #include <ctime>
-#include <boost/algorithm/string.hpp>
 
 
 namespace dbl {
@@ -56,19 +56,7 @@ const std::string& Response::get_data() const
 
 void Response::parse_headers()
 {
-	std::vector<std::string> lines;
-	boost::algorithm::split(lines, raw_headers_, boost::is_any_of("\r"));
-	for(auto const& line : lines) {
-		std::size_t idx = line.find(':', 0);
-		if(idx != std::string::npos) {
-			headers_.insert(
-				std::make_pair(
-					boost::algorithm::trim_copy(line.substr(0, idx)), 
-					boost::algorithm::trim_copy(line.substr(idx + 1))
-				)
-			);
-		}
-	}
+	dbl::util::http::parse_headers(raw_headers_, headers_);
 }
 
 } // http

@@ -45,8 +45,14 @@ void Updater::update_lists()
 		}
 
 		if(do_update) {
-			std::string url(core::constants::UPDATE_URL);
-			url.append("/" + lst.name + ".json");
+			std::string url;
+			if(lst.url.is_initialized()) {
+				url = lst.url.get();
+			}
+			else {
+				url = core::constants::UPDATE_URL;
+				url.append("/" + lst.name + ".json");
+			}
 			net::http::Request rq(url);
 			rq.set_if_modified_since(lst.mtime);
 			auto response_ptr = rq.fetch();

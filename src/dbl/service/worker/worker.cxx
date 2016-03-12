@@ -21,19 +21,22 @@ void Worker::run(std::condition_variable& cv)
 		: min_intval
 	);
 
-	while(!stop_flag_) {
-		bool quit = false;
-		std::unique_lock<std::mutex> lock(mtx_);
-		if(cv.wait_for(lock, intval) == std::cv_status::timeout) {
-			LOG(DEBUG) << "Worker running";
-			if(this->run_updater()) {
-				LOG(DEBUG) << "Service update ready.";
-				quit = true;
-			}
+	bool updated = this->run_updater();
+	if(!updated) {
+		while(!stop_flag_) {
+			bool quit = false;
+			std::unique_lock<std::mutex> lock(mtx_);
+			if(cv.wait_for(lock, intval) == std::cv_status::timeout) {
+				LOG(DEBUG) << "Worker running";
+				if(this->run_updater()) {
+					LOG(DEBUG) << "Service update ready.";
+					quit = true;
+				}
 
-			if(quit) {
-				LOG(DEBUG) << "Worker run finished";
-				break;
+				if(quit) {
+					LOG(DEBUG) << "Worker run finished";
+					break;
+				}
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 #ifndef DBL_NET_HTTP_REQUEST_HXX
 #define DBL_NET_HTTP_REQUEST_HXX
 
-#include "types.hxx"
+#include "dbl/types/http.hxx"
 
 #include <string>
 #include <memory>
@@ -44,7 +44,7 @@ private:
 	const std::string url_;
 	CurlPtr_t curl_ptr_;
 
-	Headers_t headers_;
+	types::http::Headers_t headers_;
 	std::string error_;
 	struct curl_slist* curl_headers_ = nullptr;
 
