@@ -274,7 +274,7 @@ void Unix::setup_master_signals()
 			Service::service_ptr->stop();
 			break;
 		case SIGCHLD:
-			Service::signaled_exit = true;
+			//Service::signaled_exit = true;
 			LOG(DEBUG) << "Parent caught SIGCHLD";
 			break;
 		default:

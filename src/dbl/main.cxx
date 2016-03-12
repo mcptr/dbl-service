@@ -39,25 +39,25 @@ int main(int argc, char** argv)
 
 	curl_global_init(CURL_GLOBAL_DEFAULT);
 
+	try {
+		po.parse(argc, argv, config);
+		if(po.get<bool>("debug")) {
+			po.dump_variables_map();
+		}
+
+		init::validate_options(po);
+	}
+	catch(std::exception& e) {
+		std::cerr << "Invalid command " << e.what() << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	if(po.has_help()) {
+		po.display_help();
+		return 0;
+	}
+
 	while(!Service::signaled_exit) {
-		try {
-			po.parse(argc, argv, config);
-			if(po.get<bool>("debug")) {
-				po.dump_variables_map();
-			}
-
-			init::validate_options(po);
-		}
-		catch(std::exception& e) {
-			std::cerr << "Invalid command " << e.what() << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		if(po.has_help()) {
-			po.display_help();
-			return 0;
-		}
-
 		init::setup_logging(po);
 
 		std::shared_ptr<core::Api> api;
@@ -149,7 +149,12 @@ int main(int argc, char** argv)
 		db.reset();
 		service::Service::service_ptr.reset();
 
-		LOG(INFO) << "##### Stopped.";
+		if(Service::signaled_exit) {
+			LOG(INFO) << "##### Stopped.";
+		}
+		else {
+			LOG(INFO) << "##### Stopped. Reloading.";
+		}
 	}
 
 	curl_global_cleanup();
