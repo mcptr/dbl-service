@@ -3,7 +3,7 @@ import unittest
 import sqlite3
 
 class TestListsMgmt(unittest.TestCase):
-	def test_add_list(self):
+	def test_list_operations(self):
 		manager = Manager(verbose=True)
 		list_name = "test-list"
 		list_url = "http://test.example.com/list"
@@ -27,3 +27,34 @@ class TestListsMgmt(unittest.TestCase):
 		self.assertEqual(record["name"], list_name)
 		self.assertEqual(record["url"], list_url)
 		self.assertEqual(record["description"], list_description)
+		self.assertEqual(record["active"], 1)
+
+		status = manager.run([
+			"--disable-list", list_name,
+		])
+
+		st = cur.execute(
+			"SELECT * from domain_lists where name = ?",
+			(list_name, ))
+		record = st.fetchone()
+		self.assertEqual(record["active"], 0, "List disabled")
+
+
+		status = manager.run([
+			"--enable-list", list_name,
+		])
+
+		st = cur.execute(
+			"SELECT * from domain_lists where name = ?",
+			(list_name, ))
+		record = st.fetchone()
+		self.assertEqual(record["active"], 1, "List enanled")
+		status = manager.run([
+			"--delete-list", list_name,
+		])
+		self.assertEqual(status, 0)
+		st = cur.execute(
+			"SELECT count(*) as cnt from domain_lists where name = ?",
+			(list_name, ))
+		record = st.fetchone()
+		self.assertEqual(record["cnt"], 0, "List removed")

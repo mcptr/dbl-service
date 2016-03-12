@@ -171,5 +171,41 @@ DomainListManager::get(const std::string& name, bool with_domains)
 	return std::move(ptr);
 }
 
+
+bool DomainListManager::remove(const std::string& name)
+{
+	try {
+		auto session_ptr = api_->db()->session();
+		session_ptr->begin();
+		*session_ptr << "DELETE FROM domain_lists where name = ?",
+			soci::use(name);
+		session_ptr->commit();
+	}
+	catch(const std::runtime_error& e) {
+		LOG(ERROR) << e.what();
+		return false;
+	}
+	return true;
+}
+
+bool DomainListManager::set_enabled(const std::string& name, bool enabled)
+{
+	try {
+		int state = int(enabled);
+		auto session_ptr = api_->db()->session();
+		session_ptr->begin();
+		*session_ptr << (
+			"UPDATE OR ABORT domain_lists "
+			"  SET active = ? where name = ?"),
+			soci::use(state), soci::use(name);
+		session_ptr->commit();
+	}
+	catch(const std::runtime_error& e) {
+		LOG(ERROR) << e.what();
+		return false;
+	}
+	return true;
+}
+
 } // manager
 } // dbl

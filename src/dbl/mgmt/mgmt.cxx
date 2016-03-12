@@ -12,6 +12,8 @@ Mgmt::Mgmt(std::shared_ptr<core::Api> api,
 	  add_list_(po.get<bool>("add-list")),
 	  delete_list_(po.get<std::string>("delete-list")),
 	  export_list_(po.get<std::string>("export-list")),
+	  enable_list_(po.get<std::string>("enable-list")),
+	  disable_list_(po.get<std::string>("disable-list")),
 	  block_domains_(po.get<std::vector<std::string>>("block")),
 	  unblock_domains_(po.get<std::vector<std::string>>("unblock"))
 {
@@ -23,6 +25,8 @@ bool Mgmt::has_work() const
 		add_list_ ||
 		!delete_list_.empty() ||
 		!export_list_.empty() ||
+		!enable_list_.empty() ||
+		!disable_list_.empty() ||
 		!block_domains_.empty() ||
 		!unblock_domains_.empty()
 	);
@@ -36,11 +40,17 @@ bool Mgmt::manage()
 	else if(!delete_list_.empty()) {
 		return delete_list();
 	}
-	else if(!block_domains_.empty() || ! unblock_domains_.empty()) {
-		return manage_domains();
+	else if(!enable_list_.empty()) {
+		return enable_list();
+	}
+	else if(!disable_list_.empty()) {
+		return disable_list();
 	}
 	else if(!export_list_.empty()) {
 		return export_list();
+	}
+	else if(!block_domains_.empty() || ! unblock_domains_.empty()) {
+		return manage_domains();
 	}
 
 	return false;
@@ -114,8 +124,22 @@ bool Mgmt::add_list()
 
 bool Mgmt::delete_list()
 {
-	return false;
+	dbl::manager::DomainListManager mgr(api_);
+	return mgr.remove(delete_list_);
 }
+
+bool Mgmt::enable_list()
+{
+	dbl::manager::DomainListManager mgr(api_);
+	return mgr.set_enabled(enable_list_, true);
+}
+
+bool Mgmt::disable_list()
+{
+	dbl::manager::DomainListManager mgr(api_);
+	return mgr.set_enabled(disable_list_, false);
+}
+
 
 } // mgmt
 } // dbl

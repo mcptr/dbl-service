@@ -22,6 +22,9 @@ public:
 			   const std::string& description,
 			   bool custom);
 
+	bool remove(const std::string& name);
+	bool set_enabled(const std::string& name, bool enabled = true);
+
 	// std::unique_ptr<types::DomainList>
 	// export_list(const std::string& name);
 

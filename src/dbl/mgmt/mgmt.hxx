@@ -28,12 +28,16 @@ private:
 	bool add_list_;
 	const std::string delete_list_;
 	const std::string export_list_;
+	const std::string enable_list_;
+	const std::string disable_list_;
 	const std::vector<std::string> block_domains_;
 	const std::vector<std::string> unblock_domains_;
 
 	bool add_list();
 	bool delete_list();
 	bool export_list();
+	bool enable_list();
+	bool disable_list();
 	bool manage_domains();
 };
 

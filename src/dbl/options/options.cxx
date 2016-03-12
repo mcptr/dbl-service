@@ -287,6 +287,12 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		("delete-list", po::value<std::string>()->default_value(""),
 		 "Delete list"
 		)
+		("enable-list", po::value<std::string>()->default_value(""),
+		 "Enable list"
+		)
+		("disable-list", po::value<std::string>()->default_value(""),
+		 "Disable list"
+		)
 		("export-lists,E", po::value<std::string>()->default_value(""),
 		 "Export list"
 		)

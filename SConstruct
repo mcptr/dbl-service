@@ -156,7 +156,7 @@ for tunit in sorted(translation_units):
 		"LIBS" : tunit_def.get("libs", []),
 		"LIBPATH" : tunit_def.get("libpath", []),
 	})
-	obj = tunit_env.SharedObject(
+	obj = tunit_env.Object(
 		os.path.join(Dirs.objects, tunit) + ".o",
 		os.path.join(Dirs.project_source, tunit) + ".cxx"
 	)
