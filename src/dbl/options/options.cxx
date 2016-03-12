@@ -270,6 +270,22 @@ void Options::parse(int argc, char** argv, config::Config& config)
 		;
 
 	import_export.add_options()
+		("add-list,A",
+		 po::value<bool>()->implicit_value(true)->zero_tokens()->default_value(false),
+		 "Add list (requires name and url)"
+		)
+		("list-name",
+		 po::value<std::string>()->default_value(""),
+		 "Name of a new list"
+		)
+		("list-url",
+		 po::value<std::string>()->default_value(""),
+		 "URL of a new list"
+		)
+		("list-description",
+		 po::value<std::string>()->default_value(""),
+		 "Description of a new list"
+		)
 		("export-lists,E", po::value<std::vector<std::string>>()->multitoken(),
 		 "Export lists"
 		)

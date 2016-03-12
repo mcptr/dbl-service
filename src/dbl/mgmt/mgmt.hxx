@@ -14,8 +14,13 @@ void manage_domains(std::shared_ptr<dbl::core::Api> api,
 					std::vector<std::string> block,
 					std::vector<std::string> unblock);
 
-void manage_import_export(std::shared_ptr<dbl::core::Api> api,
-						  std::vector<std::string> lst);
+void manage_export_lists(std::shared_ptr<dbl::core::Api> api,
+						 std::vector<std::string> lst);
+
+bool manage_add_list(std::shared_ptr<dbl::core::Api> api,
+					 const std::string& name,
+					 const std::string& url,
+					 const std::string& description);
 
 } // mgmt
 } // dbl

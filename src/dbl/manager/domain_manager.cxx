@@ -140,7 +140,7 @@ bool DomainManager::block_domains(const types::Names_t& domains,
 
 	if(!list_id) {
 		DomainListManager list_mgr(api_);
-		list_id = list_mgr.create("CUSTOM", "Custom list", true);
+		list_id = list_mgr.create("CUSTOM", "", "Custom list", true);
 	}
 
 	try {

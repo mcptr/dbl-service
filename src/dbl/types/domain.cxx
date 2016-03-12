@@ -19,7 +19,6 @@ void Domain::init_from_json(const Json::Value& root)
 		types::Errors_t errors;
 		if(is_valid(root["name"].asString(), errors)) {
 			name = root["name"].asString();
-			description = root["description"].asString();
 		}
 		else {
 			for(auto const& err : errors) {
@@ -33,13 +32,10 @@ void Domain::init_from_json(const Json::Value& root)
 void Domain::to_json(Json::Value& root) const
 {
 	root["name"] = name;
-
-	root["description"] = (
-		description.is_initialized()
-		? description.get() : ""
-	);
-
-	root["list_id"] = (list_id.is_initialized() ? list_id.get() : 0);
+	root["list_id"] = list_id;
+	if(list_name.is_initialized()) {
+		root["list_name"] = list_name.get();
+	}
 }
 
 } // types

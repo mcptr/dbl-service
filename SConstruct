@@ -102,6 +102,7 @@ translation_units = {
 	"dbl/dnsproxy/factory" : {},
 	"dbl/dnsproxy/unbound" : {},
 	"dbl/init/init" : {},
+	"dbl/logger/logger" : {},
 	"dbl/main" : {},
 	"dbl/manager/domain_manager": {},
 	"dbl/manager/domain_list_manager": {},

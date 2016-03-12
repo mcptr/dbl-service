@@ -14,6 +14,7 @@ DomainListManager::DomainListManager(std::shared_ptr<core::Api> api)
 }
 
 int DomainListManager::create(const std::string& name,
+							  const std::string& url,
 							  const std::string& description,
 							  bool custom)
 {
@@ -21,16 +22,15 @@ int DomainListManager::create(const std::string& name,
 	using types::DomainList;
 
 	std::string q(
-		"INSERT OR IGNORE INTO domain_lists(name, description, custom)"
-		"  VALUES(?, ?, ?)"
+		"INSERT OR REPLACE INTO domain_lists(name, url, description, custom)"
+		"  VALUES(?, ?, ?, ?)"
 	);
-
 	std::string list_name(name.empty() ? "CUSTOM" : name);
 	int is_custom = custom;
 	try {
 		auto session_ptr = api_->db()->session();
 		session_ptr->begin();
-		*session_ptr << q, use(list_name), use(description), use(is_custom);
+		*session_ptr << q, use(list_name), use(url), use(description), use(is_custom);
 		session_ptr->commit();
 		session_ptr.reset();
 
@@ -51,6 +51,7 @@ bool DomainListManager::import(const types::DomainList& lst, bool custom)
 	try {
 		int list_id = create(
 			lst.name,
+			(lst.url.is_initialized() ? lst.url.get() : ""),
 			(lst.description.is_initialized()
 			 ? lst.description.get() : ""),
 			custom
@@ -60,22 +61,18 @@ bool DomainListManager::import(const types::DomainList& lst, bool custom)
 		session_ptr->begin();
 
 		std::string q(
-			"INSERT OR REPLACE INTO domains(name, description, list_id)"
-			"  VALUES(?, ?, ?)"
+			"INSERT OR REPLACE INTO domains(name, list_id)"
+			"  VALUES(?, ?)"
 		);
 
 		std::string name;
-		std::string description;
 		statement st_ins = (
-			session_ptr->prepare << q, use(name), use(description), use(list_id)
+			session_ptr->prepare << q, use(name), use(list_id)
 		);
+
 		for(auto const& domain : lst.domains) {
-			LOG(INFO) << "IMPORTING DOMAIN: " << domain.name;
+			LOG(DEBUG) << "IMPORTING DOMAIN: " << domain.name;
 			name = domain.name;
-			description = (
-				domain.description.is_initialized() 
-				? domain.description.get() : ""
-			);
 			st_ins.execute(true);
 		}
 

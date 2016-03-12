@@ -45,14 +45,7 @@ void Query::print_blocked_domains()
 	manager::DomainManager mgr(api_);
 	auto ptr = mgr.get_blocked();
 	for(auto const& r : *ptr) {
-		std::cout << r.name;
-		if(api_->config.is_verbose) {
-			if(r.description.is_initialized()) {
-				std::cout << " - " << r.description.get();
-			}
-		}
-
-		std::cout << std::endl;
+		std::cout << r.name << std::endl;
 	}
 }
 
@@ -60,11 +53,10 @@ bool Query::print_domain_details(const std::string& domain)
 {
 	manager::DomainManager mgr(api_);
 	auto ptr = mgr.get(domain);
-	if(ptr->id) {
+	if(ptr && !ptr->name.empty()) {
 		std::cout << ptr->name << "\n"
 				  << "List: " << ptr->list_id 
 				  << ", " << ptr->list_name << "\n"
-				  << ptr->description
 				  << std::endl;
 		return true;
 	}

@@ -18,6 +18,7 @@ public:
 	bool import(const types::DomainListsSet_t& lst_set);
 
 	int create(const std::string& name,
+			   const std::string& url,
 			   const std::string& description,
 			   bool custom);
 

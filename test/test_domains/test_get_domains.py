@@ -69,9 +69,3 @@ class TestGetDomains(unittest.TestCase):
 				"example-test.com",
 				"Name"
 			)
-
-			self.assertEqual(
-				response.data()["domain"]["description"],
-				"",
-				"Description"
-			)

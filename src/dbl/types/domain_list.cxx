@@ -37,7 +37,6 @@ void DomainList::init_from_json(const Json::Value& root)
 				if(is_valid(item["name"].asString(), errors)) {
 					Domain domain;
 					domain.name = item["name"].asString();
-					domain.description = item["description"].asString();
 					domains.push_back(domain);
 				}
 				else {

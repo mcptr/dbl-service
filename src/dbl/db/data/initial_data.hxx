@@ -14,10 +14,6 @@ std::vector<std::string> domain_lists = {
 };
 
 std::vector<std::string> domains = {
-	"INSERT OR REPLACE INTO domains(name, list_id, description)"
-	"  VALUES('bogus.example.com',"
-	"    (SELECT id FROM domain_lists WHERE name = 'CUSTOM'),"
-	"   'Bogus domain')",
 };
 
 } // data

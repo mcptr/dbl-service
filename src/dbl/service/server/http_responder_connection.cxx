@@ -26,8 +26,7 @@ void HTTPResponderConnection::process_request(const std::string& request,
 
 	std::string domain = headers["Host"];
 	if(!domain.empty()) {
-		// TODO: LOG hit
-		LOG(DEBUG) << "HTTP HIT:" << domain;
+		api_->logger()->log_domain_hit(domain);
 	}
 	
 	reply.push_back(

@@ -82,6 +82,8 @@ int main(int argc, char** argv)
 				return (success ? EXIT_SUCCESS : EXIT_FAILURE);
 			}
 			else { // management
+				bool add_list =	po.get<bool>("add-list");
+
 				auto const export_lists =
 					po.get<std::vector<std::string>>("export-lists");
 
@@ -92,13 +94,25 @@ int main(int argc, char** argv)
 					po.get<std::vector<std::string>>("unblock");
 
 				bool is_management = (
+					add_list ||
 					!export_lists.empty() ||
 					!block_domains.empty() ||
 					!unblock_domains.empty()
 				);
 
+				if(add_list) {
+					int new_list_id = mgmt::manage_add_list(
+						api, 
+						po.get<std::string>("list-name"),
+						po.get<std::string>("list-url"),
+						po.get<std::string>("list-description")
+					);
+
+					return (new_list_id ? EXIT_SUCCESS : EXIT_FAILURE);
+				}
+
 				mgmt::manage_domains(api, block_domains, unblock_domains);
-				mgmt::manage_import_export(api, export_lists);
+				mgmt::manage_export_lists(api, export_lists);
 
 				if(is_management) {
 					return EXIT_SUCCESS;
@@ -132,7 +146,7 @@ int main(int argc, char** argv)
 			return EXIT_FAILURE;
 		}
 		catch(const std::exception& e) {
-			std::cerr << "Exception in main(): " << e.what() << std::endl;
+			std::cerr << "Error: " << e.what() << std::endl;
 			LOG(ERROR) << e.what();
 			LOG(ERROR) << "Aborting";
 			if(service::Service::service_ptr) {
@@ -158,14 +172,6 @@ int main(int argc, char** argv)
 	}
 
 	curl_global_cleanup();
-
-	// if(reexecute) {
-	// 	LOG(INFO) << "REEXECUTE " << bin_abs_path;
-	// 	strncpy(argv[0], bin_abs_path.c_str() + '\0', bin_abs_path.size() + 1);
-	// 	if(execv(bin_abs_path.c_str(), argv) < 0) {
-	// 		PLOG(ERROR) << "reexec";
-	// 	}
-	// }
 
 	return EXIT_SUCCESS;
 }

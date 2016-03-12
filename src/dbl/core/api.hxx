@@ -4,6 +4,7 @@
 #include "dbl/core/common.hxx"
 #include "dbl/config/config.hxx"
 #include "dbl/db/db.hxx"
+#include "dbl/logger/logger.hxx"
 #include "dbl/options/options.hxx"
 #include "dbl/status/status.hxx"
 
@@ -24,8 +25,10 @@ public:
 	status::Status status;
 	const config::Config& config;
 	std::shared_ptr<db::DB> db();
+	std::shared_ptr<logger::Logger> logger();
 private:
 	std::shared_ptr<db::DB> db_;
+	std::shared_ptr<logger::Logger> logger_;
 };
 
 } // core

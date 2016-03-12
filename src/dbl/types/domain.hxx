@@ -14,10 +14,8 @@ namespace types {
 class Domain : public JSONSerializable
 {
 public:
-	int id = int();
 	std::string name = std::string();
-	boost::optional<int> list_id = int();
-	boost::optional<std::string> description = std::string();
+	int list_id = int();
 	boost::optional<std::string> list_name = std::string();
 
 	void init_from_json(const Json::Value& input);
@@ -39,10 +37,8 @@ struct type_conversion<Domain>
 	static
 	void from_base(values const& v, indicator /* ind */, Domain& r)
 	{
-		r.id = v.get<int>("id");
 		r.name = v.get<std::string>("name");
-		r.list_id = v.get<boost::optional<int>>("list_id", 0);
-		r.description = v.get<boost::optional<std::string>>("description");
+		r.list_id = v.get<int>("list_id", 0);
 		r.list_name = v.get<boost::optional<std::string>>("list_name");
 	}
 	
@@ -51,10 +47,8 @@ struct type_conversion<Domain>
 	{
 		using namespace dbl::db::utils;
 
-		v.set("id", r.id);
 		v.set("name", r.name);
-		set_optional_value(v, "list_id", r.list_id);
-		set_optional_value(v, "description", r.description);
+		v.set("list_id", r.list_id);
 
 		ind = i_ok;
 	}

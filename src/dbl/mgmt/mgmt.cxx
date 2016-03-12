@@ -42,8 +42,8 @@ void manage_domains(std::shared_ptr<dbl::core::Api> api,
 	}
 }
 
-void manage_import_export(std::shared_ptr<dbl::core::Api> api,
-						  std::vector<std::string> lst)
+void manage_export_lists(std::shared_ptr<dbl::core::Api> api,
+						 std::vector<std::string> lst)
 {
 	if(lst.size()) {
 		dbl::manager::DomainListManager mgr(api);
@@ -55,6 +55,23 @@ void manage_import_export(std::shared_ptr<dbl::core::Api> api,
 			}
 		}
 	}
+}
+
+bool manage_add_list(std::shared_ptr<dbl::core::Api> api,
+					 const std::string& name,
+					 const std::string& url,
+					 const std::string& description)
+{
+	if(name.empty()) {
+		throw std::runtime_error("Cannot add list, name missing");
+	}
+
+	if(url.empty()) {
+		throw std::runtime_error("Cannot add list, url missing");
+	}
+
+	dbl::manager::DomainListManager mgr(api);
+	return (mgr.create(name, url, description, false) > 0);
 }
 
 } // mgmt

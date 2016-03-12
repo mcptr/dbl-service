@@ -39,6 +39,7 @@ void DB::init()
 	sql << DDL::domain_lists_table_schema;
 	sql << DDL::domains_table_schema;
 	sql << DDL::whitelisted_domains_table_schema;
+	sql << DDL::stats_domains_table_schema;
 
 	int total_lists = 0;
 	sql << "SELECT count(*) AS cnt FROM domain_lists",

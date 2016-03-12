@@ -1,6 +1,9 @@
 #ifndef DBL_DB_DDL_HXX
 #define DBL_DB_DDL_HXX
 
+#include <string>
+#include <vector>
+
 namespace dbl {
 namespace db {
 namespace DDL {
@@ -27,19 +30,21 @@ const std::string domain_lists_table_schema =
 
 const std::string domains_table_schema =
 	"CREATE TABLE IF NOT EXISTS domains("
-	"  id INTEGER NOT NULL PRIMARY KEY, "
+	"  name VARCHAR(255) NOT NULL PRIMARY KEY, "
 	"  list_id INTEGER NOT NULL, "
-	"  name VARCHAR(255) NOT NULL UNIQUE, "
-	"  description VARCHAR(255) DEFAULT '', "
 	"  FOREIGN KEY(list_id) REFERENCES domain_lists(id) "
 	"    ON UPDATE CASCADE ON DELETE CASCADE"
 	")";
 
 const std::string whitelisted_domains_table_schema =
 	"CREATE TABLE IF NOT EXISTS whitelisted_domains("
-	"  id INTEGER NOT NULL PRIMARY KEY, "
+	"  name VARCHAR(255) NOT NULL UNIQUE "
+	")";
+
+const std::string stats_domains_table_schema =
+	"CREATE TABLE IF NOT EXISTS stats_domains("
 	"  name VARCHAR(255) NOT NULL UNIQUE, "
-	"  description VARCHAR(255) DEFAULT '' "
+	"  hits INTEGER DEFAULT 0 "
 	")";
 
 } // DDL
