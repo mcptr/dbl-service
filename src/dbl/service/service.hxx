@@ -30,7 +30,6 @@ class ServiceSHM
 {
 public:
 	boost::interprocess::interprocess_semaphore sync_semaphore {0};
-	boost::interprocess::interprocess_semaphore reloader_semaphore {0};
 };
 
 class Service

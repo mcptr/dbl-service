@@ -1,6 +1,7 @@
 import os
 import time
 import logging
+import subprocess
 
 stdout_handler = logging.StreamHandler()
 
@@ -37,10 +38,7 @@ class Manager(object):
 			"dbl-db-%s.db" % self._instance_id
 		)
 
-	def get_db(self):
-		return self._db
-
-	def run(self, options):
+	def get_base_cmd(self):
 		cmd = [
 			self._executable,
 			"-v",
@@ -48,12 +46,26 @@ class Manager(object):
 			"--logfile", self._logfile,
 			"--logger-config-path", self._log_config_path,
 		]
+		return cmd
+
+	def get_db(self):
+		return self._db
+
+	def run(self, options):
+		cmd = self.get_base_cmd()
 		cmd.extend(options)
 		cmd = " ".join(cmd)
 		status = os.system(cmd)
 		if status:
 			self._logger.error(cmd)
 		return status
+
+	def read_cmd_output(self, options):
+		cmd = self.get_base_cmd()
+		cmd.extend(options)
+		cmd = " ".join(cmd)
+		output = subprocess.check_output(cmd, shell=True)
+		return output.decode("utf-8")
 
 	def __del__(self):
 		if self._kwargs.get("keep_db", False):
