@@ -153,8 +153,11 @@ void Unix::start_dns_proxy()
 		if(new_pid > 0) {
 			LOG(DEBUG) << "New dns proxy pid: " << new_pid;
 		}
+		else {
+			
+		}
 
-		if(new_pid == current_pid) {
+		if(new_pid == current_pid || new_pid < 0) {
 			std::string msg(
 				"\nFAILED to start dnsproxy service\n"
 				"\nSome init scripts report success even\n"
@@ -350,9 +353,15 @@ void Unix::process_master()
 	waitpid(worker_pid_, &status, 0);
 
 	if(WIFSIGNALED(status)) {
-		LOG(DEBUG) << "Service worker signaled with:" << WTERMSIG(status);
+		int sig = WTERMSIG(status);
+		LOG(DEBUG) << "Service worker signaled with:" << sig;
+		if(sig != SIGTERM && sig != SIGINT) {
+			LOG(ERROR) << "Service crashed, disabling auto reload";
+			Service::signaled_exit = true;
+		}
 	}
-	else if(WIFEXITED(status)) {
+
+	if(WIFEXITED(status)) {
 		LOG(DEBUG) <<  "Service worker exit status:" << WEXITSTATUS(status);
 	}
 
@@ -368,7 +377,12 @@ void Unix::process_foreground()
 	struct sigaction act;
 	memset(&act, 0, sizeof(act));
 	act.sa_sigaction = [](int sig, siginfo_t* /*siginfo*/, void* /*context*/) {
-		Service::signaled_exit = true;
+		switch(sig) {
+		case SIGTERM:
+ 		case SIGINT:
+			Service::signaled_exit = true;
+		break;
+		}
 		Service::service_ptr->signal_stop();
 	};
 	act.sa_flags = SA_SIGINFO;

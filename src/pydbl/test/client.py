@@ -65,5 +65,9 @@ class Client(object):
 		return result
 
 	def __del__(self):
-		self._conn.shutdown(socket.SHUT_RDWR)
-		self._conn.close()
+		try:
+			self._conn.shutdown(socket.SHUT_RDWR)
+			self._conn.close()
+		except OSError as e:
+			print(e)
+			

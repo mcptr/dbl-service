@@ -119,6 +119,7 @@ translation_units = {
 	"dbl/service/server/service_connection" : {},
 	"dbl/service/service" : {},
 	"dbl/service/worker/worker" : {},
+	"dbl/status/status": {},
 	"dbl/sys/command": {},
 	"dbl/sys/script/script": {},
 	"dbl/template/template": {},

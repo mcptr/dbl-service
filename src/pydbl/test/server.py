@@ -25,7 +25,10 @@ class Server(object):
 		self._project_root = os.getenv("PROJECT_ROOT")
 		self._virtual_env_root = os.getenv("VIRTUAL_ENV")
 		self._dns_proxy_port = random.randint(64500, 64550)
-		self._service_port = random.randint(64555, 64580)
+		self._address = kwargs.pop("address", "127.0.0.1")
+		self._service_port = kwargs.pop(
+			"service_port", random.randint(64555, 64580)
+		)
 		self._server_pid = None
 		self._pidfile = os.path.join(
 			self._virtual_env_root,
@@ -95,8 +98,11 @@ class Server(object):
 	def get_pid(self):
 		return self._server_pid
 
+	def get_pidfile_path(self):
+		return self._pidfile
+
 	def get_address(self):
-		return "127.0.0.1"
+		return self._address
 
 	def get_port(self):
 		return self._service_port

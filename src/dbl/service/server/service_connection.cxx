@@ -138,7 +138,7 @@ void ServiceConnection::handle_status(
 	types::Errors_t& /* errors */) const
 
 {
-	response["status"] = "alive";
+	response["status"] = Json::Value(api_->status);
 }
 
 void ServiceConnection::handle_flush_dns(
