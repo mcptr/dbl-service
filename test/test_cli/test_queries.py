@@ -18,9 +18,40 @@ class TestCLI(unittest.TestCase):
 
 		expected = "test-list :: Active: 1, Custom: 0 ::  description"
 		output = manager.read_cmd_output(["-QL"])
-		matched_lines = len(list(filter(
-			lambda l: l.strip() == expected, output.split("\n"))
-				 )
+		matched_lines = list(
+			filter(
+				lambda l: l.strip() == expected,
+				output.split("\n")
+			)
 		)
-		self.assertEqual(matched_lines, 1, "Found added list")
+		self.assertEqual(len(matched_lines), 1, "Found added list")
+
+	def test_domains(self):
+		manager = Manager(verbose=True)
+		domain = "cli-blocked-example.com"
+		status = manager.run(["-B", domain])
+		self.assertEqual(status, 0)
+
+		output = manager.read_cmd_output(["-Ql"])
+		matched_lines = list(
+			filter(
+				lambda l: l.strip() == domain,
+				output.split("\n")
+			)
+		)
+		self.assertEqual(len(matched_lines), 1, "Found domain")
+
+		status = manager.run(["-U", domain])
+		self.assertEqual(status, 0)
+
+		output = manager.read_cmd_output(["-Ql"])
+		matched_lines = list(
+			filter(
+				lambda l: l.strip() == domain,
+				output.split("\n")
+			)
+		)
+		self.assertEqual(
+			len(matched_lines), 0, "No domain (was unblocked)"
+		)
 
