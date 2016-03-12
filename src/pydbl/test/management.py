@@ -43,6 +43,7 @@ class Manager(object):
 	def run(self, options):
 		cmd = [
 			self._executable,
+			"-v",
 			"--db", self._db,
 			"--logfile", self._logfile,
 			"--logger-config-path", self._log_config_path,
@@ -53,3 +54,20 @@ class Manager(object):
 		if status:
 			self._logger.error(cmd)
 		return status
+
+	def __del__(self):
+		if self._kwargs.get("keep_db", False):
+			self._logger.warning("Keeping db: " + self._db)
+		else:
+			try:
+				os.unlink(self._db)
+			except OSError as e:
+				self._logger.error(e)
+
+		if self._kwargs.get("keep_logfile", False):
+			self._logger.warning("Keeping logfile: " + self._logfile)
+		else:
+			try:
+				os.unlink(self._logfile)
+			except OSError as e:
+				self._logger.error(e)

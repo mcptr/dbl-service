@@ -15,46 +15,75 @@ class TestListsMgmt(unittest.TestCase):
 			"--list-description", list_description,
 		])
 		self.assertEqual(status, 0)
-		
+
 		db = sqlite3.connect(manager.get_db())
 		cur = db.cursor()
 		cur.row_factory = sqlite3.Row
 
-		st = cur.execute(
-			"SELECT * from domain_lists where name = ?",
-			(list_name, ))
+		st = cur.execute("SELECT * FROM domain_lists WHERE name = ?", (list_name, ))
 		record = st.fetchone()
 		self.assertEqual(record["name"], list_name)
 		self.assertEqual(record["url"], list_url)
 		self.assertEqual(record["description"], list_description)
-		self.assertEqual(record["active"], 1)
+		self.assertEqual(record["active"], 1, "Created as active")
+
+		# add some domains
+		max_domains = 3
+		for i in range(0, max_domains):
+			cur.execute(
+				"INSERT INTO domains(name, list_id) VALUES (?, ?)",
+				("example-%d.com" % i, record["id"])
+			)
+			db.commit()
+
+		cur.execute(
+			"SELECT count(*) AS cnt FROM domains d" +
+			" JOIN domain_lists AS dl ON dl.id = d.list_id " +
+			" WHERE dl.name = ?",
+			(list_name, )
+		)
+		record = cur.fetchone()
+		self.assertEqual(record["cnt"], max_domains)
 
 		status = manager.run([
-			"--disable-list", list_name,
+			"--disable-list", list_name
 		])
 
+		self.assertEqual(status, 0, "Disable list command ok")
+
 		st = cur.execute(
-			"SELECT * from domain_lists where name = ?",
-			(list_name, ))
+			"SELECT * FROM domain_lists WHERE name = ?",
+			(list_name, )
+		)
 		record = st.fetchone()
 		self.assertEqual(record["active"], 0, "List disabled")
 
 
 		status = manager.run([
-			"--enable-list", list_name,
+			"--enable-list", list_name
 		])
+		self.assertEqual(status, 0, "Enable list command ok")
 
 		st = cur.execute(
-			"SELECT * from domain_lists where name = ?",
+			"SELECT * FROM domain_lists WHERE name = ?",
 			(list_name, ))
 		record = st.fetchone()
 		self.assertEqual(record["active"], 1, "List enanled")
 		status = manager.run([
-			"--delete-list", list_name,
+			"--delete-list", list_name
 		])
 		self.assertEqual(status, 0)
 		st = cur.execute(
-			"SELECT count(*) as cnt from domain_lists where name = ?",
+			"SELECT count(*) AS cnt FROM domain_lists WHERE name = ?",
 			(list_name, ))
 		record = st.fetchone()
 		self.assertEqual(record["cnt"], 0, "List removed")
+
+		cur.execute(
+			"SELECT count(*) AS cnt FROM domains d" +
+			" JOIN domain_lists dl ON dl.id = d.list_id " +
+			" WHERE dl.name = ?",
+			(list_name, )
+		)
+		record = cur.fetchone()
+		self.assertEqual(record["cnt"], 0)

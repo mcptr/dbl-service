@@ -192,12 +192,14 @@ bool DomainListManager::set_enabled(const std::string& name, bool enabled)
 {
 	try {
 		int state = int(enabled);
+		const std::string q = (
+			"UPDATE domain_lists "
+			"  SET active = ? WHERE name = ?"
+		);
+
 		auto session_ptr = api_->db()->session();
 		session_ptr->begin();
-		*session_ptr << (
-			"UPDATE OR ABORT domain_lists "
-			"  SET active = ? where name = ?"),
-			soci::use(state), soci::use(name);
+		*session_ptr << q, soci::use(state), soci::use(name);
 		session_ptr->commit();
 	}
 	catch(const std::runtime_error& e) {

@@ -6,24 +6,15 @@ import errno
 import getpass
 import shutil
 import threading
-import logging
 from subprocess import Popen, PIPE
 
-stdout_handler = logging.StreamHandler()
+from . management import Manager
 
 
-class Server(object):
+class Server(Manager):
 	def __init__(self, **kwargs):
-		self._instance_id = time.time()
-		self._kwargs = kwargs
-		self._verbose = kwargs.pop("verbose", False)
-		self._logger = logging.getLogger(__name__)
-		if self._verbose:
-			self._logger.addHandler(stdout_handler)
-		self._logger.setLevel(logging.DEBUG)
+		super().__init__()
 		self._server_process = None
-		self._project_root = os.getenv("PROJECT_ROOT")
-		self._virtual_env_root = os.getenv("VIRTUAL_ENV")
 		self._dns_proxy_port = random.randint(64500, 64550)
 		self._address = kwargs.pop("address", "127.0.0.1")
 		self._service_port = kwargs.pop(
@@ -36,23 +27,6 @@ class Server(object):
 			"dbl-test-%s.pid" % self._instance_id
 		)
 		self._server_params = kwargs.pop("params", {})
-		self._logfile = os.path.join(
-			self._virtual_env_root,
-			"tmp",
-			"dbl-log-%s.log" % self._instance_id
-		)
-		self._log_config_path = os.path.join(
-			self._project_root,
-			"service",
-			"etc",
-			"dnsblocker",
-			"log.conf"
-		)
-		self._db = os.path.join(
-			self._virtual_env_root,
-			"tmp",
-			"dbl-db-%s.db" % self._instance_id
-		)
 		self._templates_dir = os.path.join(
 			self._project_root,
 			"service",
@@ -67,8 +41,14 @@ class Server(object):
 			"dnsblocker-%s" % self._instance_id
 		)
 
-		self._tail_thread = threading.Thread(target=self.tail_logfile)
 		self._stop_threads_flag = False
+
+	def tail_logfile(self):
+		with open(self._logfile, "r") as handle:
+			while not self._stop_threads_flag:
+				data = handle.read()
+				if data:
+					self._logger.info(data.rstrip())
 
 	def _setup_env(self):
 		self._logger.info("Setting env")
@@ -78,16 +58,6 @@ class Server(object):
 
 	def _cleanup_env(self):
 		shutil.rmtree(self._dns_proxy_config_destdir)
-		if self._kwargs.pop("keep_logfile", False):
-			print("Preserved log file: ", self._logfile)
-		else:
-			os.unlink(self._logfile)
-
-		if self._kwargs.pop("keep_db", False):	
-			print("Preserved db: ", self._db)
-		else:
-			os.unlink(self._db)
-
 		try:
 			os.unlink(self._pidfile)
 		except OSError as e:
@@ -110,19 +80,11 @@ class Server(object):
 	def get_dns_port(self):
 		return self._dns_proxy_port
 
-	def get_db(self):
-		return self._db
-
-	def tail_logfile(self):
-		with open(self._logfile, "r") as handle:
-			while not self._stop_threads_flag:
-				data = handle.read()
-				if data:
-					self._logger.info(data.rstrip())
-
 	def __enter__(self):
 		self._setup_env()
-		self._tail_thread.start()
+		if self._verbose:
+			self._tail_thread = threading.Thread(target=self.tail_logfile)
+			self._tail_thread.start()
 
 		executable = os.path.join(
 			self._project_root, "service", "bin", "dnsblocker")
@@ -212,6 +174,8 @@ class Server(object):
 				if e.errno != errno.ESRCH:
 					self._logger.exception(e)
 					raise
-		self._stop_threads_flag = True
-		self._tail_thread.join()
+
+		if self._verbose:
+			self._stop_threads_flag = True
+			self._tail_thread.join()
 		self._cleanup_env()
