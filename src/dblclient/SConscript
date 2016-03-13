@@ -1,0 +1,34 @@
+import os
+Import("*")
+
+client_env = extend_env(env, {
+	"CPPPATH": [".", Dirs.source_service]
+})
+
+client_translation_units = {
+	"session": {},
+	"client": {},
+}
+
+client_platform_translation_units = {
+	"linux": {}
+}
+
+client_translation_units.update(
+	client_platform_translation_units[THIS_PLATFORM]
+)
+
+target_objects = list(
+	map(lambda u: client_env.SharedObject(u, "%s.cxx" % u),
+		client_translation_units
+	)
+)
+
+
+library = client_env.SharedLibrary(
+	"libdbclient",
+	[target_objects, common_target_objects]
+)
+
+target = client_env.Install(Dirs.lib_destdir, library)
+Return("target")

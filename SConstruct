@@ -11,7 +11,6 @@ AddOption(
 	default="clang",
 	help="compiler to use")
 
-
 AddOption(
 	"--enable-debug",
 	dest="debug_build",
@@ -26,15 +25,31 @@ AddOption(
 	default=False,
 	help="link statically")
 
+AddOption(
+	"--without-service",
+	dest="disable_server_build",
+	action="store_true",
+	default=False,
+	help="Do not build server")
+
+AddOption(
+	"--without-client",
+	dest="disable_client_build",
+	action="store_true",
+	default=False,
+	help="Do not client")
+
 
 class Dirs(object):
 	build = "#build"
 	objects = "%s/objs" % build
 	target = "%s/target" % build
 	source = "#src"
+	source_service = os.path.join("#src", "dbl")
 	extern_source = os.path.join(os.environ["VIRTUAL_ENV"], "include")
 	project_source = source
-	destdir = "bin"
+	destdir = "#bin"
+	lib_destdir = "#lib"
 
 
 MAIN_TARGET_NAME = "dnsblocker"
@@ -91,8 +106,18 @@ def extend_env(dest, src):
 		dest[item] = OrderedDict.fromkeys(dest[item]).keys()
 	return dest
 
+common_translation_units = {
+	"dbl/types/json_serializable": {},
+	"dbl/types/domain": {},
+	"dbl/types/domain_list": {},
+	"dbl/util/crypto" : {},
+	"dbl/validator/domain": {},
+	"dbl/net/http/request": {},
+	"dbl/net/http/response": {},
+	"dbl/util/http" : {},
+}
 
-translation_units = {
+server_translation_units = {
 	"dbl/auth/auth": {},
 	"dbl/core/api" : {},
 	"dbl/db/db": {},
@@ -109,8 +134,6 @@ translation_units = {
 	"dbl/manager/manager": {},
 	"dbl/manager/settings_manager": {},
 	"dbl/mgmt/mgmt": {},
-	"dbl/net/http/request": {},
-	"dbl/net/http/response": {},
 	"dbl/options/options" : {},
 	"dbl/query/query" : {},
 	"dbl/service/configurator/configurator" : {},
@@ -124,17 +147,11 @@ translation_units = {
 	"dbl/sys/command": {},
 	"dbl/sys/script/script": {},
 	"dbl/template/template": {},
-	"dbl/types/json_serializable": {},
-	"dbl/types/domain": {},
-	"dbl/types/domain_list": {},
 	"dbl/updater/updater" : {},
-	"dbl/util/crypto" : {},
 	"dbl/util/fs" : {},
-	"dbl/util/http" : {},
-	"dbl/validator/domain": {},
 }
 
-platform_translation_units = {
+server_platform_translation_units = {
 	"linux": {
 		"dbl/config/unix": {},
 		"dbl/service/configurator/unix" : {},
@@ -143,26 +160,51 @@ platform_translation_units = {
 	}
 }
 
-translation_units.update(platform_translation_units[THIS_PLATFORM])
+server_translation_units.update(server_platform_translation_units[THIS_PLATFORM])
 
-
+common_target_objects = []
 main_target_objects = []
 
-for tunit in sorted(translation_units):
-	tunit_def = translation_units[tunit]
+for tunit in sorted(common_translation_units):
+	tunit_def = common_translation_units[tunit]
 	tunit_env = tunit_def.get("env", env).Clone()
 	extend_env(tunit_env, {
 		"CPPPATH" : tunit_def.get("cpppath", []),
 		"LIBS" : tunit_def.get("libs", []),
 		"LIBPATH" : tunit_def.get("libpath", []),
 	})
-	obj = tunit_env.Object(
+	obj = tunit_env.SharedObject(
 		os.path.join(Dirs.objects, tunit) + ".o",
 		os.path.join(Dirs.project_source, tunit) + ".cxx"
 	)
-	main_target_objects.append(obj)
+	common_target_objects.append(obj)
 
-env.Program(
-	target=os.path.join(Dirs.destdir, MAIN_TARGET_NAME),
-	source=main_target_objects,
-)
+if not GetOption("disable_server_build"):
+	for tunit in sorted(server_translation_units):
+		tunit_def = server_translation_units[tunit]
+		tunit_env = tunit_def.get("env", env).Clone()
+		extend_env(tunit_env, {
+			"CPPPATH" : tunit_def.get("cpppath", []),
+			"LIBS" : tunit_def.get("libs", []),
+			"LIBPATH" : tunit_def.get("libpath", []),
+		})
+		obj = tunit_env.SharedObject(
+			os.path.join(Dirs.objects, tunit) + ".o",
+			os.path.join(Dirs.project_source, tunit) + ".cxx"
+		)
+		main_target_objects.append(obj)
+	env.Program(
+		target=os.path.join(Dirs.destdir, MAIN_TARGET_NAME),
+		source=[main_target_objects, common_target_objects]
+	)
+
+if not GetOption("disable_client_build"):
+	SConscript(
+		os.path.join(Dirs.source, "dblclient", "SConscript"),
+		exports=[
+			"extend_env", "env", "Dirs", "common_translation_units",
+			"common_target_objects", "THIS_PLATFORM", 
+		],
+		variant_dir=os.path.join(Dirs.build, "dblclient"),
+		duplicate=0
+	)
