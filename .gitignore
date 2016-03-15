@@ -7,6 +7,7 @@
 **/*.core
 
 # directories
+./lib/
 bin/
 build/
 logs/
