@@ -8,15 +8,12 @@ ServiceRequest::ServiceRequest(const std::string& cmd)
 {
 }
 
-std::unique_ptr<ServiceResponse> ServiceRequest::run() const
+std::string ServiceRequest::to_string() const
 {
-	std::string raw_response;
-	std::unique_ptr<ServiceResponse> ptr(
-		new ServiceResponse(raw_response)
-	);
-
-
-	return std::move(ptr);
+	Json::Value payload;
+	payload["command"] = cmd_;
+	payload["data"] = params_;
+	return payload.toStyledString();
 }
 
 } // net

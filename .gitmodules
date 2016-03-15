@@ -13,3 +13,6 @@
 [submodule "extern/repos/jsoncpp"]
 	path = extern/repos/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp
+[submodule "extern/repos/cxx-test-util"]
+	path = extern/repos/cxx-test-util
+	url = https://github.com/bartek-k/cxx-test-util.git

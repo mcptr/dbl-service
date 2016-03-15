@@ -1,22 +1,22 @@
 #include "session.hxx"
+#include "net/service_request.hxx"
 
 namespace dblclient {
 
+Session::Session()
+	: Session("127.0.0.1", 7654)
+{
+}
+
 Session::Session(const std::string& address,
 				 unsigned short port)
-	: address_(address),
-	  port_(port)
+	: connection_(net::ServiceConnection(address, port))
 {
 }
 
-bool Session::open()
+void Session::open()
 {
-	return false;
-}
-
-bool Session::close()
-{
-	return false;
+	connection_.open();
 }
 
 bool Session::authenticate()
@@ -27,7 +27,13 @@ bool Session::authenticate()
 bool Session::get_domain_lists(types::DomainListsSet_t& lst) const
 {
 	lst.clear();
-
+	net::ServiceRequest req("get_domain_lists");
+	auto response = connection_.execute(req);
+	if(response->is_ok()) {
+		for(auto const& domain : response->get_data()["domain_lists"]) {
+			
+		}
+	}
 	return lst.size();
 }
 

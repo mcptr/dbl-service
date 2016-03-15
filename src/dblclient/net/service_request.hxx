@@ -16,10 +16,10 @@ public:
 	explicit ServiceRequest(const std::string& cmd);
 	~ServiceRequest() = default;
 
-	std::unique_ptr<ServiceResponse> run() const;
-
 	template <class T>
 	void set_parameter(const std::string& name, const T& value = T());
+
+	std::string to_string() const;
 private:
 	const std::string cmd_;
 	Json::Value params_;

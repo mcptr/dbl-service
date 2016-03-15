@@ -8,6 +8,7 @@ client_env = extend_env(env, {
 client_translation_units = {
 	"session": {},
 	"client": {},
+	"net/service_connection": {},
 	"net/service_request": {},
 	"net/service_response": {},
 	"client": {},

@@ -3,7 +3,21 @@
 
 namespace dblclient {
 
-class DBLClientError : public std::runtime_error {};
+class DBLClientError : public std::runtime_error
+{
+public:
+	DBLClientError()
+		: std::runtime_error("Unknown error")
+	{
+	}
+
+	DBLClientError(const std::string& msg)
+		: std::runtime_error(msg)
+	{
+	}
+
+	virtual ~DBLClientError() = default;
+};
 
 } // dblclient
 
