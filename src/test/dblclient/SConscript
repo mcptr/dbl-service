@@ -1,0 +1,40 @@
+import os
+Import("*")
+
+test_env = extend_env(env, {
+	"CPPPATH": [".", Dirs.source_service]
+})
+
+translation_units = {
+	"utils/server",
+}
+
+platform_translation_units = {
+	"linux": {}
+}
+
+translation_units.update(
+	platform_translation_units[THIS_PLATFORM]
+)
+
+common_objects = list(
+	map(lambda u: test_env.SharedObject("%s.cxx" % u),
+		translation_units
+	)
+)
+
+test_units = [
+	"test_version",
+]
+
+test_targets = []
+for tu in test_units:
+	t = test_env.Program(
+		target=tu + ".bin",
+		source=["%s.cxx" % tu, common_objects]
+	)
+	test_targets.append(t)
+
+
+#targets = test_env.Install(Dirs.destdir, test_targets)
+#Return("targets")

@@ -39,6 +39,13 @@ AddOption(
 	default=False,
 	help="Do not client")
 
+AddOption(
+	"--with-tests",
+	dest="build_tests",
+	action="store_true",
+	default=False,
+	help="Build tests")
+
 
 class Dirs(object):
 	build = "#build"
@@ -46,7 +53,7 @@ class Dirs(object):
 	target = "%s/target" % build
 	source = "#src"
 	source_service = os.path.join("#src", "dbl")
-	extern_source = os.path.join(os.environ["VIRTUAL_ENV"], "include")
+	extern_include = os.path.join(os.environ["VIRTUAL_ENV"], "include")
 	project_source = source
 	destdir = "#bin"
 	lib_destdir = "#lib"
@@ -79,7 +86,7 @@ builder.add_library(
 	"crypto",
 )
 
-builder.add_include_path(Dirs.source, Dirs.extern_source)
+builder.add_include_path(Dirs.source, Dirs.extern_include)
 
 build_options = {}
 
@@ -193,6 +200,7 @@ if not GetOption("disable_server_build"):
 			os.path.join(Dirs.project_source, tunit) + ".cxx"
 		)
 		main_target_objects.append(obj)
+
 	env.Program(
 		target=os.path.join(Dirs.destdir, MAIN_TARGET_NAME),
 		source=[main_target_objects, common_target_objects]
@@ -208,3 +216,26 @@ if not GetOption("disable_client_build"):
 		variant_dir=os.path.join(Dirs.build, "dblclient"),
 		duplicate=0
 	)
+
+if GetOption("build_tests"):
+	test_env = extend_env(env, {
+		"LIBS": ["cxxtestutil"]
+	})
+	test_sconscripts = {
+		"dblclient": os.path.join(
+			Dirs.source, "test", "dblclient", "SConscript"
+		),
+	}
+
+	exports = [
+		"extend_env", "env", "Dirs", "common_translation_units",
+		"common_target_objects", "THIS_PLATFORM", 
+	]
+
+	for test_builder in test_sconscripts:
+		SConscript(
+			test_sconscripts[test_builder],
+			exports=exports,
+			variant_dir=os.path.join(Dirs.build, "tests", test_builder),
+			duplicate=0
+		)

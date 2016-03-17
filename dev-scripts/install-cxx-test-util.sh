@@ -9,7 +9,12 @@ ME=$(readlink -f $0)
 MY_DIR=$(dirname $ME)
 EXTERNDIR=$(readlink -f "$MY_DIR/../extern")
 INCLUDEDIR="$VIRTUAL_ENV/include"
+LIBDIR="$VIRTUAL_ENV/lib"
 
-mkdir -p $INCLUDEDIR/cxx-test-util
-cp -R $EXTERNDIR/repos/cxx-test-util/tools/* $INCLUDEDIR/cxx-test-util
+rm -rf $INCLUDEDIR/cxx-test-util
+cwd=`pwd`
+cd $EXTERNDIR/repos/cxx-test-util/
+make
+cp -p $EXTERNDIR/repos/cxx-test-util/build/target/libcxxtestutil.so $LIBDIR
+cp -R $EXTERNDIR/repos/cxx-test-util/src/include $INCLUDEDIR/cxx-test-util
 

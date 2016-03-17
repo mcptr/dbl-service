@@ -29,10 +29,16 @@ target_objects = list(
 )
 
 
-library = client_env.SharedLibrary(
+shared_library = client_env.SharedLibrary(
 	"libdbclient",
 	[target_objects, common_target_objects]
 )
 
-target = client_env.Install(Dirs.lib_destdir, library)
-Return("target")
+static_library = client_env.Library(
+	"libdbclient",
+	[target_objects, common_target_objects]
+)
+
+target_shared = client_env.Install(Dirs.lib_destdir, shared_library)
+target_static = client_env.Install(Dirs.lib_destdir, static_library)
+Return("target_static", "target_shared")

@@ -333,8 +333,6 @@ void Unix::process_worker()
 
 void Unix::process_master()
 {
-	this->save_pidfile();
-
 	try {
 		this->start_dns_proxy();
 		this->flush_dns();
@@ -348,6 +346,8 @@ void Unix::process_master()
 		LOG(ERROR) << e.what();
 		Service::service_ptr->stop();
 	}
+
+	this->save_pidfile();
 
 	int status;
 	waitpid(worker_pid_, &status, 0);
