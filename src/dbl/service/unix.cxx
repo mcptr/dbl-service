@@ -320,6 +320,7 @@ void Unix::process_worker()
 	LOG(DEBUG) << "Waiting for master process";
 	auto shm = shm_ptr_->get_object();
 	if(shm->sync_semaphore.timed_wait(t + seconds(10))) {
+		shm->sync_semaphore.post();
 		LOG(DEBUG) << "Starting worker";
 		this->run_worker();
 	}
@@ -333,6 +334,8 @@ void Unix::process_worker()
 
 void Unix::process_master()
 {
+	using namespace boost::posix_time;
+
 	try {
 		this->start_dns_proxy();
 		this->flush_dns();
@@ -341,6 +344,12 @@ void Unix::process_master()
 		LOG(DEBUG) << "Parent: posting sync semaphore";
 		auto shm = shm_ptr_->get_object();
 		shm->sync_semaphore.post();
+		ptime t = microsec_clock::universal_time();
+		LOG(DEBUG) << "Waiting for service to get ready";
+		if(!shm->sync_semaphore.timed_wait(t + seconds(3))) {
+			throw std::runtime_error("Service startup timeout");
+		}
+
 	}
 	catch(const std::runtime_error& e) {
 		LOG(ERROR) << e.what();

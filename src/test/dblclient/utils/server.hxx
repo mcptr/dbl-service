@@ -11,8 +11,10 @@ class Server : public TestDaemon
 {
 public:
 	Server();
+	Server(bool verbose);
 	explicit Server(const std::string& address,
-					int port = 7654);
+					int port = 7654,
+					bool verbose = false);
 
 	void set_arguments(std::vector<std::string>& args);
 	bool is_ready() const;

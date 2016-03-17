@@ -16,8 +16,13 @@ Server::Server()
 {
 }
 
-Server::Server(const std::string& address, int port)
-	: TestDaemon(),
+Server::Server(bool verbose)
+	: Server("127.0.0.1", 7654, verbose)
+{
+}
+
+Server::Server(const std::string& address, int port, bool verbose)
+	: TestDaemon(verbose),
 	  address_(address),
 	  port_(port)
 {
@@ -75,11 +80,6 @@ void Server::set_arguments(std::vector<std::string>& args)
 	args.push_back("--service-port=" + std::to_string(port_));
 	args.push_back("--db=" + db_);
 	args.push_back("--templates-dir=" + templates_dir_);
-
-	// for(auto& it :args) {
-	// 	std::cout << it << " ";
-	// }
-	// std::cout << std::endl;
 }
 
 pid_t Server::get_pid() const
