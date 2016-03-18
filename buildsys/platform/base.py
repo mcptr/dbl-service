@@ -24,7 +24,7 @@ class Base(object):
 		return []
 
 	def as_dict(self, **kwargs):
-		libpath = ["extern/root/lib", "extern/root/lib64"]
+		libpath = []
 		libpath.extend(self.get_lib_paths())
 		return dict(
 			LIBPATH=libpath,

@@ -81,7 +81,9 @@ class Builder(object):
 		self._static_build = True
 
 	def set_debug_build(self):
-		self._config["CXXFLAGS"].append("-g")
+		self._config["CXXFLAGS"].append(
+			self.compiler.get_debug_flags()
+		)
 
 	def as_dict(self):
 		if self._static_build:

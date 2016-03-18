@@ -42,6 +42,10 @@ class Base(object):
 		# print("Configuring compiler '%s' for platform '%s'" % (self.name, platform))
 		pass
 
+
+	def get_debug_flags(self):
+		return ["-g"]
+
 	def get_libs(self):
 		return []
 

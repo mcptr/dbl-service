@@ -1,5 +1,6 @@
 #include "client.hxx"
 
+
 namespace dbclient {
 
 extern "C" {

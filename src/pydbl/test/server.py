@@ -51,7 +51,7 @@ class Server(Manager):
 					self._logger.info(data.rstrip())
 
 	def _setup_env(self):
-		self._logger.info("Setting env")
+		#self._logger.info("Setting env")
 		os.makedirs(self._dns_proxy_config_destdir)
 		with open(self._logfile, "w+") as lh:
 			lh.write("# Test case log\n")
@@ -123,7 +123,7 @@ class Server(Manager):
 
 		self._server_process = Popen(cmd, stdout=PIPE, shell=False)
 		wait = 25
-		self._logger.debug("Waiting for pidfile")
+		#self._logger.debug("Waiting for pidfile")
 		while wait and not os.path.isfile(self._pidfile):
 			time.sleep(0.1)
 			wait -= 1
@@ -144,7 +144,7 @@ class Server(Manager):
 		except Exception as e:
 			self._logger.exception(e)
 			self._stop_threads_flag = True
-		self._logger.debug("### Server: Server ready")
+		#self._logger.debug("### Server: Server ready")
 		return self
 
 	def __exit__(self, tp, value, tb):
@@ -152,7 +152,7 @@ class Server(Manager):
 			pid = int(fh.read())
 			wait = 500
 			try:
-				self._logger.debug("### Stopping server %d" % pid)
+				#self._logger.debug("### Stopping server %d" % pid)
 				os.kill(pid, signal.SIGTERM)
 				is_alive = True
 				while wait and is_alive:

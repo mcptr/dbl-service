@@ -98,10 +98,11 @@ env = Environment(**builder.as_dict())
 env["ENV"]["TERM"] = os.environ.get("TERM")
 
 
-def extend_env(dest, src):
+def extend_env(src_env, params):
+	dest = src_env.Clone()
 	entities = ["CXXFLAGS", "CPPPATH", "LIBS", "LIBPATH"]
-	src = src if isinstance(src, list) else [src]
-	for skel in src:
+	params = params if isinstance(params, list) else [params]
+	for skel in params:
 		for item in entities:
 				if not dest.get(item):
 					dest[item] = []
@@ -218,9 +219,6 @@ if not GetOption("disable_client_build"):
 	)
 
 if GetOption("build_tests"):
-	test_env = extend_env(env, {
-		"LIBS": ["cxxtestutil"]
-	})
 	test_sconscripts = {
 		"dblclient": os.path.join(
 			Dirs.source, "test", "dblclient", "SConscript"
@@ -228,8 +226,9 @@ if GetOption("build_tests"):
 	}
 
 	exports = [
-		"extend_env", "env", "Dirs", "common_translation_units",
-		"common_target_objects", "THIS_PLATFORM", 
+		"extend_env", "env", "Dirs",
+		"common_translation_units",	"common_target_objects",
+		"THIS_PLATFORM", 
 	]
 
 	for test_builder in test_sconscripts:

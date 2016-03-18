@@ -2,7 +2,11 @@ import os
 Import("*")
 
 test_env = extend_env(env, {
-	"CPPPATH": [".", Dirs.source_service]
+	"CPPPATH": [".", Dirs.source_service],
+	"LIBS": ["dblclient", "cxxtestutil"],
+	"LIBPATH": [
+		os.path.join(Dirs.lib_destdir)
+	],
 })
 
 translation_units = {
@@ -35,6 +39,5 @@ for tu in test_units:
 	)
 	test_targets.append(t)
 
-
-#targets = test_env.Install(Dirs.destdir, test_targets)
-#Return("targets")
+targets = test_env.Install(Dirs.destdir, test_targets)
+Return("targets")
