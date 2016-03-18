@@ -1,4 +1,5 @@
 #include "service_connection.hxx"
+#include "dbl/core/constants.hxx"
 #include "dbl/types/types.hxx"
 #include "dbl/manager/domain_manager.hxx"
 #include "dbl/manager/domain_list_manager.hxx"
@@ -116,6 +117,9 @@ void ServiceConnection::dispatch(const std::string& cmd,
 		else if(cmd.compare("delete_list") == 0) {
 			handle_delete_list(data, response_json, errors);
 		}
+		else if(cmd.compare("get_version") == 0) {
+			handle_get_version(data, response_json, errors);
+		}
 		else if(cmd.compare("get_domain") == 0) {
 			handle_get_domain(data, response_json, errors);
 		}
@@ -226,6 +230,14 @@ void ServiceConnection::handle_get_lists(
 	for(auto const& lst : *result_ptr) {
 		response["domain_lists"].append((Json::Value)lst);
 	}
+}
+
+void ServiceConnection::handle_get_version(
+		const Json::Value& /*data*/,
+		Json::Value& response,
+		types::Errors_t& /*errors*/) const
+{
+	response["version"] = dbl::core::constants::VERSION;
 }
 
 void ServiceConnection::handle_get_domain(

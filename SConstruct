@@ -53,6 +53,7 @@ class Dirs(object):
 	target = "%s/target" % build
 	source = "#src"
 	source_service = os.path.join("#src", "dbl")
+	source_dblclient = os.path.join("#src", "dblclient")
 	extern_include = os.path.join(os.environ["VIRTUAL_ENV"], "include")
 	project_source = source
 	destdir = "#bin"

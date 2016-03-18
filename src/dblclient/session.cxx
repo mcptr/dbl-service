@@ -1,5 +1,6 @@
 #include "session.hxx"
 #include "net/service_request.hxx"
+#include <iostream>
 
 namespace dblclient {
 
@@ -17,6 +18,24 @@ Session::Session(const std::string& address,
 void Session::open()
 {
 	connection_.open();
+}
+
+std::string Session::get_raw_data(const std::string& cmd) const
+{
+	net::ServiceRequest req(cmd);
+	auto response = connection_.execute(req);
+	return response->get_data().asString();
+}
+
+std::string Session::get_server_version() const
+{
+	net::ServiceRequest req("get_version");
+	auto response = connection_.execute(req);
+	if(response->is_ok()) {
+		return response->get_data().asString();
+	}
+
+	return "";
 }
 
 bool Session::authenticate()

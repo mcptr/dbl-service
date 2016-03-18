@@ -2,7 +2,7 @@ import os
 Import("*")
 
 test_env = extend_env(env, {
-	"CPPPATH": [".", Dirs.source_service],
+	"CPPPATH": [".", Dirs.source_service, Dirs.source],
 	"LIBS": ["dblclient", "cxxtestutil"],
 	"LIBPATH": [
 		os.path.join(Dirs.lib_destdir)

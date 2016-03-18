@@ -8,6 +8,7 @@ namespace core {
 namespace constants {
 
 const std::string UPDATE_URL = "http://noise-nation.net/lists";
+const std::string VERSION = "0.0.1";
 
 } // constants
 } // core

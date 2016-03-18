@@ -11,7 +11,7 @@ deactivate nondestructive
 
 setenv VIRTUAL_ENV "$HOME/Devel/dbl"
 setenv PROJECT_ROOT "$VIRTUAL_ENV/project"
-setenv LD_LIBRARY_PATH "$VIRTUAL_ENV/lib:$VIRTUAL_ENV/lib64"
+setenv LD_LIBRARY_PATH "$VIRTUAL_ENV/lib:$VIRTUAL_ENV/lib64:$VIRTUAL_ENV/project/service/lib"
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/bin:$PATH"
@@ -21,17 +21,7 @@ setenv PYTHONPATH "$PROJECT_ROOT/src"
 set _OLD_VIRTUAL_PROMPT="$prompt"
 
 if (! "$?VIRTUAL_ENV_DISABLE_PROMPT") then
-    if ("nix" != "") then
-        set env_name = "dbl"
-    else
-        if (`basename "VIRTUAL_ENV"` == "__") then
-            # special case for Aspen magic directories
-            # see http://www.zetadev.com/software/aspen/
-            set env_name = `basename \`dirname "$VIRTUAL_ENV"\``
-        else
-            set env_name = `basename "$VIRTUAL_ENV"`
-        endif
-    endif
+    set env_name = "dbl"
     set prompt = "[$env_name] $prompt"
     unset env_name
 endif

@@ -19,7 +19,11 @@ public:
 
 	void open();
 
+	std::string get_raw_data(const std::string& cmd) const;
+
 	bool authenticate();
+	std::string get_server_version() const;
+
 	bool get_domain_lists(types::DomainListsSet_t& lst) const;
 	bool get_blocked_domains(types::DomainSet_t& lst) const;
 

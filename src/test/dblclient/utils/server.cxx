@@ -1,4 +1,5 @@
 #include "server.hxx"
+#include "common.hxx"
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -6,8 +7,9 @@
 
 #include <stdexcept>
 #include <random>
-#include <iostream>
 #include <fstream>
+#include <cstdio>
+#include <boost/filesystem.hpp>
 
 namespace test {
 
@@ -44,19 +46,24 @@ Server::Server(const std::string& address, int port, bool verbose)
 		"cxx-test-dnsblocker-" + std::to_string(getpid())
 	);
 
-	std::string instance_tmp_dir = "/tmp/" + instance_name;
+	instance_tmp_dir_ = "/tmp/" + instance_name;
 	std::string instance_etc_dir = (
 		project_root_ + "/service/etc/dnsblocker"
 	);
 
-	pidfile_ = instance_tmp_dir + "/server.pid";
-	logfile_ = instance_tmp_dir + "/server.log";
+	pidfile_ = instance_tmp_dir_ + "/server.pid";
+	logfile_ = instance_tmp_dir_ + "/server.log";
 
 	logger_config_path_ = instance_etc_dir + "/log.conf";
 	templates_dir_ = instance_etc_dir + "/templates";
 
-	dns_proxy_config_destdir_ = instance_tmp_dir;
-	db_ = instance_tmp_dir + "/service.db";
+	dns_proxy_config_destdir_ = instance_tmp_dir_;
+	db_ = instance_tmp_dir_ + "/service.db";
+}
+
+Server::~Server()
+{
+	cleanup();
 }
 
 void Server::set_arguments(std::vector<std::string>& args)
@@ -80,6 +87,16 @@ void Server::set_arguments(std::vector<std::string>& args)
 	args.push_back("--service-port=" + std::to_string(port_));
 	args.push_back("--db=" + db_);
 	args.push_back("--templates-dir=" + templates_dir_);
+}
+
+const std::string& Server::get_address() const
+{
+	return address_;
+}
+
+int Server::get_port() const
+{
+	return port_;
 }
 
 pid_t Server::get_pid() const
@@ -108,7 +125,7 @@ bool Server::is_ready() const
 	}
 
 	// TODO: This is racy. Check if we're able to connect.
-	// Pidfile maybe created before the service starts.
+	// Pidfile may be created before the service starts.
 
 	return true;
 }
@@ -124,5 +141,11 @@ std::string Server::get_current_user() const
 	return "";
 }
 
+void Server::cleanup() const
+{
+	if(!boost::filesystem::remove_all(instance_tmp_dir_)) {
+		LOG(ERROR) << "Unable to remove " << instance_tmp_dir_;
+	}
+}
 
 } // test
