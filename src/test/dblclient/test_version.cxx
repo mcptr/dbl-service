@@ -9,7 +9,10 @@ int main(int argc, char** argv)
 
 	UnitTest unit_test;
 
-	std::unique_ptr<Server> server(new Server(true));
+	std::unique_ptr<Server> server(
+		new Server()
+	);
+
 	Session session(server->get_address(), server->get_port());
 	session.open();
 

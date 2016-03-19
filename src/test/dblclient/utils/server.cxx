@@ -143,8 +143,11 @@ std::string Server::get_current_user() const
 
 void Server::cleanup() const
 {
-	if(!boost::filesystem::remove_all(instance_tmp_dir_)) {
-		LOG(ERROR) << "Unable to remove " << instance_tmp_dir_;
+	if(no_cleanup_) {
+		LOG(INFO) << "Preserved directory: " << instance_tmp_dir_;
+	}
+	else {
+		boost::filesystem::remove_all(instance_tmp_dir_);
 	}
 }
 
