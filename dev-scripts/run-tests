@@ -1,0 +1,82 @@
+#!python3
+
+import os
+import sys
+import argparse
+
+my_dir = os.path.abspath(os.path.dirname(__file__))
+root_dir = os.path.dirname(my_dir)
+
+class Runner(object):
+	def __init__(self, args):
+		self.args = args
+
+	def run_python_tests(self):
+		cmd = [
+			"nosetests --nologcapture",
+			os.path.join(root_dir, "test")
+		]
+		if self.args.verbose:
+			cmd.extend(["--logging-level=DEBUG", "-v", "-s"])
+		self.python_tests_failed = (os.system(" ".join(cmd)) != 0)
+		return self.python_tests_failed
+
+	def run_cxx_tests(self):
+		res = []
+		for (r, d, files) in os.walk(os.path.join(root_dir, "bin")):
+			for f in filter(lambda x: x.endswith(".bin"), files):
+				binary = os.path.join(r, f)
+				status = os.system(binary)
+				if status != 0:
+					res.append(binary)
+		if res:
+			print("")
+			for t in sorted(res):
+				print("Failed CXX:", t)
+		return len(res) == 0
+
+	def run(self):
+		res = {}
+		if not self.args.no_python_tests:
+			res["py"] = self.run_python_tests()
+		if not self.args.no_cxx_tests:
+			res["cxx"] = self.run_cxx_tests()
+		return (
+			len(list(filter(lambda t: res[t] == False, res))) == 0
+		)
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+	"-v", "--verbose",
+	dest="verbose",
+	action="store_true"
+)
+
+parser.add_argument(
+	"-D", "--debug",
+	dest="debug",
+	action="store_true"
+)
+
+parser.add_argument(
+	"-P", "--no-python-tests",
+	dest="no_python_tests",
+	action="store_true",
+	default=False,
+)
+
+parser.add_argument(
+	"-C", "--no-cxx-tests",
+	dest="no_cxx_tests",
+	action="store_true",
+	default=False,
+)
+
+args = parser.parse_args()
+
+runner = Runner(args)
+status = runner.run()
+
+if not status:
+	sys.exit(1)
+sys.exit(0)

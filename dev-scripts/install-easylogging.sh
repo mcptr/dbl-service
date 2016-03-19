@@ -11,4 +11,4 @@ EXTERNDIR=$(readlink -f "$MY_DIR/../extern")
 INCLUDEDIR="$VIRTUAL_ENV/include"
 
 mkdir -p $INCLUDEDIR
-cp $EXTERNDIR/repos/easyloggingcpp/src/easylogging++.h $INCLUDEDIR
+cp -v $EXTERNDIR/repos/easyloggingcpp/src/easylogging++.h $INCLUDEDIR
