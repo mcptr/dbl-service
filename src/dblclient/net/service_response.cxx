@@ -14,5 +14,11 @@ bool ServiceResponse::is_ok() const
 	return is_ok_;
 }
 
+
+const Json::Value& ServiceResponse::get_data() const
+{
+	return data_;
+}
+
 } // net
 } // dblclient

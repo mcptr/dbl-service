@@ -45,6 +45,8 @@ void ServiceConnection::process_request(const std::string& request,
 		boost::algorithm::to_lower(cmd);
 		Json::Value& data = root["data"];
 
+		LOG(DEBUG) << "CMD:" << cmd;
+		LOG(DEBUG) << "DATA:" << data;
 		response_json["success"] = true;
 		this->dispatch(cmd, data, response_json);
 	}

@@ -46,8 +46,8 @@ void Updater::update_lists()
 
 		if(do_update) {
 			std::string url;
-			if(lst.url.is_initialized()) {
-				url = lst.url.get();
+			if(!lst.url.empty()) {
+				url = lst.url;
 			}
 			else {
 				url = core::constants::UPDATE_URL;
@@ -56,20 +56,17 @@ void Updater::update_lists()
 			net::http::Request rq(url);
 			rq.set_if_modified_since(lst.mtime);
 			auto response_ptr = rq.fetch();
-			LOG(DEBUG) << "HEAD OK";
+
 			long last_modified = (
 				response_ptr ? response_ptr->get_last_modified() : 0
 			);
 
 			if(!last_modified || (lst.mtime < last_modified)) {
-				LOG(INFO) << "FETCHING:" << url;
+				LOG(INFO) << "Updating domain list: " << lst.name;
 				auto ptr = rq.fetch();
-				LOG(INFO) << "FETCHED:" << url;
 				if(ptr) {
-					LOG(DEBUG) << "MTIME" << lst.mtime << "LAST MODIF: " << last_modified;
 					try {
 						lst.from_json(ptr->get_data());
-						LOG(INFO) << "Updating domain list: " << lst.name;
 						mgr.import(lst, false);
 						is_updated_ = true;
 					}

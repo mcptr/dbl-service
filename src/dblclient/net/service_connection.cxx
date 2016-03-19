@@ -1,4 +1,5 @@
 #include "service_connection.hxx"
+#include <iostream>
 
 namespace dblclient {
 namespace net {
@@ -8,7 +9,7 @@ ServiceConnection::ServiceConnection()
 {
 }
 
-ServiceConnection::ServiceConnection(const std::string& address, short port)
+ServiceConnection::ServiceConnection(const std::string& address, int port)
 	: address_(address),
 	  port_(port)
 {
@@ -16,26 +17,24 @@ ServiceConnection::ServiceConnection(const std::string& address, short port)
 
 void ServiceConnection::open() throw(DBLClientError)
 {
-	try {
-		stream_.reset(
-			new boost::asio::ip::tcp::iostream(address_, std::to_string(port_))
+	stream_.connect(address_, std::to_string(port_));
+	if(!stream_) {
+		throw DBLClientError(
+			"Cannot connect to the service: " +
+			address_ + ":" + std::to_string(port_)
 		);
-	}
-	catch(const std::exception& e) {
-		std::string msg = "Cannot connect to service: ";
-		msg.append(e.what());
-		throw DBLClientError();
 	}
 }
 
 std::unique_ptr<ServiceResponse>
-ServiceConnection::execute(const ServiceRequest& req) const
+ServiceConnection::execute(const ServiceRequest& req)
 {
-	*stream_ << req.to_string();
+	stream_ << req.to_string();
 
 	std::string raw_response;
-	*stream_ >> raw_response;
+	stream_ >> raw_response;
 
+	std::cout << "RAW RESPONSE CONN: " << raw_response;
 	std::unique_ptr<ServiceResponse> ptr(
 		new ServiceResponse(raw_response)
 	);

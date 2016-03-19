@@ -82,7 +82,6 @@ void Unix::stop()
 	}
 }
 
-
 void Unix::save_pidfile()
 {
 	namespace fs = boost::filesystem;
@@ -141,7 +140,7 @@ void Unix::start_dns_proxy()
 		int wait_counter = 3000 / wait_time_ms;
 
 		if(new_pid < 1) {
-			LOG(INFO) << "Waiting for service...";
+			LOG(INFO) << "Waiting for dns proxy service...";
 			while(new_pid < 1 && wait_counter) {
 				new_pid = this->get_pid_of(proxy_bin);
 
@@ -252,7 +251,7 @@ bool Unix::run_rc(const std::string& action) const
 		LOG(DEBUG) << "Trying: " << cmd;
 		std::string output;
 		if(system(cmd.c_str()) == 0) {
-			LOG(DEBUG) << "Succeeded: " << cmd;
+			LOG(DEBUG) << "Succeeded:" << cmd;
 			success = true;
 			break;
 		}
@@ -269,16 +268,16 @@ void Unix::setup_master_signals()
 		case SIGTERM:
 		case SIGINT:
 			Service::signaled_exit = true;
-			LOG(DEBUG) << "Parent caught SIGNAL:" << sig;
+			LOG(DEBUG) << "Master caught SIGNAL:" << sig;
 			Service::service_ptr->stop();
 			break;
 		case SIGHUP:
-			LOG(DEBUG) << "Parent caught SIGNAL:" << sig;
+			LOG(DEBUG) << "Master caught SIGNAL:" << sig;
 			Service::service_ptr->stop();
 			break;
 		case SIGCHLD:
 			//Service::signaled_exit = true;
-			LOG(DEBUG) << "Parent caught SIGCHLD";
+			LOG(DEBUG) << "Master caught SIGCHLD";
 			break;
 		default:
 			LOG(INFO) << "Unhandled signal caught:" << sig;
@@ -290,7 +289,7 @@ void Unix::setup_master_signals()
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
 	sigaction(SIGHUP, &act, nullptr);
-	sigaction(SIGCHLD, &act, nullptr);
+	//sigaction(SIGCHLD, &act, nullptr);
 }
 
 void Unix::run_worker()
@@ -306,7 +305,7 @@ void Unix::process_worker()
 	struct sigaction act;
 	memset(&act, 0, sizeof(act));
 	act.sa_sigaction = [](int sig, siginfo_t* /*siginfo*/, void* /*context*/) {
-		LOG(DEBUG) << "Child caught SIGNAL: " << sig;
+		LOG(DEBUG) << "WORKER> Worker caught SIGNAL: " << sig << ". Shutting down.";
 		Service::service_ptr->signal_stop();
 	};
 	act.sa_flags = SA_SIGINFO;
@@ -317,61 +316,85 @@ void Unix::process_worker()
 	sigaction(SIGHUP, &act, nullptr);
 
 	ptime t = microsec_clock::universal_time();
-	LOG(DEBUG) << "Waiting for master process";
-	auto shm = shm_ptr_->get_object();
-	if(shm->sync_semaphore.timed_wait(t + seconds(10))) {
-		shm->sync_semaphore.post();
-		LOG(DEBUG) << "Starting worker";
+
+	LOG(DEBUG) << "WORKER> Waiting for master process";
+
+	bool posted = false;
+	try {
+		auto shm = shm_ptr_->get_object();
+		if(shm->sync_semaphore.timed_wait(t + seconds(10))) {
+			posted = true;
+		}
+		else {
+			LOG(ERROR) << "WORKER> Master process not ready";
+		}
+	}
+	catch(const std::exception& e) {
+		LOG(ERROR) << "WORKER>" << e.what();
+	}
+	
+	int status = 0;
+	if(posted) {
+		LOG(DEBUG) << "WORKER> Starting";
 		this->run_worker();
 	}
 	else {
-		LOG(ERROR) << "Master process not ready";
+		status = 1;
 	}
-
-	LOG(DEBUG) << "Worker exiting";
-	_exit(0);
+	
+	LOG(DEBUG) << "WORKER> exiting";
+	_exit(status);
 }
 
 void Unix::process_master()
 {
 	using namespace boost::posix_time;
 
+	this->save_pidfile();
+
 	try {
+		this->setup_master_signals();
+
 		this->start_dns_proxy();
 		this->flush_dns();
 
-		this->setup_master_signals();
-		LOG(DEBUG) << "Parent: posting sync semaphore";
+		LOG(DEBUG) << "MASTER> Posting sync semaphore";
 		auto shm = shm_ptr_->get_object();
 		shm->sync_semaphore.post();
 	}
 	catch(const std::runtime_error& e) {
-		LOG(ERROR) << e.what();
+		LOG(ERROR) << "MASTER> Exception:" << e.what();
+		// Startup failed. disable restart
+		Service::signaled_exit = true;
 		Service::service_ptr->stop();
 	}
 
-	this->save_pidfile();
-
 	int status;
-	waitpid(worker_pid_, &status, 0);
+	int wait_status = waitpid(worker_pid_, &status, 0);
 
-	if(WIFSIGNALED(status)) {
-		int sig = WTERMSIG(status);
-		LOG(DEBUG) << "Service worker signaled with:" << sig;
-		if(sig != SIGTERM && sig != SIGINT) {
-			LOG(ERROR) << "Service crashed, disabling auto reload";
-			LOG(ERROR) << "Signal:" << sig;
-			Service::signaled_exit = true;
-		}
+	if(wait_status == -1) {
+		PLOG(ERROR) << "waitpid()";
 	}
+	else {
+		if(WIFSIGNALED(status)) {
+			int sig = WTERMSIG(status);
+			LOG(DEBUG) << "MASTER> Service worker signaled with:" << sig;
+			if(sig != SIGTERM && sig != SIGINT) {
+				LOG(ERROR) << "MASTER> Service worker crashed ("
+						   << sig << "), disabling auto reload";
+				Service::signaled_exit = true;
+			}
+		}
 
-	if(WIFEXITED(status)) {
-		LOG(DEBUG) <<  "Service worker exit status:" << WEXITSTATUS(status);
+		if(WIFEXITED(status)) {
+			LOG(DEBUG) << "MASTER> Service worker exit status:"
+					   << WEXITSTATUS(status);
+		}
 	}
 
 	this->stop_dns_proxy();
 	this->remove_pidfile();
-	LOG(DEBUG) << "Master process finished";
+	LOG(DEBUG) << "MASTER> Finished.";
 }
 
 void Unix::process_foreground()

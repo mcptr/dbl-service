@@ -51,9 +51,11 @@ bool DomainListManager::import(const types::DomainList& lst, bool custom)
 	try {
 		int list_id = create(
 			lst.name,
-			(lst.url.is_initialized() ? lst.url.get() : ""),
-			(lst.description.is_initialized()
-			 ? lst.description.get() : ""),
+			lst.url,
+			(
+				lst.description.is_initialized()
+				? lst.description.get() : ""
+			),
 			custom
 		);
 

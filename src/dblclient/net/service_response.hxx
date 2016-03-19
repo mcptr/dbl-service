@@ -15,10 +15,7 @@ public:
 
 	bool is_ok() const;
 
-	inline const Json::Value& get_data() const
-	{
-		return data_;
-	}
+	const Json::Value& get_data() const;
 private:
 	Json::Value data_;
 	bool is_ok_;

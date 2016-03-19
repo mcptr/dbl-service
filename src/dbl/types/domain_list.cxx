@@ -53,10 +53,7 @@ void DomainList::init_from_json(const Json::Value& root)
 void DomainList::to_json(Json::Value& root) const
 {
 	root["name"] = name;
-
-	if(url.is_initialized()) {
-		root["url"] = url.get();
-	}
+	root["url"] = url;
 
 	if(description.is_initialized()) {
 		root["description"] = description.get();

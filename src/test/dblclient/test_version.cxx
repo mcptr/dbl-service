@@ -1,6 +1,7 @@
 #include "utils/test.hxx"
 #include <string>
 #include <memory>
+#include <iostream>
 
 int main(int argc, char** argv)
 {
@@ -9,18 +10,16 @@ int main(int argc, char** argv)
 
 	UnitTest unit_test;
 
-	std::unique_ptr<Server> server(
-		new Server()
-	);
+	std::unique_ptr<Server> server(new Server(true));
+	std::cout << "PORT: " << server->get_port();
 
 	Session session(server->get_address(), server->get_port());
-	session.open();
-
 	unit_test.test_case(
 		"Test version",
 		[&session](TestCase& test)
 		{
-			LOG(INFO) << session.get_raw_data("get_version");
+			session.open();
+			LOG(INFO) << "RAW" << session.get_raw_data("get_version");
 			std::string version = session.get_server_version();
 			test.assert_true(version.length() > 0, "Got version");
 		}

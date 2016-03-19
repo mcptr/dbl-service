@@ -70,8 +70,10 @@ void Server::set_arguments(std::vector<std::string>& args)
 {
 	std::string prog = project_root_ + "/service/bin/dnsblocker";
 	args.push_back(prog);
-	//args.push_back("-D");
-	//args.push_back("-v");
+	if(is_verbose()) {
+		args.push_back("-D");
+		args.push_back("-v");
+	}
 
 	args.push_back("--no-system-dns-proxy");
 	args.push_back("--no-update");

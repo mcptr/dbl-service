@@ -21,7 +21,7 @@ const std::string domain_lists_table_schema =
 	"CREATE TABLE IF NOT EXISTS domain_lists("
 	"  id INTEGER NOT NULL PRIMARY KEY, "
 	"  name VARCHAR(255) NOT NULL UNIQUE, "
-	"  url VARCHAR(255) DEFAULT NULL, "
+	"  url VARCHAR(255) DEFAULT '', "
 	"  description VARCHAR(255) DEFAULT '', "
 	"  active BOOLEAN NOT NULL DEFAULT 1, "
 	"  custom BOOLEAN NOT NULL DEFAULT 0, "

@@ -15,18 +15,19 @@ namespace net {
 class ServiceConnection
 {
 public:
-	ServiceConnection(const std::string& address, short port);
 	ServiceConnection();
+	explicit ServiceConnection(const ServiceConnection&) = delete;
+	explicit ServiceConnection(const std::string& address, int port);
 
 	void open() throw(DBLClientError);
 
 	std::unique_ptr<ServiceResponse>
-	execute(const ServiceRequest& req) const;
+	execute(const ServiceRequest& req);
 
 private:
 	const std::string address_;
-	const short port_;
-	std::unique_ptr<boost::asio::ip::tcp::iostream> stream_;
+	const int port_;
+	boost::asio::ip::tcp::iostream stream_ = {};
 };
 
 } // net

@@ -5,6 +5,16 @@ DNS_PROXY=unbound
 DNS_PROXY_INCLUDE_DIR=/etc/unbound/unbound.conf.d
 PIDFILE=/var/run/dnsblocker/service.pid
 
+display_usage()
+{
+    echo "Usage: $0 start|stop|restart|status"
+}
+
+if test $# -lt 1; then
+    display_usage
+    exit 1
+fi
+
 COMMAND=$1
 shift
 
@@ -54,6 +64,5 @@ case "$COMMAND" in
 	fi
 	;;
     *)
-	echo "Usage: $0 start|stop|restart|status"
 	exit 1
 esac

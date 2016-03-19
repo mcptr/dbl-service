@@ -40,7 +40,9 @@ void Service::run_worker()
 
 void Service::signal_stop()
 {
-	worker_ptr_->stop();
+	if(worker_ptr_) {
+		worker_ptr_->stop();
+	}
 	cv_.notify_all();
 }
 

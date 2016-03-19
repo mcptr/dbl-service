@@ -13,7 +13,7 @@ class Session
 public:
 	Session();
 	explicit Session(const std::string& address,
-					 unsigned short port);
+					 int port);
 	Session(const Session&) = delete;
 	~Session() = default;
 
@@ -28,7 +28,7 @@ public:
 	bool get_blocked_domains(types::DomainSet_t& lst) const;
 
 private:
-	net::ServiceConnection connection_;
+	std::unique_ptr<net::ServiceConnection> connection_;
 };
 
 } // dblclient
