@@ -360,6 +360,7 @@ void Unix::process_master()
 		LOG(DEBUG) << "Service worker signaled with:" << sig;
 		if(sig != SIGTERM && sig != SIGINT) {
 			LOG(ERROR) << "Service crashed, disabling auto reload";
+			LOG(ERROR) << "Signal:" << sig;
 			Service::signaled_exit = true;
 		}
 	}
