@@ -28,6 +28,7 @@ public:
 
 	void init_from_json(const Json::Value& input);
 	void to_json(Json::Value& root) const;
+	void add_domain(const std::string& name);
 };
 
 } // types

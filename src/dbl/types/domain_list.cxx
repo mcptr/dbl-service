@@ -18,7 +18,7 @@ void DomainList::init_from_json(const Json::Value& root)
 	}
 
 	if(!root["url"].empty()) {
-		name = root["url"].asString();
+		url = root["url"].asString();
 	}
 
 	if(!root["description"].empty()) {
@@ -66,6 +66,12 @@ void DomainList::to_json(Json::Value& root) const
 	}
 }
 
+void DomainList::add_domain(const std::string& name)
+{
+	Domain d;
+	d.name = name;
+	domains.push_back(d);
+}
 
 } // types
 } // dbl

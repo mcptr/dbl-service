@@ -104,20 +104,20 @@ void ServiceConnection::dispatch(const std::string& cmd,
 		else if(cmd.compare("flush_dns") == 0) {
 			handle_flush_dns(data, response_json, errors);
 		}
-		else if(cmd.compare("import") == 0) {
-			handle_import(data, response_json, errors);
-		}
 		else if(cmd.compare("block") == 0) {
 			handle_block(data, response_json, errors);
 		}
 		else if(cmd.compare("unblock") == 0) {
 			handle_unblock(data, response_json, errors);
 		}
-		else if(cmd.compare("get_lists") == 0) {
-			handle_get_lists(data, response_json, errors);
+		else if(cmd.compare("import_domain_list") == 0) {
+			handle_import_domain_list(data, response_json, errors);
 		}
-		else if(cmd.compare("delete_list") == 0) {
-			handle_delete_list(data, response_json, errors);
+		else if(cmd.compare("get_domain_lists") == 0) {
+			handle_get_domain_lists(data, response_json, errors);
+		}
+		else if(cmd.compare("delete_domain_list") == 0) {
+			handle_delete_domain_list(data, response_json, errors);
 		}
 		else if(cmd.compare("get_version") == 0) {
 			handle_get_version(data, response_json, errors);
@@ -143,21 +143,11 @@ void ServiceConnection::handle_status(
 	const Json::Value& /* data */,
 	Json::Value& response,
 	types::Errors_t& /* errors */) const
-
 {
 	response["status"] = Json::Value(api_->status);
 }
 
 void ServiceConnection::handle_flush_dns(
-	const Json::Value& /* data */,
-	Json::Value& /* response */,
-	types::Errors_t& /* errors */) const
-
-{
-	throw ServiceOperationError("not implemented");
-}
-
-void ServiceConnection::handle_import(
 	const Json::Value& /* data */,
 	Json::Value& /* response */,
 	types::Errors_t& /* errors */) const
@@ -222,7 +212,22 @@ void ServiceConnection::handle_remove_service_password(
 	auth_.remove_password();
 }
 
-void ServiceConnection::handle_get_lists(
+void ServiceConnection::handle_import_domain_list(
+	const Json::Value& data,
+	Json::Value& /* response */,
+	types::Errors_t& /* errors */) const
+{
+	if(!data["domain_list"].isObject()) {
+		throw ServiceOperationError("Invalid data.");
+	}
+
+	types::DomainList lst;
+	lst.init_from_json(data["domain_list"]);
+	manager::DomainListManager mgr(api_);
+	mgr.import(lst, data["custom"].asBool());
+}
+
+void ServiceConnection::handle_get_domain_lists(
 	const Json::Value& /* data */,
 	Json::Value& response,
 	types::Errors_t& /* errors */) const
@@ -290,7 +295,7 @@ void ServiceConnection::handle_get_domains(
 	}
 }
 
-void ServiceConnection::handle_delete_list(
+void ServiceConnection::handle_delete_domain_list(
 	const Json::Value& /* data */,
 	Json::Value& /*response*/,
 	types::Errors_t& /* errors */) const

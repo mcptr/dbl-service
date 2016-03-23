@@ -71,12 +71,6 @@ protected:
 		Json::Value& response,
 		types::Errors_t& errors) const;
 
-
-	void handle_import(
-		const Json::Value& data,
-		Json::Value& response,
-		types::Errors_t& errors) const;
-
 	void handle_block(
 		const Json::Value& data,
 		Json::Value& response,
@@ -97,12 +91,17 @@ protected:
 		Json::Value& response,
 		types::Errors_t& errors);
 
-	void handle_get_lists(
+	void handle_import_domain_list(
 		const Json::Value& data,
 		Json::Value& response,
 		types::Errors_t& errors) const;
 
-	void handle_delete_list(
+	void handle_get_domain_lists(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
+
+	void handle_delete_domain_list(
 		const Json::Value& data,
 		Json::Value& response,
 		types::Errors_t& errors) const;

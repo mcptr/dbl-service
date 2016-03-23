@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 
 	unit_test.test_case(
 		"Test auth (no service password)",
-		[&address, port](TestCase& test)
+		[&address, &port](TestCase& test)
 		{
 			Session session;
 			session.open(address, port);
@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 
 	unit_test.test_case(
 		"Test auth (with service password)",
-		[&address, port](TestCase& test)
+		[&address, &port](TestCase& test)
 		{
 			Session session;
 			session.open(address, port);
@@ -37,13 +37,13 @@ int main(int argc, char** argv)
 			test.assert_true(ok, "Service password set");
 			
 			bool auth_ok = session.authenticate("invalid");
-			test.assert_false(auth_ok, "Invalid auth");
+			test.assert_false(auth_ok, "Invalid (invalid password)");
 
 			auth_ok = session.authenticate("");
-			test.assert_false(auth_ok, "Invalid auth");
+			test.assert_false(auth_ok, "Invalid (empty password)");
 
 			auth_ok = session.authenticate(password);
-			test.assert_true(auth_ok, "Authenticate with valid password");
+			test.assert_true(auth_ok, "Auth with valid password");
 		}
 	);
 

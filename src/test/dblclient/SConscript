@@ -30,6 +30,7 @@ common_objects = list(
 test_units = [
 	"test_version",
 	"test_auth",
+	"test_domain_lists",
 ]
 
 test_targets = []

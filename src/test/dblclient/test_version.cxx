@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 
 	unit_test.test_case(
 		"Test version",
-		[&address, port](TestCase& test)
+		[&address, &port](TestCase& test)
 		{
 			Session session;
 			session.open(address, port);

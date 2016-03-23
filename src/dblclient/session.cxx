@@ -15,17 +15,30 @@ void Session::open(const std::string& address, int port)
 	connection_->open(address, port);
 }
 
-std::string Session::get_raw_data(const std::string& cmd) const
+const std::string& Session::get_last_error() const
 {
+	return error_;
+}
+
+void Session::set_error(const net::ServiceResponse& response)
+{
+	error_ = response.get_error_msg();
+}
+
+std::string Session::get_raw_data(const std::string& cmd)
+{
+	error_.clear();
 	net::ServiceRequest req(cmd);
 	auto response = connection_->execute(req);
+	set_error(*response);
 	return response->get_data().asString();
 }
 
-std::string Session::get_server_version() const
+std::string Session::get_server_version()
 {
 	net::ServiceRequest req("get_version");
 	auto response = connection_->execute(req);
+	set_error(*response);
 	if(response->is_ok()) {
 		return response->get_data()["version"].asString();
 	}
@@ -37,6 +50,7 @@ bool Session::authenticate(const std::string& passwd)
 {
 	net::ServiceRequest req("get_token");
 	auto response = connection_->execute(req);
+	set_error(*response);
 	if(response->is_ok()) {
 		std::string token = response->get_data()["token"].asString();
 		if(!token.empty()) {
@@ -46,6 +60,7 @@ bool Session::authenticate(const std::string& passwd)
 			net::ServiceRequest auth_request("auth");
 			auth_request.set_parameter("hash", hash);
 			response = std::move(connection_->execute(auth_request));
+			set_error(*response);
 			return response->is_ok();
 		}
 	}
@@ -57,6 +72,7 @@ bool Session::set_service_password(const std::string& passwd)
 {
 	net::ServiceRequest req("get_token");
 	auto response = connection_->execute(req);
+	set_error(*response);
 	if(response->is_ok()) {
 		std::string token = response->get_data()["token"].asString();
 		if(!token.empty()) {
@@ -69,6 +85,7 @@ bool Session::set_service_password(const std::string& passwd)
 			passwd_request.set_parameter("password_hash", passwd_hash);
 			passwd_request.set_parameter("token_hash", hashed_token);
 			auto passwd_response = connection_->execute(passwd_request);
+			set_error(*passwd_response);
 			return passwd_response->is_ok();
 		}
 	}
@@ -76,22 +93,37 @@ bool Session::set_service_password(const std::string& passwd)
 	return false;
 }
 
-bool Session::get_domain_lists(types::DomainListsSet_t& lst) const
+bool Session::import_domain_list(const types::DomainList_t& lst)
 {
-	lst.clear();
-	net::ServiceRequest req("get_domain_lists");
+	net::ServiceRequest req("import_domain_list");
+	req.set_parameter("domain_list", lst);
 	auto response = connection_->execute(req);
-	if(response->is_ok()) {
-		for(auto const& domain : response->get_data()["domain_lists"]) {
-			
-		}
-	}
-	return lst.size();
+	set_error(*response);
+	return response->is_ok();
 }
 
-bool Session::get_blocked_domains(types::DomainSet_t& lst) const
+bool Session::get_domain_lists(types::DomainListsSet_t& lst)
+{
+	net::ServiceRequest req("get_domain_lists");
+	auto response = connection_->execute(req);
+	set_error(*response);
+	if(response->is_ok()) {
+		for(auto const& d : response->get_data()["domain_lists"]) {
+			types::DomainList_t dl;
+			dl.init_from_json(d);
+			lst.push_back(dl);
+		}
+
+		return true;
+	}
+	std::cout << "FAILED: " << response->get_error_msg() << std::endl;
+	return false;
+}
+
+bool Session::get_blocked_domains(types::DomainSet_t& lst)
 {
 	lst.clear();
+	//set_error(*response);
 
 	return lst.size();
 }
