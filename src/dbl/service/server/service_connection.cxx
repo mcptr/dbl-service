@@ -132,6 +132,7 @@ void ServiceConnection::dispatch(const std::string& cmd,
 			handle_reload(data, response_json, errors);
 		}
 		else {
+			LOG(ERROR) << "Unkown command: " << cmd;
 			throw std::runtime_error("Unknown command");
 		}
 	}

@@ -1,5 +1,4 @@
 #include "service_connection.hxx"
-#include <iostream>
 #include <boost/lambda/lambda.hpp>
 
 namespace dblclient {
@@ -18,6 +17,8 @@ void ServiceConnection::open(
 	int port,
 	bpt::time_duration timeout) throw (DBLClientError)
 {
+	socket_.close();
+
 	bip::tcp::endpoint ep(
 		ba::ip::address::from_string(address),
 		port
@@ -72,9 +73,11 @@ void ServiceConnection::read(
 
 	deadline_.expires_from_now(timeout);
 
+	ba::streambuf read_buffer;
+
 	ba::async_read_until(
 		socket_,
-		read_buffer_,
+		read_buffer,
 		eof_marker_,
 		[&ec, &length](const boost::system::error_code error, std::size_t len) {
 			ec = error;
@@ -87,7 +90,8 @@ void ServiceConnection::read(
 	}
 	while(ec == ba::error::would_block);
 
-	ba::streambuf::const_buffers_type bufs = read_buffer_.data();
+	ba::streambuf::const_buffers_type bufs = read_buffer.data();
+	result.clear();
 	result.append(
 		ba::buffers_begin(bufs),
 		ba::buffers_begin(bufs) + (length - eof_marker_.length())

@@ -56,6 +56,7 @@ void Connection::read()
 					}
 				}
 
+				LOG(DEBUG) << response;
 				this->respond(response + "\r\n");
 			}
 		}

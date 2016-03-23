@@ -18,7 +18,9 @@ public:
 	void open(const std::string& address = "127.0.0.1", int port = 7654);
 
 
-	bool authenticate();
+	bool authenticate(const std::string& passwd);
+	bool set_service_password(const std::string& passwd);
+
 	std::string get_raw_data(const std::string& cmd) const;
 	std::string get_server_version() const;
 

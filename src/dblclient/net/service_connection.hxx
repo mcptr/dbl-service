@@ -50,7 +50,6 @@ private:
 	bip::tcp::socket socket_;
 	ba::deadline_timer deadline_;
 
-	ba::streambuf read_buffer_;
 	const std::string eof_marker_ = "\r\n";
 
 	void check_deadline();

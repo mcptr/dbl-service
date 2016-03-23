@@ -1,5 +1,5 @@
-#ifndef DBLCCLIENT_NET_SERVICE_REQUEST_HXX
-#define DBLCCLIENT_NET_SERVICE_REQUEST_HXX
+#ifndef DBLCLIENT_NET_SERVICE_REQUEST_HXX
+#define DBLCLIENT_NET_SERVICE_REQUEST_HXX
 
 #include "service_response.hxx"
 #include <string>
