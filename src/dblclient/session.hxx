@@ -36,6 +36,7 @@ public:
 	bool get_blocked_domains(types::DomainSet_t& lst);
 	bool get_whitelisted_domains(types::DomainSet_t& lst);
 	bool get_domains(types::DomainSet_t& lst, bool blocked = true);
+	bool get_domain(types::Domain_t& domain);
 
 	bool block_domain(const std::string& name);
 	bool unblock_domain(const std::string& name);

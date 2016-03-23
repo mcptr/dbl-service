@@ -28,6 +28,14 @@ void Domain::init_from_json(const Json::Value& root)
 			}
 		}
 	}
+
+	if(!root["list_id"].empty()) {
+		list_id = root["list_id"].asInt();
+	}
+
+	if(!root["list_name"].empty()) {
+		list_name = root["list_name"].asString();
+	}
 }
 
 void Domain::to_json(Json::Value& root) const

@@ -133,6 +133,20 @@ bool Session::get_domain_list(types::DomainList_t& lst)
 	return false;
 }
 
+bool Session::get_domain(types::Domain_t& domain)
+{
+	net::ServiceRequest req("get_domain");
+	req.set_parameter("name", domain.name);
+	auto response = connection_->execute(req);
+	set_error(*response);
+	if(response->is_ok()) {
+		domain.init_from_json(response->get_data());
+		return true;
+	}
+
+	return false;
+}
+
 bool Session::get_blocked_domains(types::DomainSet_t& lst)
 {
 	return get_domains(lst, true);

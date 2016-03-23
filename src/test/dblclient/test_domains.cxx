@@ -65,6 +65,22 @@ int main(int argc, char** argv)
 	);
 
 	unit_test.test_case(
+		"get_domain",
+		[&address, &port, &single_domain](TestCase& test) {
+			Session session;
+			session.open(address, port);
+
+			Domain_t domain;
+			domain.name = single_domain;
+			bool ok = session.get_domain(domain);
+			test.assert_true(ok, "get_domain " + single_domain);
+			test.assert_equal(domain.name, single_domain, "name");
+			test.assert_true(domain.list_id > 0, "has list id");
+		}
+	);
+
+
+	unit_test.test_case(
 		"unblock single",
 		[&address, &port, &test_set, &single_domain](TestCase& test) {
 			Session session;

@@ -281,7 +281,7 @@ void ServiceConnection::handle_get_domain(
 
 	manager::DomainManager mgr(api_);
 	auto ptr = mgr.get(name);
-	response["domain"] = *ptr;
+	response = *ptr;
 }
 
 void ServiceConnection::handle_get_domains(
