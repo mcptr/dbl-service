@@ -168,13 +168,12 @@ void ServiceConnection::handle_block(
 	manager::DomainManager mgr(api_);
 	types::Names_t domains;
 
-	if(data["domains"].isArray()) {
-		for(auto const& domain : data["domains"]) {
-			domains.push_back(domain.asString());
-		}
+	if(!data["domains"].isArray()) {
+		throw ServiceOperationError("Domains must be an array");
 	}
-	else {
-		domains.push_back(data["domains"].asString());
+
+	for(auto const& domain : data["domains"]) {
+		domains.push_back(domain.asString());
 	}
 
 	mgr.block_domains(domains);

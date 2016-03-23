@@ -22,7 +22,7 @@ int DomainListManager::create(const std::string& name,
 	using types::DomainList;
 
 	std::string q(
-		"INSERT OR REPLACE INTO domain_lists(name, url, description, custom)"
+		"INSERT OR IGNORE INTO domain_lists(name, url, description, custom)"
 		"  VALUES(?, ?, ?, ?)"
 	);
 	std::string list_name(name.empty() ? "CUSTOM" : name);

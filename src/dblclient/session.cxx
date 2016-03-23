@@ -145,12 +145,10 @@ bool Session::get_whitelisted_domains(types::DomainSet_t& lst)
 
 bool Session::get_domains(types::DomainSet_t& lst, bool blocked)
 {
-	lst.clear();
 	net::ServiceRequest req("get_domains");
 	req.set_parameter("type", (blocked ? "blocked" : "whitelisted"));
 	auto response = connection_->execute(req);
 	set_error(*response);
-	std::cout << "RESPONSE\n" << response->get_data() << std::endl;
 	if(response->is_ok()) {
 		for(auto const& d : response->get_data()["domains"]) {
 			types::Domain_t domain;
@@ -159,6 +157,7 @@ bool Session::get_domains(types::DomainSet_t& lst, bool blocked)
 		}
 		return true;
 	}
+
 	return false;
 }
 

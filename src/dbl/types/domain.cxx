@@ -22,7 +22,8 @@ void Domain::init_from_json(const Json::Value& root)
 		}
 		else {
 			for(auto const& err : errors) {
-				LOG(WARNING) << root["name"].asString()
+				LOG(WARNING) << "Ignoring: "
+							 << root["name"].asString()
 							 << ": " << err;
 			}
 		}
