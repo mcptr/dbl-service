@@ -135,10 +135,60 @@ bool Session::get_domain_list(types::DomainList_t& lst)
 
 bool Session::get_blocked_domains(types::DomainSet_t& lst)
 {
-	lst.clear();
-	//set_error(*response);
+	return get_domains(lst, true);
+}
 
-	return lst.size();
+bool Session::get_whitelisted_domains(types::DomainSet_t& lst)
+{
+	return get_domains(lst, false);
+}
+
+bool Session::get_domains(types::DomainSet_t& lst, bool blocked)
+{
+	lst.clear();
+	net::ServiceRequest req("get_domains");
+	req.set_parameter("type", (blocked ? "blocked" : "whitelisted"));
+	auto response = connection_->execute(req);
+	set_error(*response);
+	std::cout << "RESPONSE\n" << response->get_data() << std::endl;
+	if(response->is_ok()) {
+		for(auto const& d : response->get_data()["domains"]) {
+			types::Domain_t domain;
+			domain.init_from_json(d);
+			lst.push_back(domain);
+		}
+		return true;
+	}
+	return false;
+}
+
+bool Session::block_domain(const std::string& name)
+{
+	types::Names_t names;
+	names.push_back(name);
+	return manage_domains(names, true);
+}
+
+bool Session::unblock_domain(const std::string& name)
+{
+	types::Names_t names;
+	names.push_back(name);
+	return manage_domains(names, false);
+}
+
+bool Session::manage_domains(const types::Names_t& names, bool block)
+{
+	net::ServiceRequest req((block ? "block" : "unblock"));
+	Json::Value arr = Json::arrayValue;
+
+	for(auto const& n : names) {
+		arr.append(n);
+	}
+
+	req.set_parameter("domains", arr);
+	auto response = connection_->execute(req);
+	set_error(*response);
+	return response->is_ok();
 }
 
 } // dblclient

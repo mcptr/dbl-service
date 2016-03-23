@@ -49,65 +49,6 @@ void Worker::stop()
 {
 	stop_flag_ = true;
 }
-
-// void Service::run_service()
-// {
-// 	using namespace boost::posix_time;
-
-// 	if(!api_->config.is_foreground) {
-// 		ptime t = microsec_clock::universal_time();
-// 		time_duration interval(milliseconds(3000));
-
-// 		ServiceSHM* service_shm_ptr = this->shm_ptr_->get_object();
-// 		if(service_shm_ptr == nullptr) {
-// 			LOG(ERROR) << "Could not get service shm object";
-// 			return;
-// 		}
-
-// 		LOG(DEBUG) << "Waiting for master process to get ready ";
-// 		if(!service_shm_ptr->sync_semaphore.timed_wait(t + interval)) {
-// 			LOG(ERROR) << "Parent not ready. Exiting";
-// 			return;
-// 		}
-// 		else {
-// 			LOG(DEBUG) << "Sync semaphore posted";
-// 		}
-// 	}
-
-// 	this->run_reloader_thread();
-// 	this->start_servers();
-// 	bool is_ok = true;
-
-// 	if(api_->config.is_foreground) {
-// 		LOG(WARNING) << "\n#############################################\n"
-// 					 << "# WARNING: Running in foreground\n"
-// 					 << "# without dropping privileges.\n"
-// 					 << "#\n"
-// 					 << "# Use SIGINT to quit\n"
-// 					 << "#############################################\n";
-
-// 		signal(SIGINT, [](int /*sig*/) {
-// 				Service::service_ptr->stop_service();
-// 			}
-// 		);
-// 	}
-// 	else {
-// 		LOG(DEBUG) << "Dropping privileges";
-// 		try {
-// 			this->drop_privileges();
-// 		}
-// 		catch(const std::runtime_error& e) {
-// 			LOG(ERROR) << e.what();
-// 			is_ok = false;
-// 		}
-// 	}
-
-// 	if(is_ok) {
-// 		std::unique_lock<std::mutex> lock(service_mtx_);
-// 		service_cv_.wait(lock);
-// 	}
-// }
-
 void Worker::run_servers()
 {
 	if(api_->config.service_port) {

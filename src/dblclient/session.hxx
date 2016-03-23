@@ -34,6 +34,12 @@ public:
 	bool get_domain_lists(types::DomainListsSet_t& lst);
 
 	bool get_blocked_domains(types::DomainSet_t& lst);
+	bool get_whitelisted_domains(types::DomainSet_t& lst);
+	bool get_domains(types::DomainSet_t& lst, bool blocked = true);
+
+	bool block_domain(const std::string& name);
+	bool unblock_domain(const std::string& name);
+	bool manage_domains(const types::Names_t& names, bool block);
 
 private:
 	std::unique_ptr<net::ServiceConnection> connection_;

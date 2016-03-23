@@ -166,12 +166,15 @@ void ServiceConnection::handle_block(
 	types::Errors_t& /*errors*/) const
 {
 	manager::DomainManager mgr(api_);
-	if(!data["domains"].isArray()) {
-		throw ServiceOperationError("Expected array of domains");
-	}
 	types::Names_t domains;
-	for(auto const& domain : data["domains"]) {
-		domains.push_back(domain.asString());
+
+	if(data["domains"].isArray()) {
+		for(auto const& domain : data["domains"]) {
+			domains.push_back(domain.asString());
+		}
+	}
+	else {
+		domains.push_back(data["domains"].asString());
 	}
 
 	mgr.block_domains(domains);
@@ -296,11 +299,14 @@ void ServiceConnection::handle_get_domains(
 	else if(type.compare("whitelisted") == 0) {
 		domains = std::move(mgr.get_whitelisted());
 	}
-	else {
+	else if(data["list_id"].asInt()) {
 		int list_id = data["list_id"].asInt();
 		if(list_id) {
 			domains = std::move(mgr.get(list_id));
 		}
+	}
+	else {
+		throw ServiceOperationError("Need type.");
 	}
 
 	if(!domains) {
