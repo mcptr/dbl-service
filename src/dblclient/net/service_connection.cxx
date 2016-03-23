@@ -1,45 +1,124 @@
 #include "service_connection.hxx"
 #include <iostream>
+#include <boost/lambda/lambda.hpp>
 
 namespace dblclient {
 namespace net {
 
 ServiceConnection::ServiceConnection()
-	: ServiceConnection("127.0.0.1", 7654)
+	: socket_(io_service_),
+	  deadline_(io_service_)
 {
+	deadline_.expires_at(bpt::pos_infin);
+	check_deadline();
 }
 
-ServiceConnection::ServiceConnection(const std::string& address, int port)
-	: address_(address),
-	  port_(port)
+void ServiceConnection::open(
+	const std::string& address,
+	int port,
+	bpt::time_duration timeout) throw (DBLClientError)
 {
-}
+	bip::tcp::endpoint ep(
+		ba::ip::address::from_string(address),
+		port
+	);
 
-void ServiceConnection::open() throw(DBLClientError)
+	boost::system::error_code error = ba::error::would_block;
+
+	deadline_.expires_from_now(timeout);
+
+	socket_.async_connect(
+		ep,
+		boost::lambda::var(error) = boost::lambda::_1
+	);
+
+	do {
+		io_service_.run_one();
+	}
+	while(error == ba::error::would_block);
+	if(error || !socket_.is_open()) {
+		throw DBLClientError("Cannot connect");
+	}
+}
+ 
+void ServiceConnection::write(
+	const std::string& data,
+	bpt::time_duration timeout) throw (DBLClientError)
 {
-	stream_.connect(address_, std::to_string(port_));
-	if(!stream_) {
-		throw DBLClientError(
-			"Cannot connect to the service: " +
-			address_ + ":" + std::to_string(port_)
-		);
+	boost::system::error_code error = ba::error::would_block;
+	deadline_.expires_from_now(timeout);
+	ba::async_write(
+		socket_,
+		ba::buffer(data),
+		boost::lambda::var(error) = boost::lambda::_1
+	);
+
+	do {
+		io_service_.run_one();
+	}
+	while(error == ba::error::would_block);
+	if(error) {
+		throw DBLClientError(error.message());
 	}
 }
 
-std::unique_ptr<ServiceResponse>
-ServiceConnection::execute(const ServiceRequest& req)
+void ServiceConnection::read(
+	std::string& result,
+	bpt::time_duration timeout) throw (DBLClientError)
 {
-	stream_ << req.to_string();
+
+	boost::system::error_code ec = ba::error::would_block;
+	std::size_t length = 0;
+
+	deadline_.expires_from_now(timeout);
+
+	ba::async_read_until(
+		socket_,
+		read_buffer_,
+		eof_marker_,
+		[&ec, &length](const boost::system::error_code error, std::size_t len) {
+			ec = error;
+			length = len;
+		}
+	);
+
+	do {
+		io_service_.run_one();
+	}
+	while(ec == ba::error::would_block);
+
+	ba::streambuf::const_buffers_type bufs = read_buffer_.data();
+	result.append(
+		ba::buffers_begin(bufs),
+		ba::buffers_begin(bufs) + (length - eof_marker_.length())
+	);
+}
+
+std::unique_ptr<ServiceResponse>
+ServiceConnection::execute(const ServiceRequest& req) throw(DBLClientError)
+{
+	write(req.to_string());
 
 	std::string raw_response;
-	stream_ >> raw_response;
+	read(raw_response);
 
-	std::cout << "RAW RESPONSE CONN: " << raw_response;
 	std::unique_ptr<ServiceResponse> ptr(
 		new ServiceResponse(raw_response)
 	);
 
 	return std::move(ptr);
+}
+
+void ServiceConnection::check_deadline()
+{
+	if(deadline_.expires_at() <= ba::deadline_timer::traits_type::now()) {
+		socket_.close();
+		deadline_.expires_at(bpt::pos_infin);
+	}
+
+	deadline_.async_wait(
+		std::bind(&ServiceConnection::check_deadline, this)
+	);
 }
 
 } // net

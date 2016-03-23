@@ -5,19 +5,13 @@
 namespace dblclient {
 
 Session::Session()
-	: Session("127.0.0.1", 7654)
+	: connection_(new net::ServiceConnection())
 {
 }
 
-Session::Session(const std::string& address,
-				 int port)
-	: connection_(new net::ServiceConnection(address, port))
+void Session::open(const std::string& address, int port)
 {
-}
-
-void Session::open()
-{
-	connection_->open();
+	connection_->open(address, port);
 }
 
 std::string Session::get_raw_data(const std::string& cmd) const
@@ -32,7 +26,7 @@ std::string Session::get_server_version() const
 	net::ServiceRequest req("get_version");
 	auto response = connection_->execute(req);
 	if(response->is_ok()) {
-		return response->get_data().asString();
+		return response->get_data()["version"].asString();
 	}
 
 	return "";

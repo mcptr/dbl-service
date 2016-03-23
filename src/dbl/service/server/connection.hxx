@@ -28,7 +28,6 @@ protected:
 	std::shared_ptr<core::Api> api_;
 	boost::asio::ip::tcp::socket socket_;
 
-	std::string buffer_;
 	boost::array<char, MAX_REQUEST_SIZE> data_;
 
 	void read();

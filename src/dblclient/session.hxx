@@ -12,16 +12,14 @@ class Session
 {
 public:
 	Session();
-	explicit Session(const std::string& address,
-					 int port);
 	Session(const Session&) = delete;
 	~Session() = default;
 
-	void open();
+	void open(const std::string& address = "127.0.0.1", int port = 7654);
 
-	std::string get_raw_data(const std::string& cmd) const;
 
 	bool authenticate();
+	std::string get_raw_data(const std::string& cmd) const;
 	std::string get_server_version() const;
 
 	bool get_domain_lists(types::DomainListsSet_t& lst) const;

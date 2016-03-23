@@ -1,5 +1,6 @@
 #include "connection.hxx"
 #include <boost/bind.hpp>
+#include <unistd.h>
 
 namespace dbl {
 namespace service {
@@ -55,7 +56,7 @@ void Connection::read()
 					}
 				}
 
-				this->respond(response);
+				this->respond(response + "\r\n");
 			}
 		}
 	);
