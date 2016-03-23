@@ -65,7 +65,7 @@ class TestGetDomains(unittest.TestCase):
 			response = client.call("get_domain", {"name": "example-test.com"})
 			self.assertTrue(response.is_ok(), "Got domain")
 			self.assertEqual(
-				response.data()["domain"]["name"],
+				response.data()["name"],
 				"example-test.com",
 				"Name"
 			)
