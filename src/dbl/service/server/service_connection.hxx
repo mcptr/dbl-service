@@ -101,6 +101,11 @@ protected:
 		Json::Value& response,
 		types::Errors_t& errors) const;
 
+	void handle_get_domain_list(
+		const Json::Value& data,
+		Json::Value& response,
+		types::Errors_t& errors) const;
+
 	void handle_delete_domain_list(
 		const Json::Value& data,
 		Json::Value& response,

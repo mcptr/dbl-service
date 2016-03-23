@@ -69,7 +69,9 @@ bool DomainListManager::import(const types::DomainList& lst, bool custom)
 
 		std::string name;
 		statement st_ins = (
-			session_ptr->prepare << q, use(name), use(list_id)
+			session_ptr->prepare << q,
+			use(name),
+			use(list_id)
 		);
 
 		for(auto const& domain : lst.domains) {

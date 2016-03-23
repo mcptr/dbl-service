@@ -13,7 +13,7 @@ class Response(object):
 		return self._data.get("error_message", "")
 
 	def data(self):
-		return self._data
+		return self._data.get("data", {})
 
 
 class Client(object):

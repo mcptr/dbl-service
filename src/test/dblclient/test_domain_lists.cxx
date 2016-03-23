@@ -14,10 +14,12 @@ int main(int argc, char** argv)
 	std::string address = server->get_address();
 	int port = server->get_port();
 
-	dbl::types::DomainList new_list;
+	std::string test_domain_name = "test-domain.com";
+	dblclient::types::DomainList_t new_list;
 	new_list.name = "test-domain-list";
 	new_list.url = "http://example/test-domain-list";
-	new_list.add_domain("test-domain.com");
+	new_list.description = "test domain list";
+	new_list.add_domain(test_domain_name);
 
 	unit_test.test_case(
 		"import_domain_list",
@@ -37,7 +39,7 @@ int main(int argc, char** argv)
 			Session session;
 			session.open(address, port);
 
-			dbl::types::DomainListsSet_t lst;
+			dblclient::types::DomainListsSet_t lst;
 			bool ok = session.get_domain_lists(lst);
 			test.assert_true(ok, "get_domain_lists");
 			bool found;
@@ -48,6 +50,39 @@ int main(int argc, char** argv)
 				}
 			}
 			test.assert_true(found, "found imported list");
+		}
+	);
+
+	unit_test.test_case(
+		"get_domain_list by name",
+		[&address, &port, &new_list, &test_domain_name](TestCase& test)
+		{
+			Session session;
+			session.open(address, port);
+
+			dblclient::types::DomainList_t lst;
+			lst.name = new_list.name;
+			bool ok = session.get_domain_list(lst);
+			test.assert_true(ok, "get_domain_list");
+			test.assert_equal(lst.name, new_list.name, "name");
+			test.assert_equal(lst.url, new_list.url, "url");
+			test.assert_equal(
+				lst.description,
+				new_list.description,
+				"description"
+			);
+
+			test.assert_equal(
+				lst.domains.size(),
+				std::size_t(1),
+				"size"
+			);
+
+			test.assert_equal(
+				lst.domains.at(0).name,
+				test_domain_name,
+				"domain name"
+			);
 		}
 	);
 

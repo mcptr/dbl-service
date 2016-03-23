@@ -116,7 +116,20 @@ bool Session::get_domain_lists(types::DomainListsSet_t& lst)
 
 		return true;
 	}
-	std::cout << "FAILED: " << response->get_error_msg() << std::endl;
+	return false;
+}
+
+bool Session::get_domain_list(types::DomainList_t& lst)
+{
+	net::ServiceRequest req("get_domain_list");
+	req.set_parameter("name", lst.name);
+	req.set_parameter("with_domains", true);
+	auto response = connection_->execute(req);
+	set_error(*response);
+	if(response->is_ok()) {
+		lst.init_from_json(response->get_data());
+		return true;
+	}
 	return false;
 }
 

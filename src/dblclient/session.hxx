@@ -30,6 +30,7 @@ public:
 
 	bool import_domain_list(const types::DomainList_t& lst);
 
+	bool get_domain_list(types::DomainList_t& lst);
 	bool get_domain_lists(types::DomainListsSet_t& lst);
 
 	bool get_blocked_domains(types::DomainSet_t& lst);

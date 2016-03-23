@@ -16,7 +16,6 @@ typedef dbl::types::DomainList DomainList_t;
 typedef dbl::types::DomainSet_t DomainSet_t;
 typedef dbl::types::DomainListsSet_t DomainListsSet_t;
 
-
 } // types
 } // dblclient
 

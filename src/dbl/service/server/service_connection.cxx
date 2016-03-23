@@ -32,6 +32,7 @@ void ServiceConnection::process_request(const std::string& request,
 	Json::Reader reader;
 	Json::Value root;
 	Json::Value response_json = Json::objectValue;
+	Json::Value response_data = Json::objectValue;
 
 	try {
 		bool success = reader.parse(request, root, false);
@@ -48,7 +49,8 @@ void ServiceConnection::process_request(const std::string& request,
 		LOG(DEBUG) << "CMD:" << cmd;
 		LOG(DEBUG) << "DATA:" << data;
 		response_json["success"] = true;
-		this->dispatch(cmd, data, response_json);
+		this->dispatch(cmd, data, response_data);
+		response_json["data"] = response_data;
 	}
 	catch(const ServiceOperationError& e) {
 		response_json["success"] = false;
@@ -115,6 +117,9 @@ void ServiceConnection::dispatch(const std::string& cmd,
 		}
 		else if(cmd.compare("get_domain_lists") == 0) {
 			handle_get_domain_lists(data, response_json, errors);
+		}
+		else if(cmd.compare("get_domain_list") == 0) {
+			handle_get_domain_list(data, response_json, errors);
 		}
 		else if(cmd.compare("delete_domain_list") == 0) {
 			handle_delete_domain_list(data, response_json, errors);
@@ -238,6 +243,20 @@ void ServiceConnection::handle_get_domain_lists(
 	for(auto const& lst : *result_ptr) {
 		response["domain_lists"].append((Json::Value)lst);
 	}
+}
+
+void ServiceConnection::handle_get_domain_list(
+	const Json::Value& data,
+	Json::Value& response,
+	types::Errors_t& /* errors */) const
+{
+	std::string name = data["name"].asString();
+	if(name.empty()) {
+		throw ServiceOperationError("No name given.");
+	}
+	manager::DomainListManager mgr(api_);
+	auto result_ptr = mgr.get(name, data["with_domains"].asBool());
+	result_ptr->to_json(response);
 }
 
 void ServiceConnection::handle_get_version(

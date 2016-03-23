@@ -23,7 +23,7 @@ bool ServiceResponse::is_ok() const
 
 const Json::Value& ServiceResponse::get_data() const
 {
-	return data_;
+	return data_["data"];
 }
 
 const std::string& ServiceResponse::get_error_msg() const
