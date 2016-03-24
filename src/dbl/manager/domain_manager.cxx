@@ -31,7 +31,6 @@ void DomainManager::filter_valid(const types::Names_t& domains,
 	}
 }
 
-
 std::unique_ptr<types::DomainSet_t>
 DomainManager::get(int list_id)
 {
