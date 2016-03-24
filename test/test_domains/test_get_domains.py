@@ -17,7 +17,7 @@ class TestGetDomains(unittest.TestCase):
 	def test_blocked(self):
 		with Server() as server:
 			client = Client(server=server)
-			blocked_domains = ["testdomain.com", "example-test.com"]
+			blocked_domains = ["microsoft.com", "facebook.com"]
 			response = client.call("block", {
 				"domains" : blocked_domains
 			})
@@ -27,14 +27,14 @@ class TestGetDomains(unittest.TestCase):
 				"type": "blocked"
 			})
 			self.assertTrue(response.is_ok(), "Got blocked domains")
-			names = map(lambda d: d["name"], response.data()["domains"])
+			names = map(lambda d: d["name"], response.data())
 			for domain in blocked_domains:
-				self.assertTrue(domain in names)
+				self.assertTrue(domain in names, domain)
 
 	def test_whitelisted(self):
 		with Server() as server:
 			client = Client(server=server)
-			domains = ["testdomain.com", "example-test.com"]
+			domains = ["wikipedia.org", "ietf.org"]
 			response = client.call("unblock", {
 				"domains" : domains
 			})
@@ -45,7 +45,7 @@ class TestGetDomains(unittest.TestCase):
 			})
 
 			self.assertTrue(response.is_ok(), "Got whitelisted domains")
-			names = list(map(lambda d: d["name"], response.data()["domains"]))
+			names = list(map(lambda d: d["name"], response.data()))
 			for domain in domains:
 				self.assertTrue(domain in names, "Whitelisted: " + domain)
 
@@ -58,14 +58,14 @@ class TestGetDomains(unittest.TestCase):
 	def test_get_domain(self):
 		with Server() as server:
 			client = Client(server=server)
-			blocked_domains = ["testdomain.com", "example-test.com"]
+			blocked_domains = ["microsoft.com", "apple.com"]
 			response = client.call("block", {
 				"domains" : blocked_domains
 			})
-			response = client.call("get_domain", {"name": "example-test.com"})
+			response = client.call("get_domain", {"name": "apple.com"})
 			self.assertTrue(response.is_ok(), "Got domain")
 			self.assertEqual(
 				response.data()["name"],
-				"example-test.com",
+				"apple.com",
 				"Name"
 			)

@@ -13,7 +13,7 @@ class TestReload(unittest.TestCase):
 			self.assertTrue(first_pid > 0, "Server alive")
 			client = Client(server=server)
 			response = client.call("status")
-			t1 = response.data()["status"]["start_time"]
+			t1 = response.data()["start_time"]
 			self.assertGreater(t1, 0, "Has start timestamp")
 			# NOTE: This is naive and bad, but we need
 			# to make server spend some time alive
@@ -37,5 +37,5 @@ class TestReload(unittest.TestCase):
 						client = None
 				self.assertTrue(client is not None, "Got client")
 				response = client.call("status")
-				t2 = response.data()["status"]["start_time"]
+				t2 = response.data()["start_time"]
 				self.assertGreater(t2, t1, "Reloaded")

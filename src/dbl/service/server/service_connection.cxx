@@ -149,7 +149,7 @@ void ServiceConnection::handle_status(
 	Json::Value& response,
 	types::Errors_t& /* errors */) const
 {
-	response["status"] = Json::Value(api_->status);
+	api_->status.to_json(response);
 }
 
 void ServiceConnection::handle_flush_dns(
@@ -241,9 +241,9 @@ void ServiceConnection::handle_get_domain_lists(
 {
 	manager::DomainListManager mgr(api_);
 	auto result_ptr = mgr.get();
-	response["domain_lists"] = Json::arrayValue;
+	response = Json::arrayValue;
 	for(auto const& lst : *result_ptr) {
-		response["domain_lists"].append((Json::Value)lst);
+		response.append((Json::Value)lst);
 	}
 }
 
@@ -266,7 +266,7 @@ void ServiceConnection::handle_get_version(
 		Json::Value& response,
 		types::Errors_t& /*errors*/) const
 {
-	response["version"] = dbl::core::constants::VERSION;
+	response = dbl::core::constants::VERSION;
 }
 
 void ServiceConnection::handle_get_domain(
@@ -312,10 +312,10 @@ void ServiceConnection::handle_get_domains(
 		throw ServiceOperationError("Unable to get domains");
 	}
 
-	response["domains"] = Json::arrayValue;
+	response = Json::arrayValue;
 
 	for(auto const& domain : *domains) {
-		response["domains"].append(domain);
+		response.append(domain);
 	}
 }
 

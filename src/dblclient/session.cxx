@@ -40,7 +40,7 @@ std::string Session::get_server_version()
 	auto response = connection_->execute(req);
 	set_error(*response);
 	if(response->is_ok()) {
-		return response->get_data()["version"].asString();
+		return response->get_data().asString();
 	}
 
 	return "";
@@ -108,7 +108,7 @@ bool Session::get_domain_lists(types::DomainListsSet_t& lst)
 	auto response = connection_->execute(req);
 	set_error(*response);
 	if(response->is_ok()) {
-		for(auto const& d : response->get_data()["domain_lists"]) {
+		for(auto const& d : response->get_data()) {
 			types::DomainList_t dl;
 			dl.init_from_json(d);
 			lst.push_back(dl);
@@ -164,7 +164,7 @@ bool Session::get_domains(types::DomainSet_t& lst, bool blocked)
 	auto response = connection_->execute(req);
 	set_error(*response);
 	if(response->is_ok()) {
-		for(auto const& d : response->get_data()["domains"]) {
+		for(auto const& d : response->get_data()) {
 			types::Domain_t domain;
 			domain.init_from_json(d);
 			lst.push_back(domain);

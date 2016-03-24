@@ -56,14 +56,14 @@ class Server(Manager):
 		with open(self._logfile, "w+") as lh:
 			lh.write("# Test case log\n")
 
-	def _cleanup_env(self):
+	def _cleanup(self):
 		shutil.rmtree(self._dns_proxy_config_destdir)
 		try:
 			os.unlink(self._pidfile)
 		except OSError as e:
 			if e.errno != errno.ENOENT:
 				self._logger.error(e)
-				#print(e)
+				print(e)
 
 	def get_pid(self):
 		return self._server_pid
@@ -178,4 +178,4 @@ class Server(Manager):
 		if self._verbose:
 			self._stop_threads_flag = True
 			self._tail_thread.join()
-		self._cleanup_env()
+		self._cleanup()

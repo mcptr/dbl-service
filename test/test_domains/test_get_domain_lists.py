@@ -9,7 +9,6 @@ class TestDomainLists(unittest.TestCase):
 			client = Client(server=server)
 			response = client.call("get_domain_lists")
 			self.assertTrue(response.is_ok(), "Got response")
-			self.assertTrue("domain_lists" in response.data(), "Body")
-			lst = response.data()["domain_lists"]
+			lst = response.data()
 			self.assertEqual(len(lst), 1, "One domain list")
 			self.assertEqual(lst[0]["name"], "CUSTOM")

@@ -21,6 +21,9 @@ public:
 
 	bool block_domains(const types::Names_t& domains, int list_id = 0);
 	bool unblock_domains(const types::Names_t& domains);
+
+	void filter_valid(const types::Names_t& domains,
+					  types::Names_t& result);
 };
 
 } // manager

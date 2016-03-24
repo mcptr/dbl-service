@@ -2,8 +2,8 @@
 #include "dbl/core/common.hxx"
 #include "dbl/db/db.hxx"
 #include "dbl/db/dml/queries.hxx"
+#include "dbl/validator/domain.hxx"
 #include "domain_list_manager.hxx"
-
 
 namespace dbl {
 namespace manager {
@@ -12,6 +12,25 @@ DomainManager::DomainManager(std::shared_ptr<core::Api> api)
 	: Manager(api)
 {
 }
+
+void DomainManager::filter_valid(const types::Names_t& domains,
+								 types::Names_t& result)
+{
+	//Note: slow
+	for(auto const& d : domains) {
+		types::Errors_t errors;
+		if(validator::domain::is_valid(d, errors)) {
+			result.push_back(d);
+		}
+		else {
+			LOG(WARNING) << "Ignoring domain: " << d;
+			for(auto const& err : errors) {
+				LOG(WARNING) << err;
+			}
+		}
+	}
+}
+
 
 std::unique_ptr<types::DomainSet_t>
 DomainManager::get(int list_id)
@@ -132,11 +151,11 @@ bool DomainManager::block_domains(const types::Names_t& domains,
 {
 	using namespace soci;
 
-	if(domains.empty()) {
+	types::Names_t valid_domains;
+	filter_valid(domains, valid_domains);
+	if(valid_domains.empty()) {
 		return false;
 	}
-
-	//TODO: validate domains
 
 	if(!list_id) {
 		DomainListManager list_mgr(api_);
@@ -150,17 +169,17 @@ bool DomainManager::block_domains(const types::Names_t& domains,
 		statement st_del = (
 			session_ptr->prepare << "DELETE FROM whitelisted_domains "
 			<< "WHERE name = ?",
-			use(domains)
+			use(valid_domains)
 		);
 
 		st_del.execute(true);
 
 		std::string q(
-			"INSERT OR REPLACE INTO domains(name, list_id)"
+			"INSERT OR IGNORE INTO domains(name, list_id)"
 			"  VALUES(?, " + std::to_string(list_id) + ")"
 		);
 
-		statement st_ins = (session_ptr->prepare << q, use(domains));
+		statement st_ins = (session_ptr->prepare << q, use(valid_domains));
 		st_ins.execute(true);
 		session_ptr->commit();
 	}
@@ -176,6 +195,13 @@ bool DomainManager::unblock_domains(const types::Names_t& domains)
 {
 	using namespace soci;
 
+
+	types::Names_t valid_domains;
+	filter_valid(domains, valid_domains);
+	if(valid_domains.empty()) {
+		return false;
+	}
+
 	try {
 		auto session_ptr = api_->db()->session();
 		session_ptr->begin();
@@ -185,7 +211,7 @@ bool DomainManager::unblock_domains(const types::Names_t& domains)
 			"  VALUES(?)"
 		);
 
-		statement st = (session_ptr->prepare << q, use(domains));
+		statement st = (session_ptr->prepare << q, use(valid_domains));
 		st.execute(true);
 		session_ptr->commit();
 	}

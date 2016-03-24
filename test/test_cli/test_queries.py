@@ -28,7 +28,7 @@ class TestCLI(unittest.TestCase):
 
 	def test_domains(self):
 		manager = Manager(verbose=True)
-		domain = "cli-blocked-example.com"
+		domain = "gmail.com"
 		status = manager.run(["-B", domain])
 		self.assertEqual(status, 0)
 
