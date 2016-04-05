@@ -1,4 +1,3 @@
-
 class Base(object):
 	def __init__(self, name, options):
 		self.name = name

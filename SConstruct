@@ -228,7 +228,7 @@ if GetOption("build_tests"):
 
 	exports = [
 		"extend_env", "env", "Dirs",
-		"common_translation_units",	"common_target_objects",
+		"common_translation_units", "common_target_objects",
 		"THIS_PLATFORM", 
 	]
 

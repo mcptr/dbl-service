@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 	std::string address = server->get_address();
 	int port = server->get_port();
 
-	std::string test_domain_name = "test-domain.com";
+	std::string test_domain_name = "facebook.com";
 	dblclient::types::DomainList_t new_list;
 	new_list.name = "test-domain-list";
 	new_list.url = "http://example/test-domain-list";
