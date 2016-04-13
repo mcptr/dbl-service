@@ -5,6 +5,6 @@
 #define ELPP_DISABLE_DEFAULT_CRASH_HANDLING
 #define ELPP_STACKTRACE_ON_CRASH
 
-#include "easylogging++.h"
+#include <easylogging++.h>
 
 #endif

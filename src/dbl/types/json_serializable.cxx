@@ -17,7 +17,7 @@ bool JSONSerializable::parse_json(const std::string& input,
 	Json::Reader reader;
 	bool success = reader.parse(input, root);
 	if(!success) {
-		LOG(ERROR) << reader.getFormattedErrorMessages();
+		//LOG(ERROR) << reader.getFormattedErrorMessages();
 		return false;
 	}
 

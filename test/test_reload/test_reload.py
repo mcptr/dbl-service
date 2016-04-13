@@ -18,8 +18,8 @@ class TestReload(unittest.TestCase):
 			# NOTE: This is naive and bad, but we need
 			# to make server spend some time alive
 			time.sleep(1)
-			response = client.call("reload")
-			self.assertTrue(response.is_ok())
+			response = client.send("reload")
+
 			with open(server.get_pidfile_path(), "r") as f:
 				second_pid = int(f.read())
 				self.assertTrue(second_pid > 0, "Server alive")

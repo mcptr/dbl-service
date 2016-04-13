@@ -12,6 +12,11 @@ ServiceConnection::ServiceConnection()
 	check_deadline();
 }
 
+ServiceConnection::~ServiceConnection()
+{
+	close();
+}
+
 void ServiceConnection::open(
 	const std::string& address,
 	int port,
@@ -41,7 +46,16 @@ void ServiceConnection::open(
 		throw DBLClientError("Cannot connect");
 	}
 }
- 
+
+void ServiceConnection::close()
+{
+	if(socket_.is_open()) {
+		socket_.cancel();
+		//socket_.shutdown(bip::tcp::socket::shutdown_both);
+		socket_.close();
+	}
+}
+
 void ServiceConnection::write(
 	const std::string& data,
 	bpt::time_duration timeout) throw (DBLClientError)
@@ -67,7 +81,6 @@ void ServiceConnection::read(
 	std::string& result,
 	bpt::time_duration timeout) throw (DBLClientError)
 {
-
 	boost::system::error_code ec = ba::error::would_block;
 	std::size_t length = 0;
 

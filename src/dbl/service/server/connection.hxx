@@ -20,7 +20,7 @@ public:
 	Connection() = delete;
 	Connection(std::shared_ptr<core::Api> api,
 			   boost::asio::ip::tcp::socket socket);
-	virtual ~Connection() = default;
+	virtual ~Connection();
 
 	virtual void handle();
 
@@ -31,6 +31,8 @@ protected:
 	boost::array<char, MAX_REQUEST_SIZE> data_;
 
 	void read();
+	void close();
+
 	virtual void respond(const std::string& response) final;
 
 	virtual void process_request(const std::string& request,

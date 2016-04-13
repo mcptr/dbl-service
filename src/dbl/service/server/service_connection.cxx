@@ -329,9 +329,10 @@ void ServiceConnection::handle_delete_domain_list(
 
 void ServiceConnection::handle_reload(
 	const Json::Value& /* data */,
-	Json::Value& /*response*/,
-	types::Errors_t& /* errors */) const
+	Json::Value& /* response */,
+	types::Errors_t& /* errors */)
 {
+	this->close();
 	Service::service_ptr->signal_stop();
 }
 

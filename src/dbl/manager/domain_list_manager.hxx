@@ -36,6 +36,8 @@ public:
 	std::unique_ptr<types::DomainList>
 	get(const std::string& name, bool with_domains = false);
 
+	std::size_t count();
+
 };
 
 } // manager

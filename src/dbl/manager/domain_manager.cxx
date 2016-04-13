@@ -222,5 +222,29 @@ bool DomainManager::unblock_domains(const types::Names_t& domains)
 	return true;
 }
 
+std::size_t DomainManager::count_blocked()
+{
+	int cnt = 0;
+	try {
+		const std::string q = (
+			"SELECT COUNT(*) FROM domains d"
+			"  LEFT JOIN domain_lists dl ON dl.id = d.list_id "
+			"  WHERE d.name NOT IN ("
+			"    SELECT wd.name FROM whitelisted_domains wd)"
+		);
+
+		auto session_ptr = api_->db()->session();
+		session_ptr->begin();
+		*session_ptr << q, soci::into(cnt);
+		session_ptr->commit();
+	}
+	catch(const std::runtime_error& e) {
+		LOG(ERROR) << e.what();
+		return false;
+	}
+
+	return cnt;
+}
+
 } // manager
 } // dbl

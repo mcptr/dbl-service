@@ -6,6 +6,9 @@
 #include "dbl/service/service.hxx"
 #include "dbl/query/query.hxx"
 
+#include "dbl/manager/domain_list_manager.hxx"
+#include "dbl/manager/domain_manager.hxx"
+
 #include <memory>
 #include <string>
 #include <cstdlib>
@@ -126,6 +129,12 @@ int main(int argc, char** argv)
 		}
 
 		if(!config.is_test) {
+			dbl::manager::DomainListManager dlmgr(api);
+			dbl::manager::DomainManager dmgr(api);
+			api->status.init();
+			api->status.total_lists = dlmgr.count();
+			api->status.total_blocked_domains = dmgr.count_blocked();
+
 			service::Service::service_ptr->run();
 		}
 

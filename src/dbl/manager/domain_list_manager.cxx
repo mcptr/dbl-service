@@ -213,5 +213,27 @@ bool DomainListManager::set_enabled(const std::string& name, bool enabled)
 	return true;
 }
 
+std::size_t DomainListManager::count()
+{
+	int cnt = 0;
+	try {
+		const std::string q = (
+			"SELECT count(*) FROM domain_lists "
+			"  WHERE active = 1"
+		);
+
+		auto session_ptr = api_->db()->session();
+		session_ptr->begin();
+		*session_ptr << q, soci::into(cnt);
+		session_ptr->commit();
+	}
+	catch(const std::runtime_error& e) {
+		LOG(ERROR) << e.what();
+		return false;
+	}
+
+	return cnt;
+}
+
 } // manager
 } // dbl

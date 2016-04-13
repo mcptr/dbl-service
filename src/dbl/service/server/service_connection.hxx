@@ -129,7 +129,7 @@ protected:
 	void handle_reload(
 		const Json::Value& data,
 		Json::Value& response,
-		types::Errors_t& errors) const;
+		types::Errors_t& errors);
 };
 
 } // server

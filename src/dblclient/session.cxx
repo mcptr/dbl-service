@@ -6,12 +6,12 @@
 namespace dblclient {
 
 Session::Session()
-	: connection_(new net::ServiceConnection())
 {
 }
 
 void Session::open(const std::string& address, int port)
 {
+	connection_.reset(new net::ServiceConnection());
 	connection_->open(address, port);
 }
 
@@ -201,6 +201,25 @@ bool Session::manage_domains(const types::Names_t& names, bool block)
 	req.set_parameter("domains", arr);
 	auto response = connection_->execute(req);
 	set_error(*response);
+	return response->is_ok();
+}
+
+bool Session::send_reload()
+{
+	net::ServiceRequest req("reload");
+	auto response = connection_->execute(req);
+	set_error(*response);
+	return response->is_ok();
+}
+
+bool Session::get_status(dbl::status::Status& status)
+{
+	net::ServiceRequest req("status");
+	auto response = connection_->execute(req);
+	set_error(*response);
+	if(response->is_ok()) {
+		status.init_from_json(response->get_data());
+	}
 	return response->is_ok();
 }
 

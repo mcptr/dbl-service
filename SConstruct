@@ -169,7 +169,9 @@ server_platform_translation_units = {
 	}
 }
 
-server_translation_units.update(server_platform_translation_units[THIS_PLATFORM])
+server_translation_units.update(
+	server_platform_translation_units[THIS_PLATFORM]
+)
 
 common_target_objects = []
 main_target_objects = []

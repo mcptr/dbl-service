@@ -24,12 +24,15 @@ class ServiceConnection
 public:
 	ServiceConnection();
 	explicit ServiceConnection(const ServiceConnection&) = delete;
+	virtual ~ServiceConnection();
 
 	void open(
 		const std::string& address = "127.0.0.1",
 		int port = 7654,
 		bpt::time_duration timeout = bpt::seconds(5)
 	) throw (DBLClientError);
+
+	void close();
 
 	void write(
 		const std::string& data,

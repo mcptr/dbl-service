@@ -26,7 +26,7 @@ void DomainList::init_from_json(const Json::Value& root)
 	}
 
 	if(!root["domains"].empty() && !root["domains"].isArray()) {
-		LOG(ERROR) << "Invalid format, expected array at 'domains'";
+		//LOG(ERROR) << "Invalid format, expected array at 'domains'";
 		throw std::runtime_error("Invalid format");
 	}
 	else {
@@ -39,12 +39,12 @@ void DomainList::init_from_json(const Json::Value& root)
 					domain.name = item["name"].asString();
 					domains.push_back(domain);
 				}
-				else {
-					for(auto const& err : errors) {
-						LOG(WARNING) << item["name"].asString()
-									 << ": " << err;
-					}
-				}
+				// else {
+				// 	for(auto const& err : errors) {
+				// 		LOG(WARNING) << item["name"].asString()
+				// 					 << ": " << err;
+				// 	}
+				// }
 			}
 		}
 	}

@@ -11,7 +11,7 @@ void Domain::init_from_json(const Json::Value& root)
 	using namespace validator::domain;
 
 	if(!root.isObject()) {
-		LOG(ERROR) << "Invalid format, expected object at root";
+		//LOG(ERROR) << "Invalid format, expected object at root";
 		throw std::runtime_error("Invalid format");
 	}
 
@@ -20,13 +20,13 @@ void Domain::init_from_json(const Json::Value& root)
 		if(is_valid(root["name"].asString(), errors)) {
 			name = root["name"].asString();
 		}
-		else {
-			for(auto const& err : errors) {
-				LOG(WARNING) << "Ignoring: "
-							 << root["name"].asString()
-							 << ": " << err;
-			}
-		}
+		// else {
+		// 	for(auto const& err : errors) {
+		// 		LOG(WARNING) << "Ignoring: "
+		// 					 << root["name"].asString()
+		// 					 << ": " << err;
+		// 	}
+		// }
 	}
 
 	if(!root["list_id"].empty()) {

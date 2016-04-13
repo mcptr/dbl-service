@@ -38,6 +38,13 @@ class Client(object):
 		resp = self._read()
 		return Response(resp)
 
+	def send(self, cmd, data = None):
+		request = {
+			"command": cmd.lower(),
+			"data": (data or {})
+		}
+		self._send(json.dumps(request))
+
 	def _send(self, data):
 		try:
 			self._conn.sendall(data.encode("utf-8"))

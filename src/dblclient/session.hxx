@@ -4,6 +4,8 @@
 #include "types.hxx"
 #include "net/service_connection.hxx"
 #include "net/service_response.hxx"
+#include "dbl/status/status.hxx"
+
 #include <string>
 #include <memory>
 
@@ -37,10 +39,13 @@ public:
 	bool get_whitelisted_domains(types::DomainSet_t& lst);
 	bool get_domains(types::DomainSet_t& lst, bool blocked = true);
 	bool get_domain(types::Domain_t& domain);
+	bool get_status(dbl::status::Status& status);
 
 	bool block_domain(const std::string& name);
 	bool unblock_domain(const std::string& name);
 	bool manage_domains(const types::Names_t& names, bool block);
+
+	bool send_reload();
 
 private:
 	std::unique_ptr<net::ServiceConnection> connection_;
