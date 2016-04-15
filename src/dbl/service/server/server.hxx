@@ -79,7 +79,13 @@ void Server<ConnectionType>::accept()
 		socket_,
 		[this](boost::system::error_code error) {
 			if(!error) {
-				std::make_shared<ConnectionType>(api_, std::move(socket_))->handle();
+				boost::asio::ip::tcp::endpoint endpoint = socket_.remote_endpoint();
+				LOG(INFO) << "Accepting new connection"
+						  << endpoint.address() << ":" << endpoint.port();
+				std::make_shared<ConnectionType>(
+					api_,
+					std::move(socket_)
+				)->handle();
 			}
 			else {
 				LOG(ERROR) << "Server accept() failed";

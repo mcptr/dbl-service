@@ -47,6 +47,8 @@ public:
 	std::unique_ptr<ServiceResponse>
 	execute(const ServiceRequest& req) throw (DBLClientError);
 
+	void send_one_way(const ServiceRequest& req) throw (DBLClientError);
+
 
 private:
 	ba::io_service io_service_;

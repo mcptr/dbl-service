@@ -37,7 +37,7 @@ AddOption(
 	dest="disable_client_build",
 	action="store_true",
 	default=False,
-	help="Do not client")
+	help="Do not build client")
 
 AddOption(
 	"--with-tests",
@@ -54,6 +54,7 @@ class Dirs(object):
 	source = "#src"
 	source_service = os.path.join("#src", "dbl")
 	source_dblclient = os.path.join("#src", "dblclient")
+	source_test = os.path.join("#src", "test")
 	extern_include = os.path.join(os.environ["VIRTUAL_ENV"], "include")
 	project_source = source
 	destdir = "#bin"
@@ -212,7 +213,7 @@ if not GetOption("disable_server_build"):
 
 if not GetOption("disable_client_build"):
 	SConscript(
-		os.path.join(Dirs.source, "dblclient", "SConscript"),
+		os.path.join(Dirs.source_dblclient, "SConscript"),
 		exports=[
 			"extend_env", "env", "Dirs", "common_translation_units",
 			"common_target_objects", "THIS_PLATFORM", 
@@ -224,7 +225,7 @@ if not GetOption("disable_client_build"):
 if GetOption("build_tests"):
 	test_sconscripts = {
 		"dblclient": os.path.join(
-			Dirs.source, "test", "dblclient", "SConscript"
+			Dirs.source_test, "dblclient", "SConscript"
 		),
 	}
 

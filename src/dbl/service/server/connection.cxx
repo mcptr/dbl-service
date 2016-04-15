@@ -13,20 +13,6 @@ Connection::Connection(std::shared_ptr<core::Api> api,
 {
 }
 
-Connection::~Connection()
-{
-	this->close();
-}
-
-void Connection::close()
-{
-	if(socket_.is_open()) {
-		socket_.cancel();
-		socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-		socket_.close();
-	}
-}
-
 void Connection::handle()
 {
 	read();

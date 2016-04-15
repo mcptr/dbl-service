@@ -45,7 +45,7 @@ public:
 	bool unblock_domain(const std::string& name);
 	bool manage_domains(const types::Names_t& names, bool block);
 
-	bool send_reload();
+	void send_reload();
 
 private:
 	std::unique_ptr<net::ServiceConnection> connection_;

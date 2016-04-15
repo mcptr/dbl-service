@@ -1,6 +1,7 @@
 #include "service_connection.hxx"
 #include <boost/lambda/lambda.hpp>
 
+
 namespace dblclient {
 namespace net {
 
@@ -14,7 +15,17 @@ ServiceConnection::ServiceConnection()
 
 ServiceConnection::~ServiceConnection()
 {
-	close();
+	socket_.cancel();
+
+	try {
+		if(socket_.is_open()) {
+			socket_.shutdown(
+				boost::asio::ip::tcp::socket::shutdown_both);
+		}
+	}
+	catch(const std::runtime_error& e) {
+	}
+	socket_.close();
 }
 
 void ServiceConnection::open(
@@ -42,17 +53,9 @@ void ServiceConnection::open(
 		io_service_.run_one();
 	}
 	while(error == ba::error::would_block);
+
 	if(error || !socket_.is_open()) {
 		throw DBLClientError("Cannot connect");
-	}
-}
-
-void ServiceConnection::close()
-{
-	if(socket_.is_open()) {
-		socket_.cancel();
-		//socket_.shutdown(bip::tcp::socket::shutdown_both);
-		socket_.close();
 	}
 }
 
@@ -72,6 +75,7 @@ void ServiceConnection::write(
 		io_service_.run_one();
 	}
 	while(error == ba::error::would_block);
+
 	if(error) {
 		throw DBLClientError(error.message());
 	}
@@ -92,7 +96,12 @@ void ServiceConnection::read(
 		socket_,
 		read_buffer,
 		eof_marker_,
-		[&ec, &length](const boost::system::error_code error, std::size_t len) {
+		[&ec, &length](const boost::system::error_code& error, std::size_t len) {
+			if(error == boost::asio::error::eof ||
+			   error == boost::asio::error::connection_reset) {
+				throw DBLClientError("Read failed (connection closed)");
+			}
+
 			ec = error;
 			length = len;
 		}
@@ -124,6 +133,11 @@ ServiceConnection::execute(const ServiceRequest& req) throw(DBLClientError)
 	);
 
 	return std::move(ptr);
+}
+
+void ServiceConnection::send_one_way(const ServiceRequest& req) throw(DBLClientError)
+{
+	write(req.to_string());
 }
 
 void ServiceConnection::check_deadline()

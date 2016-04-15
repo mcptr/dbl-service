@@ -16,6 +16,7 @@ const std::string get_blocked_domains = (
 	"  AND dl.active = 1"
 	"  WHERE d.name NOT IN ("
 	"     SELECT wd.name from whitelisted_domains wd)"
+	" ORDER by d.name asc"
 );
 
 const std::string get_domains = (

@@ -26,7 +26,6 @@ target_objects = list(
 	)
 )
 
-
 shared_library = client_env.SharedLibrary(
 	"dblclient-fPIC",
 	[target_objects, common_target_objects]

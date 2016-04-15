@@ -204,12 +204,10 @@ bool Session::manage_domains(const types::Names_t& names, bool block)
 	return response->is_ok();
 }
 
-bool Session::send_reload()
+void Session::send_reload()
 {
 	net::ServiceRequest req("reload");
-	auto response = connection_->execute(req);
-	set_error(*response);
-	return response->is_ok();
+	connection_->send_one_way(req);
 }
 
 bool Session::get_status(dbl::status::Status& status)
@@ -220,6 +218,7 @@ bool Session::get_status(dbl::status::Status& status)
 	if(response->is_ok()) {
 		status.init_from_json(response->get_data());
 	}
+
 	return response->is_ok();
 }
 

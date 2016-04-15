@@ -51,7 +51,7 @@ void Worker::stop()
 }
 void Worker::run_servers()
 {
-	if(api_->config.service_port) {
+	if(api_->config.service_port > 0) {
 		try {
 			this->server_ptr_.reset(
 				new server::Server<server::ServiceConnection>(

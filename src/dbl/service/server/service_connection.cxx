@@ -332,7 +332,9 @@ void ServiceConnection::handle_reload(
 	Json::Value& /* response */,
 	types::Errors_t& /* errors */)
 {
-	this->close();
+	socket_.cancel();
+	socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+	socket_.close();
 	Service::service_ptr->signal_stop();
 }
 
