@@ -14,21 +14,32 @@ int main(int argc, char** argv)
 	std::string address = server->get_address();
 	int port = server->get_port();
 
-	std::string test_domain_name = "facebook.com";
+	std::string test_domain_name = "sex.com";
 	dblclient::types::DomainList_t new_list;
 	new_list.name = "test-domain-list";
 	new_list.url = "http://example/test-domain-list";
 	new_list.description = "test domain list";
 	new_list.add_domain(test_domain_name);
 
+
+	std::string test_domain_whitelisted = "wikipedia.org";
+	dblclient::types::DomainList_t white_list;
+	white_list.name = "test-domain-whitelist";
+	white_list.url = "http://example/white-list";
+	white_list.description = "test domain white list";
+	white_list.add_domain(test_domain_whitelisted);
+
 	unit_test.test_case(
 		"import_domain_list",
-		[&address, &port, &new_list](TestCase& test)
+		[&address, &port, &new_list, &white_list](TestCase& test)
 		{
 			Session session;
 			session.open(address, port);
 			bool ok = session.import_domain_list(new_list);
 			test.assert_true(ok, "import_domain_list");
+
+			ok = session.import_domain_list(white_list);
+			test.assert_true(ok, "import_domain_list with whitelist");
 		}
 	);
 

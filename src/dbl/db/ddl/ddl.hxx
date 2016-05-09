@@ -25,6 +25,7 @@ const std::string domain_lists_table_schema =
 	"  description VARCHAR(255) DEFAULT '', "
 	"  active BOOLEAN NOT NULL DEFAULT 1, "
 	"  custom BOOLEAN NOT NULL DEFAULT 0, "
+	"  is_whitelist BOOLEAN NOT NULL DEFAULT 0, "
 	"  mtime INTEGER DEFAULT 0"
 	")";
 
@@ -36,10 +37,10 @@ const std::string domains_table_schema =
 	"    ON UPDATE CASCADE ON DELETE CASCADE"
 	")";
 
-const std::string whitelisted_domains_table_schema =
-	"CREATE TABLE IF NOT EXISTS whitelisted_domains("
-	"  name VARCHAR(255) NOT NULL UNIQUE "
-	")";
+// const std::string whitelisted_domains_table_schema =
+// 	"CREATE TABLE IF NOT EXISTS whitelisted_domains("
+// 	"  name VARCHAR(255) NOT NULL UNIQUE "
+// 	")";
 
 const std::string stats_domains_table_schema =
 	"CREATE TABLE IF NOT EXISTS stats_domains("

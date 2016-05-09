@@ -19,6 +19,7 @@ class TestAuth(unittest.TestCase):
 				password_hash=hashed_password,
 				token_hash=hashed_token,
 			))
+
 			self.assertTrue(response.is_ok(), "Password changed")
 
 			cmds = [

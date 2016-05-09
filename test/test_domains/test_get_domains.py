@@ -27,7 +27,7 @@ class TestGetDomains(unittest.TestCase):
 				"type": "blocked"
 			})
 			self.assertTrue(response.is_ok(), "Got blocked domains")
-			names = map(lambda d: d["name"], response.data())
+			names = list( map(lambda d: d["name"], response.data()))
 			for domain in blocked_domains:
 				self.assertTrue(domain in names, domain)
 

@@ -10,5 +10,6 @@ class TestDomainLists(unittest.TestCase):
 			response = client.call("get_domain_lists")
 			self.assertTrue(response.is_ok(), "Got response")
 			lst = response.data()
-			self.assertEqual(len(lst), 1, "One domain list")
+			self.assertEqual(len(lst), 2, "One domain list")
 			self.assertEqual(lst[0]["name"], "CUSTOM")
+			self.assertEqual(lst[1]["name"], "WHITELIST")

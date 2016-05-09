@@ -38,7 +38,7 @@ void DB::init()
 	sql << DDL::settings_table_schema;
 	sql << DDL::domain_lists_table_schema;
 	sql << DDL::domains_table_schema;
-	sql << DDL::whitelisted_domains_table_schema;
+	//sql << DDL::whitelisted_domains_table_schema;
 	sql << DDL::stats_domains_table_schema;
 
 	int total_lists = 0;

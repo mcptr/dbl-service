@@ -77,6 +77,8 @@ void ServiceConnection::dispatch(const std::string& cmd,
 {
 	types::Errors_t errors;
 
+	LOG(DEBUG) << "DISPATCH CMD: " << cmd;
+
 	if(cmd.compare("get_token") == 0) {
 		response_json["token"] = auth_.get_token();
 	}

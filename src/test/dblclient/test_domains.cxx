@@ -79,7 +79,6 @@ int main(int argc, char** argv)
 		}
 	);
 
-
 	unit_test.test_case(
 		"unblock single",
 		[&address, &port, &test_set, &single_domain](TestCase& test) {

@@ -98,6 +98,7 @@ DomainManager::get_blocked()
 	try {
 		auto session_ptr = api_->db()->session();
 
+		LOG(ERROR) << "GETTING BLOCKED: " << dml::queries::get_blocked_domains;
 		statement st = (
 			session_ptr->prepare << dml::queries::get_blocked_domains,
 			into(record)
@@ -129,7 +130,7 @@ DomainManager::get_whitelisted()
 		auto session_ptr = api_->db()->session();
 
 		statement st = (
-			session_ptr->prepare << dml::queries::get_whitelisted_domains,
+			session_ptr->prepare << dml::queries::get_all_whitelisted_domains,
 			into(record)
 		);
 
@@ -166,8 +167,9 @@ bool DomainManager::block_domains(const types::Names_t& domains,
 		session_ptr->begin();
 
 		statement st_del = (
-			session_ptr->prepare << "DELETE FROM whitelisted_domains "
-			<< "WHERE name = ?",
+			session_ptr->prepare << "DELETE FROM domains"
+			<< " WHERE name = ? AND list_id NOT IN("
+			<< " SELECT dl.id from domain_lists dl WHERE dl.is_whitelist = 1)",
 			use(valid_domains)
 		);
 
@@ -194,20 +196,21 @@ bool DomainManager::unblock_domains(const types::Names_t& domains)
 {
 	using namespace soci;
 
-
 	types::Names_t valid_domains;
 	filter_valid(domains, valid_domains);
 	if(valid_domains.empty()) {
 		return false;
 	}
 
+	LOG(ERROR) << "UNLBOCK" << domains.at(0);
+
 	try {
 		auto session_ptr = api_->db()->session();
 		session_ptr->begin();
 
 		std::string q(
-			"INSERT OR IGNORE INTO whitelisted_domains(name)"
-			"  VALUES(?)"
+			"INSERT OR REPLACE INTO domains(name, list_id)"
+			"  VALUES(?, (SELECT id FROM domain_lists WHERE name='WHITELIST'))"
 		);
 
 		statement st = (session_ptr->prepare << q, use(valid_domains));
@@ -228,9 +231,7 @@ std::size_t DomainManager::count_blocked()
 	try {
 		const std::string q = (
 			"SELECT COUNT(*) FROM domains d"
-			"  LEFT JOIN domain_lists dl ON dl.id = d.list_id "
-			"  WHERE d.name NOT IN ("
-			"    SELECT wd.name FROM whitelisted_domains wd)"
+			"  LEFT JOIN domain_lists dl ON  dl.is_whitelist = 0 AND dl.id = d.list_id"
 		);
 
 		auto session_ptr = api_->db()->session();
