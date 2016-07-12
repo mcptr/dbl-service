@@ -1,5 +1,7 @@
 #include "http.hxx"
 #include <boost/algorithm/string.hpp>
+#include <string>
+#include <vector>
 
 namespace dbl {
 namespace util {

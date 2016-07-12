@@ -4,6 +4,7 @@
 #include "dbl/config/config.hxx"
 #include <boost/program_options.hpp>
 #include <string>
+#include <iostream>
 
 namespace dbl {
 
